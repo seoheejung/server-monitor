@@ -90,7 +90,7 @@ web/
 │   │   └── log.py       # 로그 tail 기능
 │   ├── templates/       # 웹 화면(HTML)
 │   │   └── dashboard.html
-│   └── static/          # CSS 같은 정적 파일
+│   └── static/          # 정적 파일
 │       └── style.css
 ├── db/
 │   └── monitor.db       # (추후 사용) 데이터 저장용 DB
@@ -259,7 +259,48 @@ uvicorn app.main:app --reload
 
 <br>
 
-### 2단계: Git으로 코드 정리 (Windows)
+### 2단계: 시스템 정보 API 구현
+1. CPU 정보 API부터 만들기
+   - psutil 중 가장 단순
+   - OS 권한 문제 없음
+   - Windows / Linux 동일 코드
+  ```
+    import psutil
+
+    def get_cpu_usage():
+        return {
+            "cpu_percent": psutil.cpu_percent(interval=1)
+        }
+    ```
+2. 메모리 → 디스크 → 구동 시간 순으로 진행
+    - 메모리: psutil.virtual_memory()
+    - 디스크: psutil.disk_usage('/')
+    - 구동 시간: psutil.boot_time() 또는 /proc/uptime
+3. 서비스 상태 / 로그 수집
+    - 운영체제에 따른 분기 처리 필요
+    - 서비스 상태
+        - Linux: systemctl is-active
+        - Windows: 미지원 (예외 처리)
+    - 로그 tail
+        - Linux 로그 파일 직접 읽기
+        - 접근 권한 및 민감 정보 노출 고려
+4. 대시보드
+    - Jinja2 템플릿을 활용한 화면 분리
+    ```
+    Python 데이터 → Jinja2 → HTML
+    ```
+    - UI 컨셉
+        - Retro / Pixel Server Console
+        - 도트 배경 → 서버 콘솔 느낌
+        - 픽셀 폰트 → 시스템 모니터링 감성
+        - 굵은 테두리 → 상태판 느낌
+        - box-shadow → 픽셀 카드 연출
+    - 핵심 포인트
+    - service 상태는 문자열(active, inactive)
+    - 로그는 리스트
+    - CPU/메모리는 CSS class 계산해서 넘김
+
+### 3단계: Git으로 코드 정리 (Windows)
 1. Git 저장소 초기화
 2. .gitignore
     ```
@@ -277,7 +318,7 @@ uvicorn app.main:app --reload
    
 <br>
 
-### 3단계: Rocky Linux 서버에서 준비
+### 4단계: Rocky Linux 서버에서 준비
 
 1. Rocky Linux 접속
     ```
@@ -303,7 +344,7 @@ uvicorn app.main:app --reload
 
 <br>
 
-## 4단계: Rocky Linux에서 가상환경 다시 생성
+## 5단계: Rocky Linux에서 가상환경 다시 생성
 
 ### ⚠️ Windows venv는 사용 불가 → Linux에서 새로 생성
 
@@ -320,7 +361,7 @@ pip install -r requirements.txt
 
 <br>
 
-##  5단계: Rocky Linux에서 서버 실행
+##  6단계: Rocky Linux에서 서버 실행
 ```
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```

@@ -1,7 +1,7 @@
 import platform
 
 
-def tail_log(file_path, lines=10):
+def get_tail_log(file_path, lines=10):
     """
     Linux 로그 파일의 마지막 N줄을 읽어서 반환
     Windows에서는 미지원 안내

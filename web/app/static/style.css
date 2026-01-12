@@ -1,0 +1,78 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Press Start 2P', monospace;
+    background-color: #1e1e1e;
+    background-image:
+        linear-gradient(#2a2a2a 1px, transparent 1px),
+        linear-gradient(90deg, #2a2a2a 1px, transparent 1px);
+    background-size: 20px 20px;
+    color: #e0e0e0;
+}
+
+.container {
+    padding: 40px;
+}
+
+h1 {
+    color: #00ff9c;
+    text-shadow: 2px 2px #000;
+}
+
+h2 {
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+.card {
+    background: #111;
+    border: 4px solid #00ff9c;
+    padding: 20px;
+    margin-bottom: 30px;
+    width: 420px;
+    box-shadow: 6px 6px 0 #000;
+}
+
+.card p {
+    font-size: 11px;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* 임계치 */
+.good { color: #00ff9c; }
+.warn { color: #ffd866; }
+.bad  {
+    color: #ff5555;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0.4; }
+}
+
+/* 도트 */
+.dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 8px;
+    background: #555;
+}
+
+.dot.on  { background: #00ff9c; }
+.dot.off { background: #ff5555; }
+
+/* 로그 콘솔 */
+.console {
+    background: #000;
+    color: #00ff9c;
+    border: 4px solid #00ff9c;
+    padding: 15px;
+    width: 600px;
+    height: 220px;
+    overflow-y: scroll;
+    white-space: pre-wrap;
+    font-size: 10px;
+    box-shadow: 6px 6px 0 #000;
+}

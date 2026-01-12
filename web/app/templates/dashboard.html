@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Server Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+
+    <h1>SERVER MONITOR</h1>
+
+    <!-- 시스템 상태 -->
+    <div class="card">
+        <p>CPU :
+            <span class="{{ cpu_class }}">{{ cpu }}%</span>
+        </p>
+        <p>MEMORY :
+            <span class="{{ memory_class }}">{{ memory }}%</span>
+        </p>
+        <p>DISK :
+            <span class="good">{{ disk }}%</span>
+        </p>
+        <p>UPTIME :
+            <span>{{ uptime }}</span>
+        </p>
+    </div>
+
+    <!-- 서비스 상태 -->
+    <div class="card">
+        <h2>SERVICES</h2>
+        <p>
+            <span class="dot {{ 'on' if nginx == 'active' else 'off' }}"></span>
+            nginx [ {{ nginx | upper }} ]
+        </p>
+        <p>
+            <span class="dot {{ 'on' if docker == 'active' else 'off' }}"></span>
+            docker [ {{ docker | upper }} ]
+        </p>
+    </div>
+
+    <!-- 로그 콘솔 -->
+    <div class="console">
+{% for line in logs %}
+{{ line }}
+{% endfor %}
+    </div>
+
+</div>
+</body>
+</html>
