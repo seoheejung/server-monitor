@@ -2,6 +2,9 @@
 
 **Rocky Linux 서버의 상태를 웹으로 확인하기 위한 서버 모니터링 프로젝트**
 
+> 이 문서는 server-monitor 프로젝트의 **개발 및 실습 가이드**입니다.
+
+
 ### 프로젝트 목표
 * 서버의 CPU, 메모리, 디스크 상태를 어떻게 프로그램으로 확인할 수 있을까?
 * Linux에서 실행 중인 서비스(nginx, docker 등)의 상태를 어떻게 코드로 알 수 있을까?
@@ -87,7 +90,8 @@ web/
 │   │   ├── disk.py      # 디스크 사용량
 │   │   ├── uptime.py    # 서버 업타임
 │   │   ├── service.py   # 서비스 상태 (systemctl)
-│   │   └── log.py       # 로그 tail 기능
+│   │   ├── log.py       # 로그 tail 기능
+│   │   └── process.py   # (확장) 프로세스 분석
 │   ├── templates/       # 웹 화면(HTML)
 │   │   └── dashboard.html
 │   └── static/          # 정적 파일
@@ -264,7 +268,7 @@ uvicorn app.main:app --reload
    - psutil 중 가장 단순
    - OS 권한 문제 없음
    - Windows / Linux 동일 코드
-  ```
+    ```
     import psutil
 
     def get_cpu_usage():
@@ -280,16 +284,47 @@ uvicorn app.main:app --reload
     - 운영체제에 따른 분기 처리 필요
     - 서비스 상태
         - Linux: systemctl is-active
+            ```
+            systemctl is-active nginx
+            systemctl is-active docker
+            ```
+            - Python에서 subprocess로 실행
+            - systemctl 실행 시 권한 문제를 고려하여 sudo 설정 또는 실행 사용자 분리
+            - 결과: active / inactive / failed
         - Windows: 미지원 (예외 처리)
     - 로그 tail
         - Linux 로그 파일 직접 읽기
-        - 접근 권한 및 민감 정보 노출 고려
+            ```
+            /var/log/nginx/access.log
+            /var/log/messages
+            ```
+        - 최근 N줄만 읽기
+        - 파일 직접 읽기 (tail 구현)
+        - 로그 파일 접근 시 권한 제한 및 민감 정보 노출 방지 고려
+
 4. 대시보드
     - Jinja2 템플릿을 활용한 화면 분리
     ```
     Python 데이터 → Jinja2 → HTML
     ```
     - UI 컨셉
+        ```
+        [ 서버 상태 대시보드 ]
+
+        CPU 사용률: 23%
+        RAM 사용량: 5.2GB / 16GB
+        Disk 사용량: 40%
+
+        서비스 상태
+        - nginx: active
+        - docker: active
+
+        최근 로그
+        --------------------------------
+        [INFO] ...
+        [WARN] ...
+
+        ```
         - Retro / Pixel Server Console
         - 도트 배경 → 서버 콘솔 느낌
         - 픽셀 폰트 → 시스템 모니터링 감성
@@ -378,3 +413,82 @@ sudo firewall-cmd --reload
 
 #### 브라우저에서: http://서버IP:8000/
 👉 JSON 나오면 Linux 단계도 성공
+
+### Nginx 연동
+- FastAPI → 8000
+- Nginx → 80
+- Reverse Proxy 설정
+  
+---
+
+## ✨ 추가 기능 제안: 프로세스 분석 & 보안 관점 모니터링
+
+> 이 프로젝트는 단순히 CPU/메모리 수치만 보여주는 모니터링이 아니라,   
+> “현재 서버에서 무엇이 돌아가고 있고, 이게 위험한지 아닌지”를 설명하는 것을 추가한다.   
+> 정보 수집, 위험 판단, 사람이 이해 가능한 설명, 시각적 상태 표현 등으로    
+> “서버가 왜 위험한지 설명해주는 모니터링” 구현   
+
+### 🔍 실행 중인 프로세스 분석 기능 (Cross Platform)
+#### 1. 수집 정보
+- Windows / Linux 공통으로 정보 수집
+- psutil 라이브러리 기반으로 OS 의존성 최소화
+  
+| 항목      | 설명                      |
+| ------- | ----------------------- |
+| 프로세스명   | 실행 중인 프로그램 이름           |
+| PID     | 프로세스 고유 ID              |
+| 실행 경로   | 실제 실행 파일 위치             |
+| CPU 사용률 | 프로세스별 CPU 점유            |
+| 메모리 사용률 | 프로세스별 메모리 점유            |
+| 열린 포트   | 외부/내부 통신 포트             |
+| 실행 사용자  | root / administrator 여부 |
+| 시작 시간   | 언제부터 실행 중인지             |
+
+<br> 
+
+#### 2. 위험 요소(Warning) 자동 분석
+- 각 프로세스에 대해 보안/운영 관점 경고 자동 판단
+- “정상 동작”과 “주의 필요”를 사람이 바로 이해 가능
+
+| 경고                | 의미                 |
+| ----------------- | ------------------ |
+| RUNNING_AS_ROOT   | root/관리자 권한으로 실행 중 |
+| PUBLIC_PORT       | 외부에 노출된 포트 사용      |
+| HIGH_MEMORY_USAGE | 메모리 사용량 과다         |
+| SUSPICIOUS_PATH   | 비정상 경로에서 실행        |
+
+<br>
+
+#### 3. 프로세스 설명(Explain) 기능
+- 단순 나열이 아니라 해당 프로세스가 무엇인지 설명
+- 서버 초보자도 “이게 왜 떠 있는지” 이해 가능하게 설명
+```
+nginx
+- 웹 서버
+- 외부 요청을 처리 (80 / 443 포트)
+- Reverse Proxy / Load Balancer 역할
+⚠️ PUBLIC_PORT:80
+
+redis
+- 인메모리 데이터 저장소
+- 캐시 및 세션 관리에 사용
+⚠️ PUBLIC_PORT:6379
+```
+
+<br>
+
+#### 4. 도트 기반 콘솔 UI (Retro Server Dashboard)
+- 상태 표현 규칙
+  
+| 상태 | 도트 |
+| -- | -- |
+| 정상 | 🟢 |
+| 주의 | 🟡 |
+| 위험 | 🔴 |
+
+- 콘솔 스타일 예시
+```
+🟢 nginx   PID 1324   PORT 80,443
+🟡 redis   PID 2211   PORT 6379
+🔴 mysql   PID 998    PORT 3306
+```
