@@ -1,4 +1,4 @@
-# server-monitor
+# server-monitor web
 
 **Rocky Linux 서버의 상태를 웹으로 확인하기 위한 서버 모니터링 프로젝트**
 
@@ -335,6 +335,126 @@ uvicorn app.main:app --reload
     - 로그는 리스트
     - CPU/메모리는 CSS class 계산해서 넘김
 
+<br>
+
+### ✨ 추가 기능 : 프로세스 분석 & 보안 관점 모니터링
+
+> 단순히 CPU/메모리 수치만 보여주는 모니터링이 아니라,   
+> “현재 서버에서 무엇이 돌아가고 있고, 이게 위험한지 아닌지”를 설명하는 것을 추가  
+> 정보 수집, 위험 판단, 사람이 이해 가능한 설명, 시각적 상태 표현 등으로    
+> “서버가 왜 위험한지 설명해주는 모니터링” 구현   
+
+### 🔍 실행 중인 프로세스 분석 기능 (Cross Platform)
+#### 1. 수집 정보
+- Windows / Linux 공통으로 정보 수집
+- psutil 라이브러리 기반으로 OS 의존성 최소화
+  
+| 항목      | 설명                      | 코드 대응 키 |
+| ------- | ----------------------- | --------------- |
+| 프로세스명   | 실행 중인 프로그램 이름     | name     |
+| PID     | 프로세스 고유 ID              | pid     |
+| 실행 경로   | 실제 실행 파일 위치         | exe     |
+| CPU 사용률 | 프로세스별 CPU 점유율          | cpu_percent     |
+| 메모리 사용률 | 프로세스별 메모리 점유율      | memory_percent     |
+| 열린 포트   | 해당 PID가 점유한 네트워크 포트 리스트          | ports     |
+| 실행 사용자  | 실행 주체 (root / SYSTEM / Administrator) | username     |
+| 시작 시간   | 프로세스 생성 시점          | create_time     |
+
+```
+process.py
+├── collect_processes()        # OS 공통 (psutil)
+├── collect_ports(pid)         # OS별 분기
+├── analyze_process(proc)      # 경고 판단
+├── explain_process(proc)      # 프로세스 의미 설명
+└── get_process_list()         # 최종 조합 함수
+```
+
+#### 💡 Rocky Linux(Linux) 이식 시 주의사항 업데이트
+1. username: Windows의 SYSTEM, Administrator 대신 Linux의 root가 주 감시 대상 (이미 코드에 포함)
+2. standard_paths: Linux 특유의 경로인 /var/lib, /tmp 등이 SUSPICIOUS_PATH 판단 기준에 추가 가능
+3. 포트 수집 권한: Linux에서는 sudo 권한 없이 실행할 경우 다른 사용자의 프로세스 포트(collect_ports)를 읽어오지 못할 수 있으므로 실행 권한 검토 필요
+   
+<br> 
+
+#### 2. 위험 요소(Warning) 자동 분석
+- 각 프로세스에 대해 보안/운영 관점 경고 자동 판단
+- “정상 동작”과 “주의 필요”를 사람이 바로 이해 가능
+
+| 경고                | 의미                 | 판단 기준        | 
+| ----------------- | ------------------ |------------------ |
+| RUNNING_AS_ROOT   | root/관리자 권한으로 실행 중 | username이 root, SYSTEM, Administrator인 경우 |
+| PUBLIC_PORT(n)    | 위험/주요 포트 외부 노출 | KNOWN_PORTS에 정의된 포트 점유 시 설명 포함 |
+| SYSTEM_PORT(n)    | 비표준 시스템 포트 개방 | 1024 미만 포트 중 정의되지 않은 포트 사용 시 |
+| HIGH_MEMORY_USAGE | 메모리 사용량 과다     | memory_percent가 20% 이상일 때 |
+| SUSPICIOUS_PATH   | 비정상 경로에서 실행    | 표준 경로(bin, Program Files 등)가 아닐 때 |
+
+#### 보안 진단 가이드 로직
+1. KNOWN_PROCESSES에 명칭이 있고 warnings가 없으면? [안전]
+2. KNOWN_PROCESSES에 명칭이 없는데 warnings가 없으면? [경계] (사용자 확인 필요)
+3. warnings가 하나라도 있으면? [위험/주의] (즉시 조치 권고)
+
+```
+CASE A: 정체는 알지만 위험은 없는 경우
+- 프로세스: explorer.exe (윈도우 탐색기)
+- Explain: KNOWN_PROCESSES에 있음 → "Windows 탐색기: 파일 관리 및 데스크톱 UI"
+- Warnings: 권한/경로/포트 모두 정상 → "✅ 특이사항 없음"
+- 결과: 사용자 안심. "아, 탐색기가 정상적으로 잘 돌아가고 있구나."
+
+CASE B: 정체는 모르지만 위험은 없는 경우
+- 프로세스: my_custom_tool.exe (내가 직접 만든 도구)
+- Explain: KNOWN_PROCESSES에 없음 → "❓ 알 수 없는 사용자/시스템 프로세스"
+- Warnings: 권한/경로/포트 모두 정상 → "✅ 특이사항 없음"
+- 결과: 보통 수준의 경계. "용도는 모르겠지만 딱히 위험한 짓을 하고 있지는 않네."
+
+CASE C: 정체도 모르고 위험도 있는 경우 (가장 위험)
+- 프로세스: hacker_tool.exe
+- Explain: KNOWN_PROCESSES에 없음 → "❓ 알 수 없는 사용자/시스템 프로세스"
+- Warnings: 관리자 권한, 비표준 경로 등 발견 → "⚠️ SUSPICIOUS_PATH"
+- 결과: 즉각 조치 필요. "뭔지도 모르는 게 위험한 권한으로 이상한 곳에서 실행 중이네!"
+```
+
+<br>
+
+#### 3. 프로세스 설명(Explain) 및 보안 가이드
+- 프로세스의 원형(Generic Name)을 기반으로 한글 역할 설명 제공
+- 위험 요소(Warnings)와 결합하여 "현재 상태"를 직관적으로 표현
+
+```
+- nginx (웹 서버)
+  └ 역할: 외부 HTTP 요청 처리 및 로드 밸런싱
+  └ 상태: ⚠️ PUBLIC_PORT:80 (비암호화 포트 노출)
+
+- redis (데이터 저장소)
+  └ 역할: 고속 캐시 및 세션 저장소
+  └ 상태: ⚠️ PUBLIC_PORT:6379 (DB 포트 외부 노출 위험)
+```
+
+| 프로세스(이름) | 설명(Explain) | 탐지된 위험(Warnings) | 
+| ----------------- | ------------------ |------------------ |
+| nginx | 웹 서버: 외부 요청을 처리하고 파일/앱을 연결 | ⚠️ PUBLIC_PORT(80): 보안 연결 권장 | 
+| redis-server | 인메모리 저장소: 고속 캐시 및 세션 관리용 | ⚠️ PUBLIC_PORT(6379): 외부 접근 주의 | 
+| lsass.exe | Windows 보안: 사용자 로그인 및 권한 관리 | ✅ 특이사항 없음 | 
+
+<br>
+
+#### 4. 도트 기반 콘솔 UI (Retro Server Dashboard)
+- 상태 표현 규칙
+  
+| 상태 | 도트 |
+| -- | -- |
+| 정상 | 🟢 |
+| 주의 | 🟡 |
+| 위험 | 🔴 |
+
+- 콘솔 스타일 예시
+```
+🟢 nginx   PID 1324   PORT 80,443
+🟡 redis   PID 2211   PORT 6379
+🔴 mysql   PID 998    PORT 3306
+```
+
+<br>
+
 ### 3단계: Git으로 코드 정리 (Windows)
 1. Git 저장소 초기화
 2. .gitignore
@@ -346,8 +466,7 @@ uvicorn app.main:app --reload
     .env
     ```
 
-👉 venv는 절대 Git에 올리지 않는다
-(Linux에서 다시 만들 거기 때문)
+    👉 venv는 절대 Git에 올리지 않는다 (Linux에서 다시 만들 거기 때문)
 
 3. 원격 저장소에 push
    
@@ -421,74 +540,3 @@ sudo firewall-cmd --reload
   
 ---
 
-## ✨ 추가 기능 제안: 프로세스 분석 & 보안 관점 모니터링
-
-> 이 프로젝트는 단순히 CPU/메모리 수치만 보여주는 모니터링이 아니라,   
-> “현재 서버에서 무엇이 돌아가고 있고, 이게 위험한지 아닌지”를 설명하는 것을 추가한다.   
-> 정보 수집, 위험 판단, 사람이 이해 가능한 설명, 시각적 상태 표현 등으로    
-> “서버가 왜 위험한지 설명해주는 모니터링” 구현   
-
-### 🔍 실행 중인 프로세스 분석 기능 (Cross Platform)
-#### 1. 수집 정보
-- Windows / Linux 공통으로 정보 수집
-- psutil 라이브러리 기반으로 OS 의존성 최소화
-  
-| 항목      | 설명                      |
-| ------- | ----------------------- |
-| 프로세스명   | 실행 중인 프로그램 이름           |
-| PID     | 프로세스 고유 ID              |
-| 실행 경로   | 실제 실행 파일 위치             |
-| CPU 사용률 | 프로세스별 CPU 점유            |
-| 메모리 사용률 | 프로세스별 메모리 점유            |
-| 열린 포트   | 외부/내부 통신 포트             |
-| 실행 사용자  | root / administrator 여부 |
-| 시작 시간   | 언제부터 실행 중인지             |
-
-<br> 
-
-#### 2. 위험 요소(Warning) 자동 분석
-- 각 프로세스에 대해 보안/운영 관점 경고 자동 판단
-- “정상 동작”과 “주의 필요”를 사람이 바로 이해 가능
-
-| 경고                | 의미                 |
-| ----------------- | ------------------ |
-| RUNNING_AS_ROOT   | root/관리자 권한으로 실행 중 |
-| PUBLIC_PORT       | 외부에 노출된 포트 사용      |
-| HIGH_MEMORY_USAGE | 메모리 사용량 과다         |
-| SUSPICIOUS_PATH   | 비정상 경로에서 실행        |
-
-<br>
-
-#### 3. 프로세스 설명(Explain) 기능
-- 단순 나열이 아니라 해당 프로세스가 무엇인지 설명
-- 서버 초보자도 “이게 왜 떠 있는지” 이해 가능하게 설명
-```
-nginx
-- 웹 서버
-- 외부 요청을 처리 (80 / 443 포트)
-- Reverse Proxy / Load Balancer 역할
-⚠️ PUBLIC_PORT:80
-
-redis
-- 인메모리 데이터 저장소
-- 캐시 및 세션 관리에 사용
-⚠️ PUBLIC_PORT:6379
-```
-
-<br>
-
-#### 4. 도트 기반 콘솔 UI (Retro Server Dashboard)
-- 상태 표현 규칙
-  
-| 상태 | 도트 |
-| -- | -- |
-| 정상 | 🟢 |
-| 주의 | 🟡 |
-| 위험 | 🔴 |
-
-- 콘솔 스타일 예시
-```
-🟢 nginx   PID 1324   PORT 80,443
-🟡 redis   PID 2211   PORT 6379
-🔴 mysql   PID 998    PORT 3306
-```

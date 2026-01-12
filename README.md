@@ -161,8 +161,10 @@ server-monitor/
 ## 개발 순서
 
 1. 구조 / README / 컨셉 정리 ✅
-2.  Windows에서 기능 구현
-3. Git push
-4. Rocky Linux에서 pull
-5. OS 차이로 깨지는 부분 수정
-6. 운영 테스트
+2. Windows에서 기능 구현
+   - process.py 설계 (Windows / Linux 분기 기준)
+   - 경고 판단 로직을 순수 함수로 분리
+1. Git push
+2. Rocky Linux에서 pull
+3. OS 차이로 깨지는 부분 수정
+4. 운영 테스트
