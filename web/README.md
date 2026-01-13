@@ -84,6 +84,10 @@ python test.py
 web/
 ├── app/
 │   ├── main.py          # FastAPI 서버 시작 지점
+│   ├── constants/
+│   │   ├── ports.py
+│   │   ├── processes.py
+│   │   └── windows.py
 │   ├── system/          # 서버 정보 수집 코드 모음
 │   │   ├── cpu.py       # CPU 사용량
 │   │   ├── memory.py    # 메모리 사용량
@@ -220,7 +224,7 @@ source venv/bin/activate
 
 <br>
 
-#### * FastAPI 서버를 실행할 때마다 가상환경(venv)을 켜야한다.
+#### * FastAPI 서버를 실행할 때마다 가상환경(venv) 실행
 ```
 [ 내 PC 전체 Python ]
         |

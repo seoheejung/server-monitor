@@ -1,9 +1,20 @@
 import psutil
+import time
 import os
 import platform
 from typing import List, Dict
 
+from app.constants.ports import KNOWN_PORTS
+from app.constants.processes import KNOWN_PROCESSES
+from app.constants.windows import (
+    WINDOWS_SYSTEM_PORTS,
+    WINDOWS_ALLOWED_USER_PATHS,
+    WINDOWS_SYSTEM_PROCS,
+    WINDOWS_DEV_PROCS,
+)
+
 OS_TYPE = platform.system()  # 'Windows' or 'Linux'
+
 
 def collect_processes() -> List[Dict]:
     """
@@ -14,18 +25,36 @@ def collect_processes() -> List[Dict]:
     """
     processes = []
 
+    # CPU 측정 초기화 (중요)
+    for p in psutil.process_iter():
+        try:
+            p.cpu_percent(None)
+        except Exception:
+            pass
+
+    time.sleep(0.1)  # 짧은 샘플링 시간
+
     # psutil.process_iter를 통해 실행 중인 모든 프로세스를 순회
     for proc in psutil.process_iter(attrs=[
         "pid",            # 프로세스 ID
         "name",           # 프로세스 이름
         "exe",            # 실행 파일 전체 경로
         "username",       # 실행 사용자 계정
-        "cpu_percent",    # CPU 사용률 (%)
-        "memory_percent", # 메모리 사용률 (%)
         "create_time"     # 프로세스 시작 시간
     ]):
         try:
             info = proc.info # 수집된 기본 정보 딕셔너리
+
+            try:
+                info["cpu_percent"] = proc.cpu_percent(None) # 실제 값
+            except psutil.AccessDenied:
+                info["cpu_percent"] = None # 초기화
+
+            try:
+                info["memory_percent"] = proc.memory_percent()
+            except psutil.AccessDenied:
+                info["memory_percent"] = None
+
             info["ports"] = collect_ports(proc.pid) # 네트워크 포트 정보 추가
             processes.append(info)
 
@@ -59,27 +88,6 @@ def collect_ports(pid: int) -> List[int]:
     return sorted(list(ports))
 
 
-# 포트별 의미 및 보안 위협 설명
-KNOWN_PORTS = {
-    21: "FTP: 암호화되지 않은 파일 전송 (해킹 취약)",
-    22: "SSH: 원격 접속 서비스",
-    23: "Telnet: 암호화되지 않은 원격 접속 (매우 위험)",
-    25: "SMTP: 메일 전송 프로토콜",
-    53: "DNS: 도메인 이름 해석 서비스 (증폭 공격 주의)",
-    80: "HTTP: 웹 서비스 (비암호화)",
-    443: "HTTPS: 보안 웹 서비스",
-    1433: "MSSQL: Microsoft SQL Server 데이터베이스",
-    1521: "Oracle: Oracle 데이터베이스",
-    3306: "MySQL: MySQL/MariaDB 데이터베이스",
-    5432: "PostgreSQL: PostgreSQL 데이터베이스",
-    6379: "Redis: 인메모리 데이터 저장소",
-    8080: "HTTP-Proxy: 대체 웹 포트 (개발용/프록시)",
-    9000: "FastCGI: PHP-FPM 등 어플리케이션 인터페이스",
-    11211: "Memcached: 분산 메모리 캐싱 시스템",
-    27017: "MongoDB: NoSQL 데이터베이스",
-    3389: "RDP: Windows 원격 데스크톱 접속"
-}
-
 def analyze_process(proc:Dict) -> List[str]:
     """
     경고 판단 로직
@@ -90,22 +98,36 @@ def analyze_process(proc:Dict) -> List[str]:
 
     warnings =[]
 
+    name = (proc.get("name") or "").lower()
     username = proc.get("username", "")
     memory = proc.get("memory_percent", 0)
     ports = proc.get("ports", [])
-    exe = proc.get("exe") or ""
+    exe = proc.get("exe")
+
+    # ✅ Windows 커널/가상 프로세스는 분석 제외
+    if OS_TYPE == "Windows" and name in ("system", "registry"):
+        return warnings
 
     # [보안] 관리자/루트 권한 실행 여부 체크
     if username in ("root", "SYSTEM", "Administrator"):
-       warnings.append("RUNNING_AS_ADMIN: 관리자 권한으로 실행 중")
+        # Windows System(PID 4)는 정상
+        if not (OS_TYPE == "Windows" and proc.get("pid") == 4):
+            warnings.append("RUNNING_AS_ADMIN: 관리자 권한으로 실행 중")
+
 
     # [보안] 주요 서비스 포트가 외부에 노출되어 있는지 확인
     for port in ports:
+        # ✅ Windows 기본 시스템 프로세스 포트 예외
+        if (
+            OS_TYPE == "Windows"
+            and name in WINDOWS_SYSTEM_PROCS
+            and port in WINDOWS_SYSTEM_PORTS
+        ):
+            continue
+
         if port in KNOWN_PORTS:
-            # 포트 번호와 함께 정의된 설명을 추가
             warnings.append(f"PUBLIC_PORT({port}): {KNOWN_PORTS[port]}")
         elif port < 1024:
-            # 정의되지 않았더라도 1024 미만 Well-known 포트는 주의 표시
             warnings.append(f"SYSTEM_PORT({port}): 비표준 시스템 포트 개방")
 
     # [성능] 메모리 점유율이 과도한 경우 (임계치 20%)
@@ -113,58 +135,20 @@ def analyze_process(proc:Dict) -> List[str]:
         warnings.append(f"HIGH_MEMORY_USAGE: 메모리 점유율이 높음 ({memory:.1f}%)")
 
     # [보안] 경로 의심 체크
-    # Windows와 Linux의 표준 설치 경로가 다르므로 합집합 형태로 검사
-    standard_paths = ("/usr", "/bin", "/opt", "C:\\Program Files", "C:\\Windows")
-    if exe and not any(exe.startswith(p) for p in standard_paths):
-        warnings.append("SUSPICIOUS_PATH: 비표준 경로에서 실행 중")
+    if not exe:
+        return warnings  # 경로 개념 없는 프로세스는 검사 제외
+
+    # 개발 도구는 경로 경고 완화
+    is_dev_proc = OS_TYPE == "Windows" and name in WINDOWS_DEV_PROCS
+    if OS_TYPE == "Windows":
+        if not is_dev_proc and not exe.startswith(WINDOWS_ALLOWED_USER_PATHS):
+            warnings.append("SUSPICIOUS_PATH: 비표준 경로에서 실행 중")
+    # Linux
+    else:
+        if not exe.startswith(("/usr", "/bin", "/opt")):
+            warnings.append("SUSPICIOUS_PATH: 비표준 경로에서 실행 중")
 
     return warnings
-
-
-# 알려진 주요 프로세스에 대한 한글 설명
-KNOWN_PROCESSES = {
-    # --- Web & Proxy ---
-    "nginx": "Nginx: 고성능 웹 서버 및 리버스 프록시",
-    "apache": "Apache: 전통적인 웹 서버 (HTTPD)",
-    "httpd": "Apache HTTP Server: 리눅스 표준 웹 서비스",
-    "haproxy": "HAProxy: 부하 분산(Load Balancer) 솔루션",
-
-    # --- Database & Cache ---
-    "mysqld": "MySQL: 오픈소스 관계형 데이터베이스",
-    "postgres": "PostgreSQL: 객체 관계형 데이터베이스(ORDBMS)",
-    "sqlservr": "Microsoft SQL Server: 윈도우용 DB 엔진",
-    "oracle": "Oracle DB: 대규모 기업용 데이터베이스",
-    "redis-server": "Redis: 고속 인메모리 데이터 저장소",
-    "memcached": "Memcached: 분산 메모리 캐싱 시스템",
-    "mongod": "MongoDB: NoSQL 문서 지향 데이터베이스",
-
-    # --- Runtime & Dev ---
-    "python": "Python: 스크립트 실행 환경 (Django, Flask, AI 등)",
-    "node": "Node.js: JavaScript 서버 실행 환경",
-    "java": "Java Runtime: JVM 기반 서비스 (Spring, Tomcat 등)",
-    "php": "PHP: 서버 측 스크립트 언어 프로세스",
-    "go": "Go Executable: 컴파일된 Go 언어 애플리케이션",
-    "ruby": "Ruby: Rails 프레임워크 기반 서비스",
-
-    # --- Infrastructure & Tool ---
-    "docker": "Docker: 컨테이너 가상화 엔진",
-    "dockerd": "Docker Daemon: 컨테이너 관리 서비스",
-    "containerd": "Containerd: 컨테이너 런타임 표준",
-    "kubelet": "Kubernetes: 쿠버네티스 노드 관리자",
-    "ssh": "SSH Client: 원격 접속 클라이언트",
-    "sshd": "SSH Daemon: 외부 접속 허용 보안 쉘 서비스",
-    "systemd": "Systemd: 리눅스 최상위 서비스 관리 프로세스",
-    "crond": "Cron: 리눅스 주기적 작업 예약 실행기",
-
-    # --- Windows Specific ---
-    "lsass": "Local Security Authority: 사용자 인증/로그인 관리",
-    "svchost": "Service Host: 여러 윈도우 서비스를 그룹화해 실행",
-    "csrss": "Client Server Runtime: Win32 서브시스템 프로세스",
-    "explorer": "Windows 탐색기: 파일 관리 및 데스크톱 UI",
-    "spoolsv": "Print Spooler: 인쇄 대기열 관리",
-    "taskmgr": "작업 관리자: 시스템 모니터링 도구",
-    "conhost": "Console Window Host: 명령 프롬프트 지원 프로세스"
-}
 
 
 def explain_process(proc:Dict) -> str:
@@ -213,6 +197,21 @@ def get_process_list() -> List[Dict]:
             main_warning = proc["warnings"][0].split(":")[0] 
             proc["status_summary"] = f"⚠️ {main_warning} 외 {len(proc['warnings'])-1}건" if len(proc["warnings"]) > 1 else f"⚠️ {main_warning}"
 
+        # 4. UI 출력용 값 확정
+        proc["cpu"] = (
+            f"{proc.get('cpu_percent', 0):.1f}"
+            if proc.get("cpu_percent") is not None
+            else "-"
+        )
+
+        proc["memory"] = (
+            f"{proc.get('memory_percent', 0):.1f}"
+            if proc.get("memory_percent") is not None
+            else "-"
+        )
+
+        proc["user"] = proc.get("username") or "-"
+        
         result.append(proc)
 
 

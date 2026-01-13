@@ -109,6 +109,10 @@ server-monitor/
 ├── web/
 │   ├── app/
 │   │   ├── main.py          # FastAPI 엔트리
+│   │   ├── constants/
+│   │   │   ├── ports.py
+│   │   │   ├── processes.py
+│   │   │   └── windows.py
 │   │   ├── system/
 │   │   │   ├── cpu.py
 │   │   │   ├── memory.py
@@ -129,6 +133,31 @@ server-monitor/
 └── README.md                # 프로젝트 소개 문서
 
 ```
+<br>
+
+### FastAPI 서버를 실행할 때마다 가상환경(venv) 실행
+```
+[ 내 PC 전체 Python ]
+        |
+        |  (venv 켜기)
+        v
+[ server-monitor 전용 Python ]
+```
+- venv를 안 켜면 FastAPI가 존재하지 않음
+
+#### * 실행 루틴
+```
+# 1. 프로젝트 폴더 이동
+cd web
+
+# 2. 가상환경 활성화
+venv\Scripts\activate
+
+# 3. 서버 실행
+uvicorn app.main:app --reload
+```
+
+---
 
 <br>
 
@@ -161,10 +190,11 @@ server-monitor/
 ## 개발 순서
 
 1. 구조 / README / 컨셉 정리 ✅
-2. Windows에서 기능 구현
+2. Windows에서 기능 구현 ✅
    - process.py 설계 (Windows / Linux 분기 기준)
    - 경고 판단 로직을 순수 함수로 분리
-1. Git push
-2. Rocky Linux에서 pull
-3. OS 차이로 깨지는 부분 수정
-4. 운영 테스트
+3. UI 작업 (process 추가) ✅
+4. Git push ✅
+5. Rocky Linux에서 pull
+6. OS 차이로 깨지는 부분 수정
+7. 운영 테스트

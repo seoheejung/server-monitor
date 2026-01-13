@@ -10,6 +10,8 @@ from app.system.disk import get_disk_usage
 from app.system.uptime import get_uptime
 from app.system.service import get_service_status
 from app.system.log import get_tail_log
+from app.system.process import get_process_list
+
 
 # FastAPI app 생성
 app = FastAPI()
@@ -39,20 +41,39 @@ def dashboard(request: Request):
     nginx_status = get_service_status("nginx")
     docker_status = get_service_status("docker")
 
-    logs = get_tail_log("/var/log/messages", 10)
+    LOG_FILE = "/var/log/messages"
+    logs = get_tail_log(LOG_FILE, 10)
+
+    processes = get_process_list()
+
 
     return templates.TemplateResponse(
         "dashboard.html",
         {
             "request": request,
+
+            # 시스템 자원
             "cpu": cpu,
             "memory": memory,
             "disk": disk,
             "uptime": uptime,
             "cpu_class": usage_class(cpu),
             "memory_class": usage_class(memory),
+
+            # 서비스
             "nginx": nginx_status,
             "docker": docker_status,
-            "logs": logs
+
+            # 로그
+            "logs": logs,
+            "log_source": LOG_FILE,
+            
+            # 프로세스 분석 결과
+            "processes": processes
         }
     )
+
+# 프론트/JS 확장 대비용
+@app.get("/api/processes")
+def process_api():
+    return get_process_list()

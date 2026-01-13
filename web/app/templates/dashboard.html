@@ -41,10 +41,62 @@
     </div>
 
     <!-- 로그 콘솔 -->
-    <div class="console">
-{% for line in logs %}
-{{ line }}
-{% endfor %}
+    <div class="card">
+        <h2>LOG CONSOLE</h2>
+        <p style="font-size:9px; color:#999;">
+            SOURCE : {{ log_source }}
+        </p>
+
+        <div class="console">
+            {% for line in logs %}
+            {{ line }}
+            {% endfor %}
+        </div>
+    </div>
+
+
+    <!-- 프로세스 상태 -->
+    <div class="card process-card">
+        <h2>PROCESSES</h2>
+
+        {% for p in processes %}
+        <p>
+            <!-- 상태 도트 -->
+            {% if p.status_summary == 'OK' %}
+                <span class="dot on"></span>
+            {% elif p.status_summary == 'WARN' %}
+                <span class="dot warn"></span>
+            {% else %}
+                <span class="dot off"></span>
+            {% endif %}
+
+            {{ p.name }} (PID {{ p.pid }})
+        </p>
+
+        <p style="font-size:9px; margin-left:18px;">
+            CPU {{ p.cpu }}% |
+            MEM {{ p.memory }}% |
+            USER {{ p.user }}
+        </p>
+
+        {% if p.ports %}
+        <p style="font-size:9px; margin-left:18px;">
+            PORT : {{ p.ports | join(', ') }}
+        </p>
+        {% endif %}
+
+        {% if p.warnings %}
+        <p style="font-size:9px; margin-left:18px;" class="bad">
+            ⚠ {{ p.warnings | join(', ') }}
+        </p>
+        {% endif %}
+
+        <p style="font-size:9px; margin-left:18px; color:#999;">
+            {{ p.explain }}
+        </p>
+
+        <hr style="border:1px dashed #00ff9c; margin:10px 0;">
+        {% endfor %}
     </div>
 
 </div>
