@@ -147,7 +147,7 @@ server-monitor/
 ```
 - venv를 안 켜면 FastAPI가 존재하지 않음
 
-#### * 실행 루틴
+#### * 실행 루틴 (window)
 ```
 # 1. 프로젝트 폴더 이동
 cd web
@@ -173,7 +173,8 @@ uvicorn app.main:app --reload
 - 로그 tail (최근 10줄)
 - 기본 대시보드 (Retro / Pixel Server Console)
 
-<img src="./images/window_1st_task.png" width="600" >
+<br>
+<img src="./images/window_1_task.png" width="600" >
 
 > Windows 개발 환경에서 1차 목표 기능을 구현한 화면
 
@@ -186,6 +187,13 @@ uvicorn app.main:app --reload
 - 다중 서버 관리
 - Slack / Telegram 알림
 - Prometheus 연계
+  
+<br>
+<img src="./images/window_2_task.png" width="600" >
+
+> Windows 개발 환경에서 프로세스 위험 분석을 구현한 화면
+
+---
 
 <br>
 

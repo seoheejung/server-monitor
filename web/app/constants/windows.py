@@ -5,11 +5,23 @@ WINDOWS_ALLOWED_USER_PATHS = (
     "C:\\Users",
     "C:\\Program Files",
     "C:\\Program Files (x86)",
+    "C:\\ProgramData",
     "C:\\Windows",
-    "C:\\Python",
 )
 
-WINDOWS_SYSTEM_PROCS = {"system", "svchost.exe"}
+WINDOWS_SYSTEM_PROCS = {
+    "system",
+    "registry",
+    "memcompression",
+    "vmmemwsl",
+    "smss.exe",
+    "csrss.exe",
+    "svchost.exe",
+    "lsass.exe",
+    "services.exe",
+    "wininit.exe",
+    "winlogon.exe",
+}
 
 WINDOWS_DEV_PROCS = {
     "code.exe",
