@@ -106,6 +106,8 @@
 ## 디렉토리 구조
 ```
 server-monitor/
+├── docs/
+│   ├── POLICY.md # 프로세스 보안 분석 규칙
 ├── web/
 │   ├── app/
 │   │   ├── main.py          # FastAPI 엔트리

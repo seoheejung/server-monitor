@@ -366,17 +366,23 @@ uvicorn app.main:app --reload
 
 ```
 process.py
-├── collect_processes()        # OS 공통 (psutil)
-├── collect_ports(pid)         # OS별 분기
-├── analyze_process(proc)      # 경고 판단
-├── explain_process(proc)      # 프로세스 의미 설명
-└── get_process_list()         # 최종 조합 함수
+├── collect_processes()   # OS 공통: psutil 기반 프로세스 수집
+├── collect_ports(pid)    # OS별 분기: PID 기준 포트 수집
+├── analyze_process(proc) # 위험 요소(Warning) 판단
+├── explain_process(proc) # 프로세스 역할 설명
+└── get_process_list()    # 수집 + 분석 + 설명 통합
 ```
 
 #### 💡 Rocky Linux(Linux) 이식 시 주의사항 업데이트
-1. username: Windows의 SYSTEM, Administrator 대신 Linux의 root가 주 감시 대상 (이미 코드에 포함)
-2. standard_paths: Linux 특유의 경로인 /var/lib, /tmp 등이 SUSPICIOUS_PATH 판단 기준에 추가 가능
-3. 포트 수집 권한: Linux에서는 sudo 권한 없이 실행할 경우 다른 사용자의 프로세스 포트(collect_ports)를 읽어오지 못할 수 있으므로 실행 권한 검토 필요
+1. 권한 기준
+   - Windows: SYSTEM, Administrator
+   - Linux: root (이미 코드 반영됨)
+2. 표준 경로
+   - /usr, /bin, /opt 외
+   - 필요 시 /var/lib, /tmp 등 허용 경로 추가 가능
+3. 포트 수집 권한
+   - 일반 사용자 실행 시 타 사용자 프로세스의 포트 수집 불가 가능
+   - 정확한 분석을 위해 sudo 실행 여부 검토 필요
    
 <br> 
 
@@ -386,58 +392,61 @@ process.py
 
 | 경고                | 의미                 | 판단 기준        | 
 | ----------------- | ------------------ |------------------ |
-| RUNNING_AS_ROOT   | root/관리자 권한으로 실행 중 | username이 root, SYSTEM, Administrator인 경우 |
-| PUBLIC_PORT(n)    | 위험/주요 포트 외부 노출 | KNOWN_PORTS에 정의된 포트 점유 시 설명 포함 |
-| SYSTEM_PORT(n)    | 비표준 시스템 포트 개방 | 1024 미만 포트 중 정의되지 않은 포트 사용 시 |
-| HIGH_MEMORY_USAGE | 메모리 사용량 과다     | memory_percent가 20% 이상일 때 |
-| SUSPICIOUS_PATH   | 비정상 경로에서 실행    | 표준 경로(bin, Program Files 등)가 아닐 때 |
+| RUNNING_AS_ROOT   | root/관리자 권한으로 실행 중 | `username`이 root, SYSTEM, Administrator |
+| PUBLIC_PORT(n)    | 위험/주요 포트 외부 노출 | `KNOWN_PORTS`에 정의된 포트 점유 시 설명 포함 |
+| SYSTEM_PORT(n)    | 비표준 시스템 포트 사용 | 1024 미만 포트 중 정의되지 않은 포트 사용 시 |
+| HIGH_MEMORY_USAGE | 메모리 과다 사용    | `memory_percent ≥ 20%` |
+| SUSPICIOUS_PATH   | 비정상 경로에서 실행    | OS별 표준 경로 외 실행 |
+
+> ⚠️ Windows System(PID 4) 및 커널/가상 프로세스는 오탐 방지를 위해 분석 제외
 
 #### 보안 진단 가이드 로직
-1. KNOWN_PROCESSES에 명칭이 있고 warnings가 없으면? [안전]
-2. KNOWN_PROCESSES에 명칭이 없는데 warnings가 없으면? [경계] (사용자 확인 필요)
-3. warnings가 하나라도 있으면? [위험/주의] (즉시 조치 권고)
+1. KNOWN_PROCESSES에 존재 + Warning 없음 → ✅ 안전
+2. KNOWN_PROCESSES에 없음 + Warning 없음 → ⚠️ 경계 (사용자 확인 필요)
+3. Warning이 하나라도 존재 → 🚨 위험 / 주의 (즉시 점검 권장)
 
 ```
-CASE A: 정체는 알지만 위험은 없는 경우
-- 프로세스: explorer.exe (윈도우 탐색기)
+CASE A: 정체는 알고 있고, 위험도 없는 경우
+- Process: explorer.exe (윈도우 탐색기)
 - Explain: KNOWN_PROCESSES에 있음 → "Windows 탐색기: 파일 관리 및 데스크톱 UI"
 - Warnings: 권한/경로/포트 모두 정상 → "✅ 특이사항 없음"
-- 결과: 사용자 안심. "아, 탐색기가 정상적으로 잘 돌아가고 있구나."
+- 결과: ✅ 정상 동작
 
-CASE B: 정체는 모르지만 위험은 없는 경우
-- 프로세스: my_custom_tool.exe (내가 직접 만든 도구)
+CASE B: 정체는 모르지만, 위험도 없는 경우
+- Process: my_custom_tool.exe (내가 직접 만든 도구)
 - Explain: KNOWN_PROCESSES에 없음 → "❓ 알 수 없는 사용자/시스템 프로세스"
 - Warnings: 권한/경로/포트 모두 정상 → "✅ 특이사항 없음"
-- 결과: 보통 수준의 경계. "용도는 모르겠지만 딱히 위험한 짓을 하고 있지는 않네."
+- 결과: ⚠️ 경계 (용도만 확인하면 됨)
 
-CASE C: 정체도 모르고 위험도 있는 경우 (가장 위험)
-- 프로세스: hacker_tool.exe
+CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
+- Process: hacker_tool.exe
 - Explain: KNOWN_PROCESSES에 없음 → "❓ 알 수 없는 사용자/시스템 프로세스"
 - Warnings: 관리자 권한, 비표준 경로 등 발견 → "⚠️ SUSPICIOUS_PATH"
-- 결과: 즉각 조치 필요. "뭔지도 모르는 게 위험한 권한으로 이상한 곳에서 실행 중이네!"
+- 결과: 🚨 즉시 조치 필요
 ```
 
 <br>
 
 #### 3. 프로세스 설명(Explain) 및 보안 가이드
-- 프로세스의 원형(Generic Name)을 기반으로 한글 역할 설명 제공
-- 위험 요소(Warnings)와 결합하여 "현재 상태"를 직관적으로 표현
+- 프로세스의 **역할(Explain)**과 **현재 위험 상태(Warning)**를 함께 표시
+- “무슨 프로세스인지 + 지금 안전한지”를 동시에 전달
 
 ```
-- nginx (웹 서버)
-  └ 역할: 외부 HTTP 요청 처리 및 로드 밸런싱
-  └ 상태: ⚠️ PUBLIC_PORT:80 (비암호화 포트 노출)
+nginx
+ └ 역할: 웹 서버 (외부 HTTP 요청 처리)
+ └ 상태: ⚠️ PUBLIC_PORT(80) – 비암호화 포트 노출
 
-- redis (데이터 저장소)
-  └ 역할: 고속 캐시 및 세션 저장소
-  └ 상태: ⚠️ PUBLIC_PORT:6379 (DB 포트 외부 노출 위험)
+redis-server
+ └ 역할: 인메모리 데이터 저장소
+ └ 상태: ⚠️ PUBLIC_PORT(6379) – 외부 접근 주의
 ```
 
-| 프로세스(이름) | 설명(Explain) | 탐지된 위험(Warnings) | 
-| ----------------- | ------------------ |------------------ |
-| nginx | 웹 서버: 외부 요청을 처리하고 파일/앱을 연결 | ⚠️ PUBLIC_PORT(80): 보안 연결 권장 | 
-| redis-server | 인메모리 저장소: 고속 캐시 및 세션 관리용 | ⚠️ PUBLIC_PORT(6379): 외부 접근 주의 | 
-| lsass.exe | Windows 보안: 사용자 로그인 및 권한 관리 | ✅ 특이사항 없음 | 
+| 프로세스         | 설명                 | 상태                   |
+| ------------ | ------------------ | -------------------- |
+| nginx        | 웹 서버               | ⚠️ PUBLIC_PORT(80)   |
+| redis-server | 캐시/세션 저장소          | ⚠️ PUBLIC_PORT(6379) |
+| lsass.exe    | Windows 보안 인증 프로세스 | ✅ 특이사항 없음            |
+
 
 <br>
 
