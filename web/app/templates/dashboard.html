@@ -32,7 +32,7 @@
         <h2>SERVICES</h2>
         {% for name, status in services.items() %}
         <p>
-            <span class="dot {{ 'on' if 'active' in status else 'off' }}"></span>
+            <span class="dot {{ 'on' if 'active' in status.lower() else 'off' }}"></span>
             {{ name }} [ {{ status | upper }} ]
         </p>
         {% endfor %}
