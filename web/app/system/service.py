@@ -19,7 +19,7 @@ def get_service_status(service_name):
             # systemctl is-active <서비스명> 명령 실행
             ["systemctl", "is-active", service_name],
             capture_output=True, # 표준 출력/에러 캡쳐
-            text=True # 결과를 문자열로 받기
+            text=True, # 결과를 문자열로 받기
             timeout=1  # 1초 이상 걸리면 중단
         )
         # 결과 문자열에서 개행 문자 제거
