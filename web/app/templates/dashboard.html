@@ -57,14 +57,8 @@
         <p style="font-size:9px; color:#999; margin-bottom: 5px;">
             SOURCE : {{ log_source }}
         </p>
-
         <div class="console" id="log-console">
-            {% for line in logs %}
-            <div class="log-entry">
-                {# 시간을 분리할 수 있다면 좋지만, 통째로 출력하되 가독성을 위해 div로 감쌈 #}
-                {{ line }}
-            </div>
-            {% endfor %}
+            {% for line in logs %}<div class="log-line">{{ line }}</div>{% endfor %}
         </div>
     </div>
 
