@@ -91,8 +91,10 @@
             CPU {{ p.cpu }}% |
             MEM {{ p.memory }}% |
             USER {{ p.user }}
+        </p>
+        <p style="font-size:9px; margin-left:18px; line-height: 1.6;">
             {% if p.ports %}
-                 | PORT : {{ p.ports | join(', ') }}
+                PORT : {{ p.ports | join(', ') }}
             {% endif %}
         </p>
 
