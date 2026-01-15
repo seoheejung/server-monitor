@@ -108,6 +108,7 @@
 server-monitor/
 ├── docs/
 │   ├── POLICY.md # 프로세스 보안 분석 규칙
+│   ├── NATIVE_RUN.md      # Rocky Linux 네이티브 실행 & 검증 절차
 ├── docker/
 │   ├── README.md        # Docker & 운영 이식 기록
 │   ├── Dockerfile       # FastAPI 실행용 이미지
@@ -212,3 +213,4 @@ uvicorn app.main:app --reload
 5. Rocky Linux에서 pull
 6. OS 차이로 깨지는 부분 수정
 7. 운영 테스트
+8. Docker 적용
