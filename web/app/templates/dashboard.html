@@ -86,14 +86,13 @@
                 {{ p.explain }}
             </p>
         </p>
-        </p>
 
         <p style="font-size:9px; margin-left:18px; line-height: 1.6;">
             CPU {{ p.cpu }}% |
             MEM {{ p.memory }}% |
-            USER {{ p.user }} | 
+            USER {{ p.user }}
             {% if p.ports %}
-                PORT : {{ p.ports | join(', ') }}
+                 | PORT : {{ p.ports | join(', ') }}
             {% endif %}
         </p>
 
