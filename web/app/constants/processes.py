@@ -1,7 +1,26 @@
 KNOWN_PROCESSES = {
-    # --- Web & Proxy ---
-    "nginx": "Nginx: 고성능 웹 서버 및 리버스 프록시",
+    # --- Linux Core & Shell ---
+    "bash": "Bash: 리눅스 기본 대화형 쉘",
+    "sh": "Shell: 표준 명령어 실행 환경",
+    "init": "Init: 리눅스 최상위 프로세스 (PID 1)",
+    "kthreadd": "Linux 커널 스레드 관리자",
+    "systemd-journal": "Systemd 로그 수집 서비스",
+    "systemd-udevd": "장치 관리 및 이벤트 처리 프로세스",
+
+    # --- System Services (Linux) ---
+    "rsyslogd": "rsyslogd: 시스템 로그 메시지 처리기",
+    "dbus-daemon": "D-Bus: 프로세스 간 통신(IPC) 메시지 버스",
+    "chronyd": "Chronyd: 네트워크 시간 동기화(NTP)",
+    "polkitd": "Polkit: 시스템 권한 및 인증 정책 관리자",
+    "agetty": "TTY 터미널 접속 관리자",
+    "networkmanager": "NetworkManager: 네트워크 설정 관리자",
+
+    # --- Web & App Runtimes (Linux Context) ---
+    "uvicorn": "Uvicorn: FastAPI/Python ASGI 웹 서버",
     "apache": "Apache: 전통적인 웹 서버 (HTTPD)",
+    "gunicorn": "Gunicorn: Python WSGI HTTP 서버",
+    "nginx": "Nginx: 고성능 웹 서버 및 리버스 프록시",
+    "python3": "Python3: 파이썬 3 런타임",
     "httpd": "Apache HTTP Server: 리눅스 표준 웹 서비스",
     "haproxy": "HAProxy: 부하 분산(Load Balancer) 솔루션",
 
@@ -30,6 +49,17 @@ KNOWN_PROCESSES = {
     "sshd": "SSH Daemon",
     "systemd": "Systemd 서비스 관리자",
     "crond": "Cron 작업 스케줄러",
+
+        # --- Docker & Container ---
+    "containerd-shim": "Containerd Shim: 컨테이너 실행 격리 레이어",
+    "tini": "Tini: 컨테이너용 초소형 Init 프로세스",
+    "sleep": "Sleep: 일시 중단 상태의 대기 프로세스",
+
+    # --- Tools ---
+    "grep": "Grep: 패턴 검색 도구",
+    "ps": "PS: 프로세스 상태 확인 도구",
+    "top": "Top: 실시간 시스템 리소스 모니터",
+    "tail": "Tail: 파일 끝부분 출력 도구 (로그 확인용)",
 
     # --- Hyper-V / Virtualization ---
     "vmmemwsl": "WSL2 가상 머신 메모리 관리 프로세스",
