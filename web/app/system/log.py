@@ -22,4 +22,4 @@ def get_tail_log(file_path, lines=10):
     except FileNotFoundError:
         return [f"Error: '{file_path}' 파일을 찾을 수 없습니다."]
     except Exception as e:
-        return [f"Error: {str(e)}"]
+        return [f"Error: {str(e)[:10]}"]

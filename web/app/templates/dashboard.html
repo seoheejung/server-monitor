@@ -30,14 +30,12 @@
     <!-- 서비스 상태 -->
     <div class="card">
         <h2>SERVICES</h2>
+        {% for name, status in services.items() %}
         <p>
-            <span class="dot {{ 'on' if nginx == 'active' else 'off' }}"></span>
-            nginx [ {{ nginx | upper }} ]
+            <span class="dot {{ 'on' if 'active' in status else 'off' }}"></span>
+            {{ name }} [ {{ status | upper }} ]
         </p>
-        <p>
-            <span class="dot {{ 'on' if docker == 'active' else 'off' }}"></span>
-            docker [ {{ docker | upper }} ]
-        </p>
+        {% endfor %}
     </div>
 
     <!-- 로그 콘솔 -->

@@ -38,8 +38,9 @@ def dashboard(request: Request):
     disk = get_disk_usage()
     uptime = get_uptime()
 
-    nginx_status = get_service_status("nginx")
-    docker_status = get_service_status("docker")
+    # 2. 서비스 상태 수집 (딕셔너리 형태로 자동화)
+    services_to_check = ["nginx", "sshd", "rsyslog", "python", "docker"]
+    service_results = {name: get_service_status(name) for name in services_to_check}
 
     LOG_FILE = "/var/log/messages"
     logs = get_tail_log(LOG_FILE, 10)
@@ -60,9 +61,8 @@ def dashboard(request: Request):
             "cpu_class": usage_class(cpu),
             "memory_class": usage_class(memory),
 
-            # 서비스
-            "nginx": nginx_status,
-            "docker": docker_status,
+            # 서비스 상태 (전체 딕셔너리 전달)
+            "services": service_results,
 
             # 로그
             "logs": logs,
