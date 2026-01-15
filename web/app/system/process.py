@@ -71,18 +71,17 @@ def collect_processes() -> List[Dict]:
 def collect_ports(proc: psutil.Process) -> List[int]:
     """
     OS 공통 포트 수집
-
-    특정 PID가 점유하고 있는 네트워크 포트 수집
-    psutil.net_connections는 내부적으로 OS 명령어를 추상화하여 제공
-
-    root 아니면 일부 누락 가능 → 정상
+    특정 프로세스 객체(proc)가 점유하고 있는 네트워크 포트 수집
+    
+    psutil.net_connections()보다 해당 프로세스 객체의 connections()를 쓰는 것이 훨씬 빠름
+    root가 아니면 타 사용자의 프로세스 포트 정보는 누락될 수 있음 (AccessDenied 처리)
     """
     ports = set()
 
     try:
         # IPv4/IPv6 연결(inet)을 확인
         # psutil.connections로 시스템 전체를 뒤지지 않고 해당 프로세스의 소켓만 확인
-        for conn in psutil.connections(kind="inet"):
+        for conn in proc.connections(kind="inet"):
             if conn.status == psutil.CONN_LISTEN and conn.laddr: # 열린 포트 (LISTEN)
                 ports.add(conn.laddr.port) # 로컬 주소(laddr)의 포트 번호 저장
     except psutil.AccessDenied:
