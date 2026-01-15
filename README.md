@@ -3,8 +3,6 @@
  
 #### 단순 수치 나열이 아니라 “지금 이 서버에서 무엇이 돌고 있고, 이게 안전한지”를 설명하는 대시보드
 
-#### server-monitor는 서버 상태를 ‘수치’가 아니라 ‘의미’로 보여주는 프로젝트
-
 <br>
 
 ## 프로젝트 개요
@@ -157,6 +155,7 @@ venv\Scripts\activate
 # 3. 서버 실행 
 uvicorn app.main:app --reload
 ```
+
 - Linux / Docker (운영용)
 ```bash
 # 1. 프로젝트 폴더 이동
@@ -210,6 +209,12 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 <img src="./images/linux_1_task.png" width="600" >
 
 > docker (rocky linux container) 개발 환경에서 서비스 상태, 로그 tail을 구현한 화면
+
+
+<br>
+<img src="./images/window_3_task.png" width="600" >
+
+> 디자인 확정
 
 ---
 

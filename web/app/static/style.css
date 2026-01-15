@@ -10,8 +10,23 @@ body {
     color: #e0e0e0;
 }
 
+/* 전체 컨테이너는 위에서 아래로 쌓이게 설정 */
 .container {
-    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px; /* 줄 간격 */
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* 1. 상단 2개 나열 영역 */
+.container-row {
+    display: flex;
+    margin-bottom: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 h1 {
@@ -20,8 +35,8 @@ h1 {
 }
 
 h2 {
-    font-size: 12px;
-    margin-bottom: 10px;
+    font-size: 14px;
+    margin-bottom: 25px;
 }
 
 .card {
@@ -66,13 +81,20 @@ h2 {
 .dot.warn { background-color: #f1c40f; box-shadow: 0 0 8px #f1c40f; }  /* 노란색 (Sleeping/Zombie) */
 
 /* 로그 콘솔 */
+
+.log-card {
+    max-height: 550px;
+    min-height: 300px;
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
 .console {
     background: #000;
     color: #00ff9c;
     border: 4px solid #00ff9c;
     padding: 10px;          /* 안쪽 여백 살짝 조절 */
     width: 560px;           /* 카드 너비에 맞춰 조정 */
-    height: 250px;
     overflow-y: auto;
     overflow-x: hidden;
     font-family: 'Courier New', monospace; /* 로그는 고정폭 글꼴이 가독성이 좋습니다 */
@@ -80,6 +102,8 @@ h2 {
     line-height: 1.4;       /* 줄 간격을 적절하게 조절 */
     text-align: left;       /* 반드시 왼쪽 정렬 */
     display: block;         /* Flex 영향 방지 */
+    max-height: 550px;
+    min-height: 300px;
 }
 
 /* 로그 한 줄에 대한 설정 */
@@ -90,7 +114,6 @@ h2 {
     word-break: break-all;
     border-bottom: 1px solid #111; /* 줄 구분을 위해 아주 흐린 선 추가 */
 }
-
 
 /* 스크롤바 커스텀 (프로세스 카드와 통일) */
 .console::-webkit-scrollbar {
@@ -124,6 +147,13 @@ h2 {
     box-shadow: inset 0 0 0 2px #000;
 }
 
+/* 개별 프로세스 카드 */
+.process-item {
+    margin: 0; /* 기존 카드 마진 제거 */
+    width: 100%;
+}
+
+
 .card .process-status {
     font-size: 11px;
     display: flex;
@@ -146,6 +176,10 @@ h2 {
     text-align: right; 
     display: block; /* 혹시 모를 flex 영향을 제거 */
     width: calc(100% - 18px); /* 여백 제외 전체 너비 확보 */
+}
+
+.card .warning-text {
+    font-size: 10px;
 }
 
 

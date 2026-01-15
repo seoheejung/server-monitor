@@ -13,112 +13,113 @@
     <h1>SERVER MONITOR</h1>
 
     <!-- 시스템 상태 -->
-    <div class="card">
-        <p>CPU :
-            <span class="{{ cpu_class }}">{{ cpu }}%</span>
-        </p>
-        <p>MEMORY :
-            <span class="{{ memory_class }}">{{ memory }}%</span>
-        </p>
-        <p>DISK :
-            <span class="good">{{ disk }}%</span>
-        </p>
-        <p>UPTIME :
-            <span>{{ uptime }}</span>
-        </p>
-    </div>
+    <div class="container-row">
+        <div class="card">
+            <p>CPU :
+                <span class="{{ cpu_class }}">{{ cpu }}%</span>
+            </p>
+            <p>MEMORY :
+                <span class="{{ memory_class }}">{{ memory }}%</span>
+            </p>
+            <p>DISK :
+                <span class="good">{{ disk }}%</span>
+            </p>
+            <p>UPTIME :
+                <span>{{ uptime }}</span>
+            </p>
+        </div>
 
-    <!-- 서비스 상태 -->
-    <div class="card">
-        <h2>SERVICES</h2>
-        <div class="service-list">
-            {% for name, status in services.items() %}
-            <div class="service-item">
-                <div class="service-name-group">
-                    <span class="dot 
-                        {% if 'zombie' in status.lower() or 'idle' in status.lower() %}
-                            warn
-                        {% elif status.lower().startswith('active') %}
-                            on
-                        {% else %}
-                            off
-                        {% endif %}">
-                    </span>
-                    <span class="service-name">{{ name }}</span>
+        <!-- 서비스 상태 -->
+        <div class="card">
+            <h2>SERVICES</h2>
+            <div class="service-list">
+                {% for name, status in services.items() %}
+                <div class="service-item">
+                    <div class="service-name-group">
+                        <span class="dot 
+                            {% if 'zombie' in status.lower() or 'idle' in status.lower() %}
+                                warn
+                            {% elif status.lower().startswith('active') %}
+                                on
+                            {% else %}
+                                off
+                            {% endif %}">
+                        </span>
+                        <span class="service-name">{{ name }}</span>
+                    </div>
+                    <span class="service-status">[ {{ status | upper }} ]</span>
                 </div>
-                <span class="service-status">[ {{ status | upper }} ]</span>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
     </div>
 
     <!-- 로그 콘솔 -->
-    <div class="card">
-        <h2>LOG CONSOLE</h2>
-        <p style="font-size:9px; color:#999; margin-bottom: 5px;">
-            SOURCE : {{ log_source }}
-        </p>
-        <div class="console" id="log-console">
-            {% for line in logs %}<div class="log-line">{{ line }}</div>{% endfor %}
+    <div class="container-row">
+        <div class="card log-card">
+            <h2>LOG CONSOLE</h2>
+            <p style="font-size:9px; color:#999; margin-bottom: 15px;">
+                SOURCE : {{ log_source }}
+            </p>
+            <div class="console" id="log-console">
+                {% for line in logs %}<div class="log-line">{{ line }}</div>{% endfor %}
+            </div>
         </div>
-    </div>
-
 
     <!-- 프로세스 상태 -->
-    <div class="card process-card">
-        <h2>PROCESSES</h2>
+        <div class="card process-card">
+            <h2>PROCESSES</h2>
 
-        {% for p in processes %}
-        <p class="process-status">
-            <!-- 상태 도트 -->
-            {% if p.status_code == 'OK' %}
-                <span class="dot on"></span>    
-            {% elif p.status_code == 'WARN' %}
-                <span class="dot warn"></span>  
-            {% elif p.status_code == 'DANGER' %}
-                <span class="dot off"></span>   
-            {% else %}
-                <span class="dot"></span>       
-            {% endif %}
-            
-            {{ p.name }} (PID {{ p.pid }})
-        </p>
-        <p class="process-explain">
-            {{ p.explain }}
-        </p>
-
-        <p class="process-p">
-            CPU {{ p.cpu }}% |
-            MEM {{ p.memory }}% |
-            USER {{ p.user }}
-        </p>
-        <p class="process-p">
-            {% if p.ports %}
-                PORT : {{ p.ports | join(', ') }}
-            {% endif %}
-        </p>
-
-        <span style="font-size: 10px; margin-left: 5px;">
-            {{ p.status_summary }}
-        </span>
-
-        {% if p.warnings %}
-            <p style="font-size:9px; margin-left:18px; line-height: 1.6;" class="bad">
-                {% for warning in p.warnings %}
-                    ⚠ {{ warning }}{% if not loop.last %}<br>{% endif %}
-                {% endfor %}
+            {% for p in processes %}
+            <p class="process-status">
+                <!-- 상태 도트 -->
+                {% if p.status_code == 'OK' %}
+                    <span class="dot on"></span>    
+                {% elif p.status_code == 'WARN' %}
+                    <span class="dot warn"></span>  
+                {% elif p.status_code == 'DANGER' %}
+                    <span class="dot off"></span>   
+                {% else %}
+                    <span class="dot"></span>       
+                {% endif %}
+                
+                {{ p.name }} (PID {{ p.pid }})
             </p>
-        {% endif %}
+            <p class="process-explain">
+                {{ p.explain }}
+            </p>
 
-        <hr style="border:1px dashed #00ff9c; margin:10px 0;">
-        {% endfor %}
+            <p class="process-p">
+                CPU : {{ p.cpu }}% |
+                MEM : {{ p.memory }}% |
+                USER : {{ p.user }}
+            </p>
+            {% if p.display_ports %}
+            <p class="process-p">
+                PORT : {{ p.display_ports }}
+            </p>
+            {% endif %}
+            <span style="font-size: 10px; margin-left: 5px;">
+                {{ p.status_summary }}
+            </span>
+
+            {% if p.warnings %}
+                <p class="bad warning-text">
+                    {% for warning in p.warnings %}
+                        ⚠ {{ warning }}{% if not loop.last %}<br>{% endif %}
+                    {% endfor %}
+                </p>
+            {% endif %}
+
+            <hr style="border:1px dashed #00ff9c; margin:10px 0;">
+            {% endfor %}
+        </div>
     </div>
-
 </div>
 </body>
 
 <script>
-    const logConsole = document.querySelector('.log-content');
+    const logConsole = document.querySelector('.console');
     logConsole.scrollTop = logConsole.scrollHeight; // 페이지 로드 시 최하단으로 이동
 </script>
 </html>

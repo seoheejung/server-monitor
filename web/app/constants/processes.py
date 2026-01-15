@@ -69,6 +69,7 @@ KNOWN_PROCESSES = {
     "system idle process": "CPU 유휴 시간 계산 프로세스",
     "registry": "Windows 레지스트리 커널 프로세스",
     "memcompression": "Windows 메모리 압축 관리 프로세스",
+    "secure system": "가상화 기반 보안(VBS): 시스템의 핵심 자격 증명과 보안 데이터 보호",
 
     "smss.exe": "세션 관리자 서브시스템",
     "csrss.exe": "클라이언트/서버 런타임 서브시스템",
@@ -209,4 +210,13 @@ KNOWN_PROCESSES = {
     # --- VirtualBox ---
     "vboxsds.exe": "VirtualBox Secure Data Service",
 
+    # --- Windows Shell & Terminal ---
+    "openconsole.exe": "Windows 콘솔 호스트: 명령줄 인터페이스의 출력창을 담당",
+    "cmd.exe": "Windows 명령 프롬프트: 표준 커맨드 라인 인터프리터",
+    "windowsterminal.exe": "Windows 터미널: 현대적인 다중 탭 터미널 에뮬레이터",
+    "lockapp.exe": "Windows 잠금 화면: 시스템 잠금 및 로그인 배경 관리",
+
+    # --- Drivers & Updates ---
+    "nvdisplay.container.exe": "NVIDIA 디스플레이 컨테이너: 그래픽 드라이버 설정 및 관리",
+    "microsoftedgeupdate.exe": "Microsoft Edge 업데이트: 브라우저 최신 버전 자동 유지",
 }

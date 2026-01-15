@@ -82,8 +82,10 @@ def collect_ports(proc: psutil.Process) -> List[int]:
         # IPv4/IPv6 연결(inet)을 확인
         # psutil.connections로 시스템 전체를 뒤지지 않고 해당 프로세스의 소켓만 확인
         for conn in proc.connections(kind="inet"):
-            if conn.status == psutil.CONN_LISTEN and conn.laddr: # 열린 포트 (LISTEN)
-                ports.add(conn.laddr.port) # 로컬 주소(laddr)의 포트 번호 저장
+            # if conn.status == psutil.CONN_LISTEN and conn.laddr: # 열린 포트 (LISTEN)
+            #     ports.add(conn.laddr.port) # 로컬 주소(laddr)의 포트 번호 저장
+            if conn.laddr:
+                ports.add(conn.laddr.port)
     except psutil.AccessDenied:
         # 권한이 없거나 도중에 프로세스가 종료된 경우 빈 리스트 반환
         pass
@@ -224,15 +226,28 @@ def get_process_list() -> List[Dict]:
             proc["status_code"] = "DANGER"
 
         # 4. UI 출력용 값 확정
-        proc["cpu"] = (
-            f"{proc.get('cpu_percent', 0):.1f}"
-            if proc.get("cpu_percent") is not None else "-"
-        )
+        if proc["pid"] == 0:
+            proc["cpu"] = "0.0"
+        else:
+            cpu_val = proc.get('cpu_percent', 0)
+            # 논리적으로 한 프로세스가 전체 CPU 자원의 100%를 초과할 수 없으므로 제한
+            proc["cpu"] = f"{min(cpu_val, 100.0):.1f}" if cpu_val is not None else "0.0"
         proc["memory"] = (
             f"{proc.get('memory_percent', 0):.1f}"
             if proc.get("memory_percent") is not None else "-"
         )
         proc["user"] = proc.get("username") or "-"
+        # 포트 요약 처리 (추가할 부분)
+        ports_list = proc.get("ports", [])
+        if len(ports_list) > 5:
+            # 포트가 너무 많으면(크롬 등) "80 외 12건" 식으로 요약
+            proc["display_ports"] = f"{ports_list[0]} 외 {len(ports_list)-1}건"
+        elif len(ports_list) > 0:
+            # 적당히 있으면 콤마로 연결
+            proc["display_ports"] = ", ".join(map(str, ports_list))
+        else:
+            # 없으면 빈 문자열 또는 None
+            proc["display_ports"] = " - "
 
         result.append(proc)
 
