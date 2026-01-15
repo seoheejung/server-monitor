@@ -30,32 +30,40 @@
     <!-- 서비스 상태 -->
     <div class="card">
         <h2>SERVICES</h2>
-        {% for name, status in services.items() %}
-        <p>
-            <span class="dot 
-                {% if 'zombie' in status.lower() or 'idle' in status.lower() %}
-                    warn
-                {% elif status.lower().startswith('active') %}
-                    on
-                {% else %}
-                    off
-                {% endif %}">
-            </span>
-            {{ name }} [ {{ status | upper }} ]
-        </p>
-        {% endfor %}
+        <div class="service-list">
+            {% for name, status in services.items() %}
+            <div class="service-item">
+                <div class="service-name-group">
+                    <span class="dot 
+                        {% if 'zombie' in status.lower() or 'idle' in status.lower() %}
+                            warn
+                        {% elif status.lower().startswith('active') %}
+                            on
+                        {% else %}
+                            off
+                        {% endif %}">
+                    </span>
+                    <span class="service-name">{{ name }}</span>
+                </div>
+                <span class="service-status">[ {{ status | upper }} ]</span>
+            </div>
+            {% endfor %}
+        </div>
     </div>
 
     <!-- 로그 콘솔 -->
     <div class="card">
         <h2>LOG CONSOLE</h2>
-        <p style="font-size:9px; color:#999;">
+        <p style="font-size:9px; color:#999; margin-bottom: 5px;">
             SOURCE : {{ log_source }}
         </p>
 
-        <div class="console">
+        <div class="console" id="log-console">
             {% for line in logs %}
-            {{ line }}
+            <div class="log-entry">
+                {# 시간을 분리할 수 있다면 좋지만, 통째로 출력하되 가독성을 위해 div로 감쌈 #}
+                {{ line }}
+            </div>
             {% endfor %}
         </div>
     </div>
@@ -107,4 +115,9 @@
 
 </div>
 </body>
+
+<script>
+    const logConsole = document.querySelector('.log-content');
+    logConsole.scrollTop = logConsole.scrollHeight; // 페이지 로드 시 최하단으로 이동
+</script>
 </html>

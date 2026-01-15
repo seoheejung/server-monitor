@@ -108,3 +108,53 @@ h2 {
     background: #00ff9c;
     box-shadow: inset 0 0 0 2px #000;
 }
+
+/* 서비스 정렬 레이아웃 */
+.service-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* 항목 간 간격 */
+}
+
+.service-item {
+    display: flex;
+    justify-content: space-between; /* 이름은 왼쪽, 상태는 오른쪽 끝으로 */
+    align-items: center;
+    border-bottom: 1px dashed #2a2a2a; /* 시각적 가이드 라인 */
+    padding-bottom: 4px;
+}
+
+.service-name-group {
+    display: flex;
+    align-items: center;
+}
+
+.service-name {
+    font-size: 11px;
+    min-width: 120px; /* 이름 영역 최소 너비를 잡아 탭 효과를 줌 */
+}
+
+.service-status {
+    font-size: 11px;
+    text-align: right;
+}
+
+/* 로그 콘솔 가독성 개선 */
+.log-entry {
+    margin-bottom: 8px; /* 로그 줄 사이 간격 추가 */
+    padding-left: 5px;
+    border-left: 2px solid #00ff9c33; /* 로그 각 줄 앞에 흐린 선 추가 */
+    word-break: break-all;
+}
+
+/* 스크롤바 커스텀 (프로세스 카드와 통일) */
+.console::-webkit-scrollbar {
+    width: 8px;
+}
+.console::-webkit-scrollbar-track {
+    background: #000;
+}
+.console::-webkit-scrollbar-thumb {
+    background: #00ff9c;
+    box-shadow: inset 0 0 0 2px #000;
+}
