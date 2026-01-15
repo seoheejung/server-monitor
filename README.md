@@ -28,12 +28,18 @@
 - CPU 사용률
 - RAM 사용량
 - Disk 사용량
-- 서버 업타임
+- 서버 구동 시간
 
 ### 2. 서비스 상태 확인
-- nginx / docker 등 주요 서비스 상태
-- Linux: systemctl is-active
-- Windows: 미지원 안내 처리
+| 환경 | 감지 방식 | 상태 출력 예시 | 
+| ---------- | ------------- | ---------------- |
+| Rocky Linux (Host) | systemctl | active, inactive, failed |
+| Docker (Container) | psutil (프로세스 검색) | active, active (idle), failed (zombie) | 
+| Window | platform 체크 | not support on Windows |
+
+- 정상: active → 🟢 초록색 도트
+- 대기/좀비: idle, zombie → 🟡 노란색 도트
+- 중지/에러: inactive, error → 🔴 빨간색 도트
 
 ### 3. 로그 모니터링
 - Linux 로그 파일 tail (최근 N줄)
@@ -107,37 +113,24 @@
 ```
 server-monitor/
 ├── docs/
-│   ├── POLICY.md # 프로세스 보안 분석 규칙
-│   ├── NATIVE_RUN.md      # Rocky Linux 네이티브 실행 & 검증 절차
+│   ├── POLICY.md               # 프로세스 보안 분석 규칙
+│   ├── NATIVE_RUN.md           # Rocky Linux 네이티브 실행 & 검증 절차
 ├── docker/
-│   ├── README.md        # Docker & 운영 이식 기록
-│   ├── Dockerfile       # FastAPI 실행용 이미지
+│   ├── README.md               # Docker & 운영 이식 기록
+│   ├── Dockerfile              # FastAPI 실행용 이미지
 │   └── .dockerignore
 ├── web/
 │   ├── app/
-│   │   ├── main.py          # FastAPI 엔트리
-│   │   ├── constants/
-│   │   │   ├── ports.py
-│   │   │   ├── processes.py
-│   │   │   └── windows.py
-│   │   ├── system/
-│   │   │   ├── cpu.py
-│   │   │   ├── memory.py
-│   │   │   ├── disk.py
-│   │   │   ├── uptime.py
-│   │   │   ├── service.py
-│   │   │   ├── log.py
-│   │   │   └── process.py   # (확장) 프로세스 분석
-│   │   ├── templates/
-│   │   │   └── dashboard.html
-│   │   └── static/
-│   │       └── style.css
+│   │   ├── main.py             # FastAPI 엔트리
+│   │   ├── constants/          # 정보 수집 모듈 (CPU, RAM, Disk, Log, Service)
+│   │   ├── system/             # 분석용 상수 (알려진 포트, 프로세스 DB)
+│   │   ├── templates/          # Jinja2 HTML (dashboard.html)
+│   │   └── static/             # CSS (style.css - Retro UI)
 │   ├── db/
-│   │   └── monitor.db
-│   ├── requirements.txt
-│   └── README.md            # 개발/실습용 문서
+│   ├── requirements.txt        # 의존성 패키지 (fastapi, uvicorn, psutil, jinja2)
+│   └── README.md               # 개발/실습용 문서
 ├── .gitignore
-└── README.md                # 프로젝트 소개 문서
+└── README.md                   # 프로젝트 소개 문서
 
 ```
 <br>
@@ -152,16 +145,31 @@ server-monitor/
 ```
 - venv를 안 켜면 FastAPI가 존재하지 않음
 
-#### * 실행 루틴 (window)
-```
+#### * 실행 루틴
+- Windows (개발용)
+```bash
 # 1. 프로젝트 폴더 이동
 cd web
 
 # 2. 가상환경 활성화
 venv\Scripts\activate
 
-# 3. 서버 실행
+# 3. 서버 실행 
 uvicorn app.main:app --reload
+```
+- Linux / Docker (운영용)
+```bash
+# 1. 프로젝트 폴더 이동
+cd /root/projects/server-monitor/web
+
+# 2. 가상환경 활성화
+source venv/bin/activate
+
+# 3. 서버 실행 (외부 접속 허용)
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+# 백그라운드 실행 (추후 pm2로 변경)
+nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 ```
 
 ---
@@ -174,7 +182,7 @@ uvicorn app.main:app --reload
 - RAM 사용량
 - Disk 사용량
 - 서버 구동 시간
-- nginx / docker 서비스 상태
+- 주요 서비스 상태
 - 로그 tail (최근 10줄)
 - 기본 대시보드 (Retro / Pixel Server Console)
 
@@ -198,6 +206,11 @@ uvicorn app.main:app --reload
 
 > Windows 개발 환경에서 프로세스 위험 분석을 구현한 화면
 
+<br>
+<img src="./images/linux_1_task.png" width="600" >
+
+> docker (rocky linux container) 개발 환경에서 서비스 상태, 로그 tail을 구현한 화면
+
 ---
 
 <br>
@@ -210,7 +223,7 @@ uvicorn app.main:app --reload
    - 경고 판단 로직을 순수 함수로 분리
 3. UI 작업 (process 추가) ✅
 4. Git push ✅
-5. Rocky Linux에서 pull
-6. OS 차이로 깨지는 부분 수정
+5. Rocky Linux에서 pull ✅
+6. OS 차이로 깨지는 부분 수정 ✅
 7. 운영 테스트
 8. Docker 적용

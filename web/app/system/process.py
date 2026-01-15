@@ -43,21 +43,23 @@ def collect_processes() -> List[Dict]:
         "create_time"     # 프로세스 시작 시간
     ]):
         try:
-            info = proc.info # 수집된 기본 정보 딕셔너리
+            # oneshot을 쓰면 내부 데이터를 한 번에 가져와서 작업
+            with proc.oneshot():
+                info = proc.info # 수집된 기본 정보 딕셔너리
 
-            try:
-                info["cpu_percent"] = proc.cpu_percent(None) # 실제 값
-            except psutil.AccessDenied:
-                info["cpu_percent"] = None # 초기화
+                try:
+                    info["cpu_percent"] = proc.cpu_percent(None) # 실제 값
+                except psutil.AccessDenied:
+                    info["cpu_percent"] = None # 초기화
 
-            try:
-                info["memory_percent"] = proc.memory_percent()
-            except psutil.AccessDenied:
-                info["memory_percent"] = None
+                try:
+                    info["memory_percent"] = proc.memory_percent()
+                except psutil.AccessDenied:
+                    info["memory_percent"] = None
 
-            info["ports"] = collect_ports(proc.pid) # 네트워크 포트 정보 추가
-            info["os_type"] = OS_TYPE
-            processes.append(info)
+                info["ports"] = collect_ports(proc) # 네트워크 포트 정보 추가
+                info["os_type"] = OS_TYPE
+                processes.append(info)
 
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             # 프로세스가 순회 중 종료되었거나, 접근 권한이 없는 경우 스킵
@@ -66,7 +68,7 @@ def collect_processes() -> List[Dict]:
     return processes
 
 
-def collect_ports(pid: int) -> List[int]:
+def collect_ports(proc: psutil.Process) -> List[int]:
     """
     OS 공통 포트 수집
 
@@ -78,12 +80,13 @@ def collect_ports(pid: int) -> List[int]:
     ports = set()
 
     try:
-        # 모든 IPv4/IPv6 연결(inet)을 확인
-        for conn in psutil.net_connections(kind="inet"):
-            if conn.pid == pid and conn.laddr:
+        # IPv4/IPv6 연결(inet)을 확인
+        # psutil.connections로 시스템 전체를 뒤지지 않고 해당 프로세스의 소켓만 확인
+        for conn in psutil.connections(kind="inet"):
+            if conn.status == psutil.CONN_LISTEN and conn.laddr: # 열린 포트 (LISTEN)
                 ports.add(conn.laddr.port) # 로컬 주소(laddr)의 포트 번호 저장
     except psutil.AccessDenied:
-        # 일반 사용자 권한으로는 다른 사용자의 포트 정보를 볼 수 없는 경우 발생
+        # 권한이 없거나 도중에 프로세스가 종료된 경우 빈 리스트 반환
         pass
 
     return sorted(list(ports))

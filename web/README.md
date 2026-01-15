@@ -4,11 +4,16 @@
 
 > 이 문서는 server-monitor 프로젝트의 **개발 및 실습 가이드**입니다.
 
-
-### 프로젝트 목표
-* 서버의 CPU, 메모리, 디스크 상태를 어떻게 프로그램으로 확인할 수 있을까?
-* Linux에서 실행 중인 서비스(nginx, docker 등)의 상태를 어떻게 코드로 알 수 있을까?
-* 이런 정보를 웹 화면으로 보여주려면 어떤 도구가 필요할까?
+###  핵심 기능
+1. 시스템 리소스 시각화
+   - CPU, RAM, Disk 사용량을 픽셀 스타일 대시보드로 실시간 확인
+2. 하이브리드 서비스 모니터링
+   - Linux: systemctl 기반 서비스 상태 감지
+   - Docker/Native: psutil 기반 프로세스 추적 및 상태 분석
+   - 로그 스트리밍: 시스템 및 서비스 로그를 웹 콘솔에서 즉시 확인
+3. 프로세스 보안 분석 (Explain & Warning)
+   - root 실행 여부, 비표준 경로 실행, 위험 포트 점유 등을 자동 진단
+   - 각 프로세스의 역할과 위험 요소를 사람이 이해하기 쉽게 설명
 
 ---
 
@@ -83,7 +88,7 @@ python test.py
 ```
 web/
 ├── app/
-│   ├── main.py          # FastAPI 서버 시작 지점
+│   ├── main.py          # FastAPI 엔트리 (URL 및 서버 설정)
 │   ├── constants/
 │   │   ├── ports.py
 │   │   ├── processes.py
@@ -101,7 +106,7 @@ web/
 │   └── static/          # 정적 파일
 │       └── style.css
 ├── db/
-│   └── monitor.db       # (추후 사용) 데이터 저장용 DB
+│   └── monitor.db       # 데이터 저장용 DB (추후 사용)
 ├── requirements.txt     # 설치해야 할 패키지 목록
 └── README.md
 ```
@@ -267,50 +272,39 @@ uvicorn app.main:app --reload
 
 <br>
 
-### 2단계: 시스템 정보 API 구현
-1. CPU 정보 API부터 만들기
-   - psutil 중 가장 단순
-   - OS 권한 문제 없음
-   - Windows / Linux 동일 코드
-    ```
-    import psutil
-
-    def get_cpu_usage():
-        return {
-            "cpu_percent": psutil.cpu_percent(interval=1)
-        }
-    ```
-2. 메모리 → 디스크 → 구동 시간 순으로 진행
-    - 메모리: psutil.virtual_memory()
-    - 디스크: psutil.disk_usage('/')
-    - 구동 시간: psutil.boot_time() 또는 /proc/uptime
-3. 서비스 상태 / 로그 수집
+### 2단계: API 구현
+1. 시스템 정보 수집 (CPU)
+   - psutil 중 가장 단순 (OS 권한 문제 없음)
+   - 정확도 확보: psutil.cpu_percent(interval=1)를 사용하여 1초간의 평균 부하 측정
+   - Windows와 Linux에서 동일한 API로 동작하여 개발 편의성 확보
+2. 리소스 가공 (메모리, 디스크, 구동 시간)
+   - 메모리: psutil.virtual_memory()
+     - 전체(Total), 사용량(Used), 퍼센트(Percent) 추출
+   - 디스크: psutil.disk_usage('/')
+     - OS별 루트 경로 분기 처리
+       - Linux : `/`
+       - Windows : `C:\\`
+   - 구동 시간: psutil.boot_time()
+     - 부팅 시점 타임스탬프와 datetime.now()의 차이를 계산
+     - timedelta를 사용하여 D+H:M 형태의 사용자 친화적 문자열로 가공
+3. 서비스 상태
     - 운영체제에 따른 분기 처리 필요
-    - 서비스 상태
-        - Linux: systemctl is-active
-            ```
-            systemctl is-active nginx
-            systemctl is-active docker
-            ```
-            - Python에서 subprocess로 실행
-            - systemctl 실행 시 권한 문제를 고려하여 sudo 설정 또는 실행 사용자 분리
-            - 결과: active / inactive / failed
-        - Windows: 미지원 (예외 처리)
-    - 로그 tail
-        - Linux 로그 파일 직접 읽기
-            ```
-            /var/log/nginx/access.log
-            /var/log/messages
-            ```
-        - 최근 N줄만 읽기
-        - 파일 직접 읽기 (tail 구현)
-        - 로그 파일 접근 시 권한 제한 및 민감 정보 노출 방지 고려
+      - Windows: `platform` 체크를 통해 미지원 메시지 출력 및 예외 처리
+      - Linux (Host): `systemctl is-active` 명령어를 우선 사용하여 OS 레벨의 표준 상태 수집
+      - Docker (Container): `systemctl`이 없는 환경은 `psutil.process_iter`로 프로세스명 검색
+    - 모니터링 대상 서비스 정의 (services_to_check)
+      - 네트워크/인프라: nginx (웹 서비스), sshd (원격 관리)
+      - 시스템 운영: rsyslog (로그 관리), docker (가상화 서비스)
+      - 실행 환경: python (백엔드 구동 환경)
+4. 로그 수집 (tail)
+     - 대용량 로그 파일 전체를 읽지 않고, 파일 끝(EOF)에서부터 최근 10~20줄만 추출하는 tail 로직 구현
+     - `/var/log` 접근 시 발생할 수 있는 **PermissionError**를 `try-except`로 처리하여 서버가 중단되지 않게 방어 코드 작성
 
-4. 대시보드
+5. 대시보드
     - Jinja2 템플릿을 활용한 화면 분리
-    ```
-    Python 데이터 → Jinja2 → HTML
-    ```
+        ```
+        Python 데이터 → Jinja2 → HTML
+        ```
     - UI 컨셉
         ```
         [ 서버 상태 대시보드 ]
@@ -328,16 +322,16 @@ uvicorn app.main:app --reload
         [INFO] ...
         [WARN] ...
 
+        실행 중인 프로세스
+
         ```
         - Retro / Pixel Server Console
         - 도트 배경 → 서버 콘솔 느낌
         - 픽셀 폰트 → 시스템 모니터링 감성
         - 굵은 테두리 → 상태판 느낌
         - box-shadow → 픽셀 카드 연출
-    - 핵심 포인트
-    - service 상태는 문자열(active, inactive)
-    - 로그는 리스트
-    - CPU/메모리는 CSS class 계산해서 넘김
+        - 리소스 수치에 따라 good/warn/bad CSS 클래스 자동 부여.
+        - 서비스 상태(active, failed)에 따라 도트 색상 변경.
 
 <br>
 
@@ -382,7 +376,8 @@ process.py
    - 필요 시 /var/lib, /tmp 등 허용 경로 추가 가능
 3. 포트 수집 권한
    - 일반 사용자 실행 시 타 사용자 프로세스의 포트 수집 불가 가능
-   - 정확한 분석을 위해 sudo 실행 여부 검토 필요
+   - 정확한 분석을 위해 `sudo` 실행 여부 검토 필요
+   - Linux 환경에서 모든 프로세스의 포트 정보를 수집하려면 python 실행 시 `sudo 권한`이 필요하거나, `net-tools` 패키지 설치 필요
    
 <br> 
 
