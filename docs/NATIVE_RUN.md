@@ -33,9 +33,28 @@
 <br>
 
 ## 1. Rocky Linux 서버 준비
-### 서버 접속
+
+> Docker의 Rocky Linux 컨테이너로 먼저 진행 후 virtualBox Rocky Linux 진행
+>
+### Docker rockylinux 설치 및 실행
+```
+docker run -it -p 2222:8000 --name rocky-93 rockylinux:9.3 /bin/bash
+# docker exec -it rocky-93 /bin/bash
+```
+
+### VirtualBox rockylinux 서버 접속
 ```
 ssh user@서버IP
+
+```
+
+### Rocky Linux에서 dnf 사용하기
+```
+# 패키지 목록 업데이트
+dnf update -y
+
+# 필요한 도구 설치 예시
+dnf install -y vim procps-ng
 ```
 
 ### 필수 패키지 확인
@@ -59,7 +78,7 @@ sudo dnf install -y procps-ng iproute
 mkdir -p ~/projects
 cd ~/projects
 git clone <레포주소>
-cd server-monitor
+cd server-monitor/web
 ```
 
 ---
@@ -96,7 +115,6 @@ pip install psutil
 
 ### FastAPI 서버 실행
 ```
-cd web
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 - 0.0.0.0 : 외부 접속 허용
@@ -104,13 +122,23 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 ### 서버 내부 확인
 ```
+# docker
+curl http://localhost:2222
+
+# virtualBox
 curl http://localhost:8000
 ```
 
 ### 외부 접속 확인 (브라우저)
 ```
+# virtualBox
 http://서버IP:8000/
+
+# docker
+http://localhost:2222
+
 ```
+- `ip addr`로 IP 확인
 - JSON 응답이 나오면 FastAPI + 네트워크 정상
 
 ---
