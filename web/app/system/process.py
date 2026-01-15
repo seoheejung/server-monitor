@@ -209,9 +209,11 @@ def get_process_list() -> List[Dict]:
         if risk_count == 0 and is_known:
             # Case A : 경고가 하나도 없는 경우
             proc["status_summary"] = "✅ 안전"
+            proc["status_code"] = "OK"
             # Case B : 정체는 모르지만 경고가 없는 경우
         elif risk_count == 0 and not is_known:
             proc["status_summary"] = "⚠️ 미등록 프로세스"
+            proc["status_code"] = "WARN"
         else:
             # Case C: 경고가 존재하는 경우 (가장 첫 번째 경고를 대표로 표시하거나 개수 표시)
             main = proc["warnings"][0].split(":")[0]
@@ -219,6 +221,7 @@ def get_process_list() -> List[Dict]:
             proc["status_summary"] = (
                 f"🚨 {main} 외 {extra}건" if extra > 0 else f"🚨 {main}"
             )
+            proc["status_code"] = "DANGER"
 
         # 4. UI 출력용 값 확정
         proc["cpu"] = (

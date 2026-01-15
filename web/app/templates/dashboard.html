@@ -5,7 +5,7 @@
     <title>Server Monitor</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📟</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💾</text></svg>">
 </head>
 <body>
 <div class="container">
@@ -71,38 +71,39 @@
         {% for p in processes %}
         <p>
             <!-- 상태 도트 -->
-            {% if p.status_summary == 'OK' %}
-                <span class="dot on"></span>
-            {% elif p.status_summary == 'WARN' %}
-                <span class="dot warn"></span>
+            {% if p.status_code == 'OK' %}
+                <span class="dot on"></span>    
+            {% elif p.status_code == 'WARN' %}
+                <span class="dot warn"></span>  
+            {% elif p.status_code == 'DANGER' %}
+                <span class="dot off"></span>   
             {% else %}
-                <span class="dot off"></span>
+                <span class="dot"></span>       
+            {% endif %}
+            
+            <strong>{{ p.name }}</strong>
+            <span class="dim" style="font-size: 13px;">(PID {{ p.pid }})</span>
+
+            <span style="font-size: 10px; margin-left: 5px;">
+                {{ p.status_summary }}
+            </span>
+        </p>
+
+        <div style="font-size:9px; margin-left:18px; color: #ccc; line-height: 1.4;">
+            CPU {{ p.cpu }}% | MEM {{ p.memory }}% | USER {{ p.user }}
+            
+            {% if p.ports %}
+            <br>PORT: <span style="color: #00ff9c;">{{ p.ports | join(', ') }}</span>
             {% endif %}
 
-            {{ p.name }} (PID {{ p.pid }})
-        </p>
+            {% if p.warnings %}
+            <br><span class="bad" style="color: #ff4b2b;">⚠ {{ p.warnings | join(' / ') }}</span>
+            {% endif %}
 
-        <p style="font-size:9px; margin-left:18px; line-height: 1.6;">
-            CPU {{ p.cpu }}% |
-            MEM {{ p.memory }}% |
-            USER {{ p.user }}
-        </p>
-
-        {% if p.ports %}
-        <p style="font-size:9px; margin-left:18px; line-height: 1.6;">
-            PORT : {{ p.ports | join(', ') }}
-        </p>
-        {% endif %}
-
-        {% if p.warnings %}
-        <p style="font-size:9px; margin-left:18px; line-height: 1.6;" class="bad">
-            ⚠ {{ p.warnings | join(', ') }}
-        </p>
-        {% endif %}
-
-        <p style="font-size:9px; margin-left:18px; line-height: 1.6; color:#999;">
-            {{ p.explain }}
-        </p>
+            <div style="color:#888; margin-top: 2px;">
+                {{ p.explain }}
+            </div>
+        </div>
 
         <hr style="border:1px dashed #00ff9c; margin:10px 0;">
         {% endfor %}

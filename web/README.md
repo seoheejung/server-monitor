@@ -370,7 +370,7 @@ process.py
 #### 💡 Rocky Linux(Linux) 이식 시 주의사항 업데이트
 1. 권한 기준
    - Windows: SYSTEM, Administrator
-   - Linux: root (이미 코드 반영됨)
+   - Linux: root
 2. 표준 경로
    - /usr, /bin, /opt 외
    - 필요 시 /var/lib, /tmp 등 허용 경로 추가 가능
