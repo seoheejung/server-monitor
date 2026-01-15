@@ -77,3 +77,9 @@ def dashboard(request: Request):
 @app.get("/api/processes")
 def process_api():
     return get_process_list()
+
+# DevTools(개발자 도구)나 특정 크롬 확장 프로그램이 서버의 상세 정보를 파악하기 위해 자동으로 던지는 요청 막기
+@app.get("/.well-known/appspecific/com.chrome.devtools.json")
+def ignore_chrome_devtools():
+    # 204 No Content를 반환하여 에러 로그가 남지 않게 합니다.
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
