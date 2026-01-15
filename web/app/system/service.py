@@ -20,9 +20,12 @@ def get_service_status(service_name):
             ["systemctl", "is-active", service_name],
             capture_output=True, # 표준 출력/에러 캡쳐
             text=True # 결과를 문자열로 받기
+            timeout=1  # 1초 이상 걸리면 중단
         )
-
         # 결과 문자열에서 개행 문자 제거
         return result.stdout.strip()
+    except FileNotFoundError:
+        # systemctl 명령어가 없는 Docker 환경인 경우
+        return [f"Error: '{service_name}' 서비스를 찾을 수 없습니다."]
     except Exception as e:
-        return f"error : {e}" 
+        return [f"Error: {str(e)[:10]}"]

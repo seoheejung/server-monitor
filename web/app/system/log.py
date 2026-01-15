@@ -3,8 +3,8 @@ import platform
 
 def get_tail_log(file_path, lines=10):
     """
-    Linux 로그 파일의 마지막 N줄을 읽어서 반환
-    Windows에서는 미지원 안내
+    Linux: 로그 파일의 마지막 N줄을 읽어서 반환
+    Windows: 미지원 안내
     """
 
     if platform.system() != "Linux":
@@ -13,8 +13,13 @@ def get_tail_log(file_path, lines=10):
     try:
         # 로그 파일을 읽기 모드로 열기
         with open(file_path, "r") as f:
-            # 모든 줄을 리스트로 읽은 뒤 뒤에서 n줄만 잘라서 반환
-            return f.readlines()[-lines:]
+            # 전체를 읽은 후 각 줄의 앞뒤 공백(\n 등)을 제거하고, 내용이 있는 줄만 필터링
+            all_lines = [line.strip() for line in f if line.strip()]
+            
+            # 마지막 N줄만 선택하여 반환
+            return all_lines[-lines:]
 
+    except FileNotFoundError:
+        return [f"Error: '{file_path}' 파일을 찾을 수 없습니다."]
     except Exception as e:
-        return [str(e)]
+        return [f"Error: {str(e)}"]

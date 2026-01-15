@@ -37,6 +37,7 @@ h2 {
     font-size: 11px;
     display: flex;
     justify-content: space-between;
+    line-height: 1.6;
 }
 
 /* 임계치 */
@@ -75,6 +76,7 @@ h2 {
     white-space: pre-wrap;
     font-size: 10px;
     box-shadow: 6px 6px 0 #000;
+    line-height: 1.6;
 }
 
 /* 프로세스 */

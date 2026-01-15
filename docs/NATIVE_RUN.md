@@ -81,6 +81,22 @@ git clone <레포주소>
 cd server-monitor/web
 ```
 
+### docker 로그 없을 경우
+- 컨테이너 내부에서 확인할 경우 로그 서비스를 설치하고 실행
+```
+dnf install -y rsyslog
+
+# 서비스 수동 시작
+/usr/sbin/rsyslogd  
+# 파일 생성 완료
+ls /var/log/messages 
+
+# 가짜 로그 발생 후 확인
+nohup sh -c 'while true; do logger -t [INFO] "System Health Check OK"; sleep 5; done' &
+tail /var/log/messages
+
+```
+
 ---
 <br>
 
