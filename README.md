@@ -108,6 +108,10 @@
 server-monitor/
 ├── docs/
 │   ├── POLICY.md # 프로세스 보안 분석 규칙
+├── docker/
+│   ├── README.md        # Docker & 운영 이식 기록
+│   ├── Dockerfile       # FastAPI 실행용 이미지
+│   └── .dockerignore
 ├── web/
 │   ├── app/
 │   │   ├── main.py          # FastAPI 엔트리
