@@ -32,7 +32,15 @@
         <h2>SERVICES</h2>
         {% for name, status in services.items() %}
         <p>
-            <span class="dot {{ 'on' if 'active' in status.lower() else 'off' }}"></span>
+            <span class="dot 
+                {% if 'zombie' in status.lower() or 'idle' in status.lower() %}
+                    warn
+                {% elif status.lower().startswith('active') %}
+                    on
+                {% else %}
+                    off
+                {% endif %}">
+            </span>
             {{ name }} [ {{ status | upper }} ]
         </p>
         {% endfor %}

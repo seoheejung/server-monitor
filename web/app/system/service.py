@@ -28,12 +28,22 @@ def get_service_status(service_name):
         # return result.stdout.strip()
 
         # 프로세스 목록에서 이름 검색 (Docker 컨테이너용)
-        for proc in psutil.process_iter(['name']):
+        for proc in psutil.process_iter(['name', 'status']):
             # 서비스 이름이 프로세스 이름에 포함되어 있는지 확인
             if service_name.lower() in proc.info['name'].lower():
-                return "active" # 화면에 깔끔하게 active라고만 표시
+                p_status = proc.info['status']
+
+                # psutil의 프로세스 상태를 systemctl 스타일로 변환
+                if p_status == psutil.STATUS_RUNNING:
+                    return "active"
+                elif p_status == psutil.STATUS_SLEEPING:
+                    return "active (idle)"
+                elif p_status == psutil.STATUS_ZOMBIE:
+                    return "failed (zombie)"
+                else:
+                    # 그 외 상태(disk-sleep, stopped 등) 처리
+                    return f"active ({p_status})"
+        # 루프를 다 돌았는데도 없으면 비활성 상태
+        return "inactive"
     except Exception as e:
         return [f"Error: {str(e)[:10]}"]
-
-    # 루프를 다 돌았는데도 없으면 비활성 상태
-    return "inactive"

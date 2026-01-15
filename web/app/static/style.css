@@ -61,8 +61,18 @@ h2 {
     background: #555;
 }
 
-.dot.on  { background: #00ff9c; }
-.dot.off { background: #ff5555; }
+/* 기존 스타일 아래에 추가 */
+.dot {
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.dot.on { background-color: #2ecc71; box-shadow: 0 0 8px #2ecc71; }    /* 초록색 */
+.dot.off { background-color: #e74c3c; box-shadow: 0 0 8px #e74c3c; }   /* 빨간색 */
+.dot.warn { background-color: #f1c40f; box-shadow: 0 0 8px #f1c40f; }  /* 노란색 (Sleeping/Zombie) */
 
 /* 로그 콘솔 */
 .console {
