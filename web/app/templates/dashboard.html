@@ -82,32 +82,30 @@
             {% endif %}
             
             {{ p.name }} (PID {{ p.pid }})
+            <p style="font-size:9px; margin-left:18px; line-height: 1.6; color:#999;">
+                {{ p.explain }}
+            </p>
         </p>
-        <span style="font-size: 10px; margin-left: 5px;">
-            {{ p.status_summary }}
-        </span>
+        </p>
 
         <p style="font-size:9px; margin-left:18px; line-height: 1.6;">
             CPU {{ p.cpu }}% |
             MEM {{ p.memory }}% |
-            USER {{ p.user }}
+            USER {{ p.user }} | 
+            {% if p.ports %}
+                PORT : {{ p.ports | join(', ') }}
+            {% endif %}
         </p>
 
-        {% if p.ports %}
-        <p style="font-size:9px; margin-left:18px; line-height: 1.6;">
-            PORT : {{ p.ports | join(', ') }}
-        </p>
-        {% endif %}
+        <span style="font-size: 10px; margin-left: 5px;">
+            {{ p.status_summary }}
+        </span>
 
         {% if p.warnings %}
         <p style="font-size:9px; margin-left:18px; line-height: 1.6;" class="bad">
             ⚠ {{ p.warnings | join(', ') }}
         </p>
         {% endif %}
-
-        <p style="font-size:9px; margin-left:18px; line-height: 1.6; color:#999;">
-            {{ p.explain }}
-        </p>
 
         <hr style="border:1px dashed #00ff9c; margin:10px 0;">
         {% endfor %}
