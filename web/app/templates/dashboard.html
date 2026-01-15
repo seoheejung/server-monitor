@@ -69,7 +69,7 @@
         <h2>PROCESSES</h2>
 
         {% for p in processes %}
-        <p>
+        <p class="process-status">
             <!-- 상태 도트 -->
             {% if p.status_code == 'OK' %}
                 <span class="dot on"></span>    
@@ -82,17 +82,17 @@
             {% endif %}
             
             {{ p.name }} (PID {{ p.pid }})
-            <p class="process-p">
-                {{ p.explain }}
-            </p>
+        </p>
+        <p class="process-explain">
+            {{ p.explain }}
         </p>
 
-        <p style="font-size:9px; margin-left:18px; line-height: 1.6;">
+        <p class="process-p">
             CPU {{ p.cpu }}% |
             MEM {{ p.memory }}% |
             USER {{ p.user }}
         </p>
-        <p style="font-size:9px; margin-left:18px; line-height: 1.6;">
+        <p class="process-p">
             {% if p.ports %}
                 PORT : {{ p.ports | join(', ') }}
             {% endif %}
