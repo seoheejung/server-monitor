@@ -110,27 +110,17 @@
 ## 디렉토리 구조
 ```
 server-monitor/
-├── docs/
-│   ├── POLICY.md               # 프로세스 보안 분석 규칙
-│   ├── NATIVE_RUN.md           # Rocky Linux 네이티브 실행 & 검증 절차
-├── docker/
-│   ├── README.md               # Docker & 운영 이식 기록
-│   ├── Dockerfile              # FastAPI 실행용 이미지
-│   └── .dockerignore
-├── web/
-│   ├── app/
-│   │   ├── main.py             # FastAPI 엔트리
-│   │   ├── constants/          # 정보 수집 모듈 (CPU, RAM, Disk, Log, Service)
-│   │   ├── system/             # 분석용 상수 (알려진 포트, 프로세스 DB)
-│   │   ├── templates/          # Jinja2 HTML (dashboard.html)
-│   │   └── static/             # CSS (style.css - Retro UI)
-│   ├── db/
-│   ├── requirements.txt        # 의존성 패키지 (fastapi, uvicorn, psutil, jinja2)
-│   └── README.md               # 개발/실습용 문서
+├── docs/            # 설계·정책·네이티브 실행 문서
+├── docker/          # Docker 환경 구성 및 운영 기록
+├── web/             # FastAPI 웹 애플리케이션
+│   ├── app/         # API 엔트리 및 시스템 분석 로직
+│   ├── db/          # (확장 대비) 데이터 저장 영역
+│   ├── requirements.txt
+│   └── README.md
 ├── .gitignore
-└── README.md                   # 프로젝트 소개 문서
-
+└── README.md        # 프로젝트 전체 소개
 ```
+
 <br>
 
 ### FastAPI 서버를 실행할 때마다 가상환경(venv) 실행
@@ -172,11 +162,11 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 ```
 
 ---
-
 <br>
 
 ## 기능 범위 
-### ✅ 1차 완성 목표 (완료)
+
+### ✅ 1차 목표 :상태 시각화 (완료) 
 - CPU 사용률
 - RAM 사용량
 - Disk 사용량
@@ -192,13 +182,10 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 
 <br>
 
-### 🔜 확장 목표
+### ✅ 2차 목표 : 위험 판단 (완료)
 - 프로세스 위험 분석
 - 포트 기반 보안 경고
 - Docker 컨테이너 인식
-- 다중 서버 관리
-- Slack / Telegram 알림
-- Prometheus 연계
   
 <br>
 <img src="./images/window_2_task.png" width="600" >
@@ -210,12 +197,20 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 
 > docker (rocky linux container) 개발 환경에서 서비스 상태, 로그 tail을 구현한 화면
 
-
 <br>
 <img src="./images/window_3_task.png" width="600" >
 
 > 디자인 확정
 
+### ✅ 3차 목표 : 행동 제안
+- DB 연동 (프로세스 판단 기준 / 정책 관리용)
+- 프로세스 종료 (권장 종료 대상만 추려서 제안)
+
+### 🔜 추가 확장 목표
+- 다중 서버 관리
+- Slack / Telegram 알림
+- Prometheus 연계
+- 
 ---
 
 <br>
