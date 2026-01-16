@@ -1,13 +1,10 @@
-import platform
-
-
-def get_tail_log(file_path, lines=10):
+def get_tail_log(file_path, lines=10, os_type="Linux"):
     """
     Linux: 로그 파일의 마지막 N줄을 읽어서 반환
     Windows: 미지원 안내
     """
 
-    if platform.system() != "Linux":
+    if os_type != "Linux":
         return ["log tail is supported on Linux only"]
 
     try:

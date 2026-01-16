@@ -1,17 +1,13 @@
-import platform
 import subprocess # 리눅스 명령어(systemctl 등)를 실행하기 위한 모듈
 import psutil # 프로세스 체크를 위해 추가
 
-def get_service_status(service_name):
+def get_service_status(service_name: str, os_type: str):
     """
     1. Windows: 미지원 메시지 반환
     2. Linux (systemctl 가능): systemctl 결과 반환
     3. Linux (Docker/systemctl 불가): psutil로 프로세스 존재 여부 확인
     """
-
-    # 현재 os 확인
-    os_type = platform.system()
-
+    
     if os_type != "Linux":
         return "not support on Windows"
     

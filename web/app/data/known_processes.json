@@ -1,0 +1,2413 @@
+[
+  {
+    "name": "bash",
+    "platform": "linux",
+    "category": "shell",
+    "description": "Bash: 리눅스 기본 대화형 쉘",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "sh",
+    "platform": "linux",
+    "category": "shell",
+    "description": "Shell: 표준 명령어 실행 환경",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "init",
+    "platform": "linux",
+    "category": "kernel",
+    "description": "Init: 리눅스 최상위 프로세스 (PID 1)",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "auto-imported", "boot-critical"]
+  },
+  {
+    "name": "kthreadd",
+    "platform": "linux",
+    "category": "kernel",
+    "description": "Linux 커널 스레드 관리자",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "systemd-journal",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "Systemd 로그 수집 서비스",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "udevd",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "Linux Device Manager: 하드웨어 장치의 추가/제거를 감지하고 /dev 디렉토리를 관리",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "hardware", "kernel", "auto-imported"]
+  },
+  {
+    "name": "systemd-udevd",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "장치 관리 및 이벤트 처리 프로세스",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "auto-imported"]
+  }, 
+  {
+    "name": "rsyslogd",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "rsyslogd: 시스템 로그 메시지 처리기",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "dbus-daemon",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "D-Bus: 프로세스 간 통신(IPC) 메시지 버스",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "chronyd",
+    "platform": "linux",
+    "category": "network-service",
+    "description": "Chronyd: 네트워크 시간 동기화(NTP)",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "polkitd",
+    "platform": "linux",
+    "category": "security",
+    "description": "Polkit: 시스템 권한 및 인증 정책 관리자",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "agetty",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "TTY 터미널 접속 관리자",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "networkmanager",
+    "platform": "linux",
+    "category": "network-service",
+    "description": "NetworkManager: 네트워크 설정 관리자",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "uvicorn",
+    "platform": "linux",
+    "category": "web-server",
+    "description": "Uvicorn: FastAPI/Python ASGI 웹 서버",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "apache",
+    "platform": "linux",
+    "category": "web-server",
+    "description": "Apache: 전통적인 웹 서버 (HTTPD)",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "gunicorn",
+    "platform": "linux",
+    "category": "web-server",
+    "description": "Gunicorn: Python WSGI HTTP 서버",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "nginx",
+    "platform": "common",
+    "category": "web-server",
+    "description": "Nginx: 고성능 웹 서버 및 리버스 프록시",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["common", "auto-imported"]
+  },
+  {
+    "name": "python3",
+    "platform": "linux",
+    "category": "runtime",
+    "description": "Python3: 파이썬 3 런타임",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "httpd",
+    "platform": "linux",
+    "category": "web-server",
+    "description": "Apache HTTP Server: 리눅스 표준 웹 서비스",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "haproxy",
+    "platform": "linux",
+    "category": "network-service",
+    "description": "HAProxy: 부하 분산(Load Balancer) 솔루션",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "mysqld",
+    "platform": "common",
+    "category": "database",
+    "description": "MySQL: 오픈소스 관계형 데이터베이스",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["common", "database", "docker-compatible", "auto-imported"]
+  },
+  {
+    "name": "postgres",
+    "platform": "common",
+    "category": "database",
+    "description": "PostgreSQL: 객체 관계형 데이터베이스(ORDBMS)",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["common", "database", "docker-compatible", "auto-imported"]
+  },
+  {
+    "name": "redis-server",
+    "platform": "common",
+    "category": "database",
+    "description": "Redis: 고속 인메모리 데이터 저장소",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["common", "cache", "docker-compatible", "auto-imported"]
+  },
+  {
+    "name": "mongod",
+    "platform": "common",
+    "category": "database",
+    "description": "MongoDB: NoSQL 문서 지향 데이터베이스",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["common", "database", "docker-compatible", "auto-imported"]
+  },
+  {
+    "name": "node",
+    "platform": "common",
+    "category": "runtime",
+    "description": "Node.js: JavaScript 서버 실행 환경",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["common", "runtime", "auto-imported"]
+  },
+  {
+    "name": "java",
+    "platform": "common",
+    "category": "runtime",
+    "description": "Java: 자바 가상 머신(JVM) 런타임",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["common", "runtime", "auto-imported"]
+  },
+  {
+    "name": "python",
+    "platform": "common",
+    "category": "runtime",
+    "description": "Python: 스크립트 실행 환경",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["common", "runtime", "auto-imported"]
+  },
+  {
+    "name": "php",
+    "platform": "common",
+    "category": "runtime",
+    "description": "PHP: 서버 측 스크립트 언어 프로세스",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["common", "runtime", "auto-imported"]
+  },
+  {
+    "name": "go",
+    "platform": "common",
+    "category": "runtime",
+    "description": "Go Executable: Go 애플리케이션",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["common", "binary", "auto-imported"]
+  },
+  {
+    "name": "ruby",
+    "platform": "common",
+    "category": "runtime",
+    "description": "Ruby: Rails 기반 서비스",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["common", "runtime", "auto-imported"]
+  },
+  {
+    "name": "docker",
+    "platform": "common",
+    "category": "infrastructure",
+    "description": "Docker: 컨테이너 가상화 엔진",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["common", "auto-imported"]
+  },
+  {
+    "name": "dockerd",
+    "platform": "common",
+    "category": "infrastructure",
+    "description": "Docker Daemon",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["common", "auto-imported"]
+  },
+  {
+    "name": "containerd",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "Containerd 런타임",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "kubelet",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "Kubernetes 노드 관리자",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "sshd",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "SSH Daemon",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "systemd",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "Systemd 서비스 관리자",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "crond",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "Cron 작업 스케줄러",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "containerd-shim",
+    "platform": "linux",
+    "category": "container-runtime",
+    "description": "Containerd Shim: 컨테이너 실행 격리 레이어",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "tini",
+    "platform": "linux",
+    "category": "init-process",
+    "description": "Tini: 컨테이너용 초소형 Init 프로세스",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "grep",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "Grep: 패턴 검색 도구",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "top",
+    "platform": "linux",
+    "category": "monitoring",
+    "description": "Top: 실시간 시스템 리소스 모니터",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["linux", "auto-imported"]
+  },
+  {
+    "name": "vmmemwsl",
+    "platform": "common",
+    "category": "infrastructure",
+    "description": "WSL2 가상 머신 메모리 관리 프로세스",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["common", "auto-imported"]
+  },
+  {
+    "name": "system",
+    "platform": "windows",
+    "category": "kernel / core",
+    "description": "Windows 커널 시스템 프로세스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "system idle process",
+    "platform": "windows",
+    "category": "kernel / core",
+    "description": "CPU 유휴 시간 계산 프로세스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "registry",
+    "platform": "windows",
+    "category": "kernel / core",
+    "description": "Windows 레지스트리 커널 프로세스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "memcompression",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows 메모리 압축 관리 프로세스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "secure system",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "가상화 기반 보안(VBS): 시스템의 핵심 자격 증명과 보안 데이터 보호",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "smss.exe",
+    "platform": "windows",
+    "category": "kernel / core",
+    "description": "세션 관리자 서브시스템",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "csrss.exe",
+    "platform": "windows",
+    "category": "kernel / core",
+    "description": "클라이언트/서버 런타임 서브시스템",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "wininit.exe",
+    "platform": "windows",
+    "category": "kernel / core",
+    "description": "Windows 초기화 프로세스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "services.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows 서비스 제어 관리자",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "lsass.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "로컬 보안 인증 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "lsaiso.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "LSA 격리 보안 프로세스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "winlogon.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows 로그온 프로세스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "svchost.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows 서비스 호스트",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "spoolsv.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "프린터 스풀러 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "audiodg.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows 오디오 엔진",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "wmiprvse.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "WMI Provider Host",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "taskhostw.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows 작업 호스트",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "conhost.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "콘솔 창 호스트",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "dllhost.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "COM Surrogate (썸네일·코덱 등 COM 객체 실행 호스트)",
+    "policy": {
+      "is_system": true,
+      "terminatable": true,
+      "reason": "System Core"
+    },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "fontdrvhost.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows Font Driver Host (폰트 렌더링 격리 프로세스)",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "msmpeng",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows Defender 실시간 백신 엔진",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["windows", "security", "auto-imported"]
+  },
+  {
+    "name": "mpdefendercoreservice",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows Defender 핵심 보안 서비스",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["windows", "security", "auto-imported"]
+  },
+  {
+    "name": "securityhealthservice",
+    "platform": "windows",
+    "category": "monitoring",
+    "description": "Windows 보안 상태 모니터링 서비스",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["windows", "security", "auto-imported"]
+  },
+  {
+    "name": "securityhealthsystray",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Windows 보안 알림 트레이 프로세스",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["windows", "security", "auto-imported"]
+  },
+  {
+    "name": "explorer.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Windows 탐색기: 파일 관리 및 작업 표시줄, 바탕화면 등 사용자 인터페이스",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "dwm.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "바탕화면 창 관리자",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "sihost.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Shell Infrastructure Host",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "runtimebroker.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "UWP 앱 권한 중개",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "applicationframehost.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "UWP 앱 프레임 호스트",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "startmenuexperiencehost.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "시작 메뉴 UI",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "searchhost.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Windows 검색 UI",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "searchindexer.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows 검색 인덱서",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "textinputhost.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "텍스트 입력 관리자",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "ctfmon.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "입력기/언어 바 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "crossdeviceresume.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows 크로스 디바이스 연속성 서비스",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "shellhost.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows Shell Host (UWP 쉘 컴포넌트)",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "mspcmanagerservice.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Microsoft PC Manager 서비스",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "widgets.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Windows 위젯 UI 프로세스",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "widgetservice.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows 위젯 백그라운드 서비스",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "chrome.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Google Chrome 브라우저",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "browser", "auto-imported"]
+  },
+  {
+    "name": "code.exe",
+    "platform": "windows",
+    "category": "runtime",
+    "description": "Visual Studio Code",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "ide", "auto-imported"]
+  },
+  {
+    "name": "powershell.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "PowerShell CLI",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "shell", "auto-imported"]
+  },
+  {
+    "name": "dbeaver.exe",
+    "platform": "windows",
+    "category": "database",
+    "description": "DBeaver 데이터베이스 관리 도구 (DB 클라이언트)",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "db-tool", "auto-imported"]
+  },
+  {
+    "name": "uvicorn.exe",
+    "platform": "windows",
+    "category": "web-server",
+    "description": "FastAPI / ASGI 개발 서버",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "runtime", "auto-imported"]
+  },
+  {
+    "name": "docker desktop.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "Docker Desktop",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "container", "auto-imported"]
+  },
+  {
+    "name": "com.docker.build.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "Docker 빌드 서비스",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "container", "auto-imported"]
+  },
+  {
+    "name": "virtualbox.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "VirtualBox 관리 UI",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "virtualization", "auto-imported"]
+  },
+  {
+    "name": "virtualboxvm.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "VirtualBox 가상 머신",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "virtualization", "auto-imported"]
+  },
+  {
+    "name": "vboxsvc.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "VirtualBox 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "virtualization", "auto-imported"]
+  },
+  {
+    "name": "vboxnetdhcp.exe",
+    "platform": "windows",
+    "category": "network-service",
+    "description": "VirtualBox 네트워크 DHCP",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "network", "auto-imported"]
+  },
+  {
+    "name": "vmcompute.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "Hyper-V 가상 머신 연산 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "virtualization", "auto-imported"]
+  },
+  {
+    "name": "vmmem.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "Hyper-V VM 메모리 관리자",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "virtualization", "auto-imported"]
+  },
+  {
+    "name": "vmmemwsl.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "WSL2 가상 머신",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "virtualization", "auto-imported"]
+  },
+  {
+    "name": "vmms.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "Hyper-V 가상 머신 관리 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "virtualization", "auto-imported"]
+  },
+  {
+    "name": "vmwp.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "Hyper-V Virtual Machine Worker Process (가상 머신 실행 워커)",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "virtualization", "auto-imported"]
+  }, 
+  {
+    "name": "wslservice.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "WSL 서비스",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["windows", "wsl", "auto-imported"]
+  },
+  {
+    "name": "wslrelay.exe",
+    "platform": "windows",
+    "category": "network-service",
+    "description": "WSL 네트워크/IPC 중계 프로세스",
+    "policy": {
+      "is_system": true,
+      "terminatable": true,
+      "reason": "System Core"
+    },
+    "tags": ["windows", "wsl", "auto-imported"]
+  },
+  {
+    "name": "atiesrxx.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "AMD External Events Service",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "driver", "amd", "auto-imported"]
+  },
+  {
+    "name": "atieclxx.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "AMD External Events Client",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "driver", "amd", "auto-imported"]
+  },
+  {
+    "name": "rtkauduservice64.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Realtek 오디오 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "driver", "realtek", "auto-imported"]
+  },
+  {
+    "name": "rtkbtmanserv.exe",
+    "platform": "windows",
+    "category": "network-service",
+    "description": "Realtek 블루투스 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "driver", "realtek", "auto-imported"]
+  },
+  {
+    "name": "asusoptimization.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "ASUS 시스템 최적화",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "asus", "auto-imported"]
+  },
+  {
+    "name": "asusoptimizationstartuptask.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "ASUS 최적화 시작 작업",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "asus", "auto-imported"]
+  },
+  {
+    "name": "asusappservice.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "ASUS 앱 서비스",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "asus", "auto-imported"]
+  },
+  {
+    "name": "asusswitch.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "ASUS 시스템 스위치",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "asus", "auto-imported"]
+  },
+  {
+    "name": "asushotkey.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "ASUS 단축키 서비스",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "asus", "auto-imported"]
+  },
+  {
+    "name": "asussoftwaremanager.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "ASUS Software Manager (드라이버·유틸 관리)",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "asus", "auto-imported"]
+  },
+  {
+    "name": "asussoftwaremanageragent.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "ASUS Software Manager Agent",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "asus", "auto-imported"]
+  },
+  {
+    "name": "ascservice.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "ASUS System Control Interface Service",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "asus", "auto-imported"]
+  },
+  {
+    "name": "wudfhost.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows User-Mode Driver Framework Host (USB·센서 등 사용자 모드 드라이버)",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "driver", "auto-imported"]
+  },
+  {
+    "name": "wudfcompanionhost.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "WUDF 보조 호스트 프로세스 (디바이스 이벤트 처리)",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "driver", "auto-imported"]
+  },
+  {
+    "name": "imfcore.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Microsoft Input Framework Core",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "input", "auto-imported"]
+  },
+  {
+    "name": "unsecapp.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "WMI 비동기 콜백 처리 프로세스",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "management", "auto-imported"]
+  },
+  {
+    "name": "dashost.exe",
+    "platform": "windows",
+    "category": "network-service",
+    "description": "Device Association Framework Provider Host (장치 연결 관리)",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "device-pairing", "auto-imported"]
+  },
+  {
+    "name": "dataexchangehost.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows 데이터 교환 호스트 (UWP 연동)",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "uwp", "auto-imported"]
+  },
+  {
+    "name": "backgroundtaskhost.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "UWP 백그라운드 작업 실행 호스트",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "uwp", "auto-imported"]
+  },
+  {
+    "name": "imf.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Microsoft Input Method Framework (입력기 프레임워크)",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "input", "auto-imported"]
+  },
+  {
+    "name": "imfsrv.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Microsoft Input Framework Service",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "input", "auto-imported"]
+  },
+  {
+    "name": "imftips.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Microsoft 입력기 팁/보조 서비스",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "input", "auto-imported"]
+  },
+  {
+    "name": "imfelamsvc.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Microsoft ELAM 입력기 보안 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "input", "security", "auto-imported"]
+  },
+  {
+    "name": "ngciso.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows Hello 인증 격리 프로세스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "security", "auth", "auto-imported"]
+  },
+  {
+    "name": "msedgewebview2.exe",
+    "platform": "windows",
+    "category": "runtime",
+    "description": "Microsoft Edge WebView2 (앱 내 웹 UI 렌더링)",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "browser-engine", "auto-imported"]
+  },
+  {
+    "name": "msrdc.exe",
+    "platform": "windows",
+    "category": "network-service",
+    "description": "Microsoft Remote Desktop Client",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "remote-desktop", "auto-imported"]
+  },
+  {
+    "name": "officeclicktorun.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Microsoft Office Click-to-Run 업데이트 서비스",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "office", "auto-imported"]
+  },
+  {
+    "name": "microsoft.notes.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Microsoft Sticky Notes",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "notes", "auto-imported"]
+  },
+  {
+    "name": "wsl.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "Windows Subsystem for Linux 실행 프로세스",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "wsl", "auto-imported"]
+  },
+  {
+    "name": "wslhost.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "WSL 가상 환경 호스트",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "wsl", "auto-imported"]
+  },
+  {
+    "name": "asusosd.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "ASUS OSD (밝기·볼륨 등 화면 표시)",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "asus", "auto-imported"]
+  },
+  {
+    "name": "amdppkgsvc.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "AMD Package Service (드라이버 패키지 관리)",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "driver", "amd", "auto-imported"]
+  },
+  {
+    "name": "realtimeprotector.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "서드파티 실시간 보안/백신 보호 프로세스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "security", "third-party", "auto-imported"]
+  },
+  {
+    "name": "uninstallmonitor.exe",
+    "platform": "windows",
+    "category": "monitoring",
+    "description": "프로그램 제거 감시 서비스",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "utility", "auto-imported"]
+  },
+  {
+    "name": "appactions.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows 앱 액션 처리 프로세스",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "cagent.exe",
+    "platform": "windows",
+    "category": "monitoring",
+    "description": "서드파티 에이전트 프로세스 (관리/보안 도구)",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "agent", "auto-imported"]
+  },
+  {
+    "name": "notepad.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Windows 메모장",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "kakaotalk.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "카카오톡 메신저",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "messenger", "auto-imported"]
+  },
+  {
+    "name": "monitor.exe",
+    "platform": "windows",
+    "category": "monitoring",
+    "description": "서드파티 모니터링/유틸리티 프로그램",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "pet.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "서드파티 보조 실행 프로세스 (유틸/런처 계열)",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "auto-imported"]
+  },
+  {
+    "name": "vboxsds.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "VirtualBox Secure Data Service",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "virtualization", "auto-imported"]
+  },
+  {
+    "name": "openconsole.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Windows 콘솔 호스트: 명령줄 인터페이스의 출력창을 담당",
+    "policy": {
+      "is_system": true,
+      "terminatable": true,
+      "reason": "System Core"
+    },
+    "tags": ["windows", "shell", "auto-imported"]
+  },
+  {
+    "name": "cmd.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Windows 명령 프롬프트: 표준 커맨드 라인 인터프리터",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["windows", "shell", "auto-imported"]
+  },
+  {
+    "name": "windowsterminal.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Windows 터미널: 현대적인 다중 탭 터미널 에뮬레이터",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["windows", "shell", "auto-imported"]
+  },
+  {
+    "name": "lockapp.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows 잠금 화면: 시스템 잠금 및 로그인 배경 관리",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["windows", "security", "auto-imported"]
+  },
+  {
+    "name": "nvdisplay.container.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "NVIDIA 디스플레이 컨테이너: 그래픽 드라이버 설정 및 관리",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["windows", "driver", "nvidia", "auto-imported"]
+  },
+  {
+    "name": "microsoftedgeupdate.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Microsoft Edge 업데이트: 브라우저 최신 버전 자동 유지",
+    "policy": {
+      "is_system": true,
+      "terminatable": true,
+      "reason": "System Core"
+    },
+    "tags": ["windows", "update", "auto-imported"]
+  },
+  {
+    "name": "sudo",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "Sudo: 관리자 권한 실행 도구",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["linux", "security", "auto-imported"]
+  },
+  {
+    "name": "sc.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Windows 서비스 제어 도구",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "management", "auto-imported"]
+  },
+  {
+    "name": "systemd-resolved",
+    "platform": "linux",
+    "category": "network-service",
+    "description": "Linux DNS 이름 확인 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "network", "auto-imported"]
+  }, 
+  {
+    "name": "lsmd",
+    "platform": "linux",
+    "category": "monitoring",
+    "description": "Linux 센서 모니터링 데몬 (하드웨어 상태 감시)",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "hardware", "auto-imported"]
+  },
+  {
+    "name": "certutil.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Windows 인증서 및 암호화 서비스 관리 도구",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "security", "auto-imported"]
+  },
+  {
+    "name": "journalctl",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "systemd 로그 분석 및 조회 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["linux", "logs", "auto-imported"]
+  },
+  {
+    "name": "mscorsvw.exe",
+    "platform": "windows",
+    "category": "runtime",
+    "description": ".NET Runtime Optimization Service (컴파일 및 성능 최적화)",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "dotnet", "auto-imported"]
+  },
+  {
+    "name": "git.exe",
+    "platform": "common",
+    "category": "system-utility",
+    "description": "Git 버전 관리 시스템 실행 파일",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "development", "auto-imported"]
+  }, 
+  {
+    "name": "tmux",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "Terminal Multiplexer: 터미널 세션 유지 및 분할 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["linux", "utility", "auto-imported"]
+  },
+  {
+    "name": "amazon-ssm-agent",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "AWS Systems Manager Agent: 클라우드 인스턴스 원격 관리",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "aws", "cloud", "auto-imported"]
+  },
+  {
+    "name": "smartscreen.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows SmartScreen: 앱 및 파일 클라우드 기반 보호",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "security", "auto-imported"]
+  },
+  {
+    "name": "apt",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "Advanced Package Tool: 데비안 계열 패키지 관리자",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["linux", "package-manager", "auto-imported"]
+  },
+  {
+    "name": "screen",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "GNU Screen: 터미널 세션 유지 및 멀티플렉서",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["linux", "utility", "auto-imported"]
+  },
+  {
+    "name": "rsync",
+    "platform": "common",
+    "category": "network-service",
+    "description": "Remote Sync: 원격/로컬 파일 동기화 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "network", "backup", "auto-imported"]
+  },
+  {
+    "name": "apt",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "Advanced Package Tool: 데비안/우분투 패키지 관리자",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["linux", "package-manager", "auto-imported"]
+  },
+  {
+    "name": "yum",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "Yellowdog Updater, Modified: RHEL/CentOS 패키지 관리자",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["linux", "package-manager", "auto-imported"]
+  },
+  {
+    "name": "dnf",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "Dandified YUM: 최신 페도라/RHEL 패키지 관리자",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["linux", "package-manager", "auto-imported"]
+  },
+  {
+    "name": "dpkg",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "Debian Package Manager: 저수준 .deb 패키지 관리자",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["linux", "package-manager", "auto-imported"]
+  },
+  {
+    "name": "rpm",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "Red Hat Package Manager: 저수준 .rpm 패키지 관리자",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["linux", "package-manager", "auto-imported"]
+  },
+  {
+    "name": "google_osconfig_agent",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "Google Cloud OS Config Agent: GCP 인스턴스 설정 관리",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "gcp", "cloud", "auto-imported"]
+  },
+  {
+    "name": "waagent",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "Microsoft Azure Linux Agent: Azure 가상 머신 관리 에이전트",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "azure", "cloud", "auto-imported"]
+  },
+  {
+    "name": "ssh-agent",
+    "platform": "common",
+    "category": "system-service",
+    "description": "SSH Authentication Agent: 프라이빗 키 인증 대행 서비스",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["common", "security", "ssh", "auto-imported"]
+  },
+  {
+    "name": "gpg-agent",
+    "platform": "common",
+    "category": "system-service",
+    "description": "GPG Agent: 개인키 관리 및 암호화 지원 서비스",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["common", "security", "auto-imported"]
+  },
+  {
+    "name": "smartscreen.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows SmartScreen: 실시간 파일 및 웹사이트 평판 보호",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "security", "auto-imported"]
+  },
+  {
+    "name": "systemd-timesyncd",
+    "platform": "linux",
+    "category": "network-service",
+    "description": "Systemd Time Synchronization: 네트워크 기반 시간 동기화 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "network", "auto-imported"]
+  },
+  {
+    "name": "containerd",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "Container Runtime: 컨테이너 실행 및 관리 핵심 데몬",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "container", "auto-imported"]
+  },
+  {
+    "name": "tiworker.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows Update Worker: 시스템 업데이트 설치 및 모듈 신뢰성 관리",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "update", "auto-imported"]
+  },
+  {
+    "name": "tailscaled",
+    "platform": "common",
+    "category": "network-service",
+    "description": "Tailscale Mesh VPN Service",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["common", "network", "vpn", "auto-imported"]
+  }, 
+  {
+    "name": "dism.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Deployment Image Servicing and Management: Windows 이미지 복구 및 기능 관리 도구",
+    "policy": {
+      "is_system": true,
+      "terminatable": true,
+      "reason": "System Core"
+    },
+    "tags": ["windows", "management", "recovery", "auto-imported"]
+  },
+  {
+    "name": "cloudflared",
+    "platform": "common",
+    "category": "network-service",
+    "description": "Cloudflare Tunnel Client: 외부망과 로컬 서비스 간의 보안 터널 생성",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["common", "network", "security", "auto-imported"]
+  },
+  {
+    "name": "node_exporter",
+    "platform": "linux",
+    "category": "monitoring",
+    "description": "Prometheus Node Exporter: 하드웨어 및 OS 지표 수집기",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "monitoring", "prometheus", "auto-imported"]
+  },
+  {
+    "name": "filebeat",
+    "platform": "common",
+    "category": "monitoring",
+    "description": "Elastic Filebeat: 경량 로그 수집 및 전달자",
+    "policy": {
+      "is_system": true,
+      "terminatable": true,
+      "reason": "System Core"
+    },
+    "tags": ["common", "monitoring", "logging", "auto-imported"]
+  },
+  {
+    "name": "logstash",
+    "platform": "common",
+    "category": "monitoring",
+    "description": "Elastic Logstash: 데이터 처리 및 파이프라인 관리 엔진",
+    "policy": {
+      "is_system": true,
+      "terminatable": true,
+      "reason": "System Core"
+    },
+    "tags": ["common", "monitoring", "logging", "auto-imported"]
+  },
+  {
+    "name": "kswapd0",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "Linux Kernel Swap Daemon: 부족한 메모리를 스왑 공간으로 옮겨 관리",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "kernel", "memory", "auto-imported"]
+  },
+  {
+    "name": "tcpdump",
+    "platform": "common",
+    "category": "monitoring",
+    "description": "Network Packet Analyzer: 실시간 네트워크 트래픽 캡처 및 분석",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "network", "security", "auto-imported"]
+  },
+  {
+    "name": "resmon.exe",
+    "platform": "windows",
+    "category": "monitoring",
+    "description": "Windows Resource Monitor: CPU, 메모리, 디스크, 네트워크 상세 모니터링",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "utility", "auto-imported"]
+  },
+  {
+    "name": "kube-proxy",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "Kubernetes Network Proxy: 파드 간 통신 및 서비스 네트워크 규칙 관리",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "k8s", "infrastructure", "auto-imported"]
+  },
+  {
+    "name": "kworker",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "Linux Kernel Worker Thread: 커널의 다양한 백그라운드 작업(I/O, 인터럽트 등) 처리",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "kernel", "auto-imported"]
+  },
+  {
+    "name": "wireshark",
+    "platform": "common",
+    "category": "monitoring",
+    "description": "Wireshark: 그래픽 기반 심층 패킷 분석 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "network", "security", "auto-imported"]
+  },
+  {
+    "name": "tshark",
+    "platform": "common",
+    "category": "monitoring",
+    "description": "TShark: 터미널 기반 Wireshark 패킷 분석 엔진",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "network", "security", "auto-imported"]
+  },
+  {
+    "name": "iptables",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "IP Tables: 리눅스 커널 방화벽 및 패킷 필터링 관리 도구",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "network", "security", "auto-imported"]
+  },
+  {
+    "name": "nftables",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "NF Tables: 현대적인 리눅스 커널 패킷 분류 프레임워크 (iptables 대체)",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "network", "security", "auto-imported"]
+  },
+  {
+    "name": "perfmon.exe",
+    "platform": "windows",
+    "category": "monitoring",
+    "description": "Windows Performance Monitor: 시스템 성능 지표 실시간 카운터 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "utility", "auto-imported"]
+  },
+  {
+    "name": "wiprvse.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "WMI Provider Host (wmiprvse.exe): 관리 기능 및 시스템 정보 수집 호스트",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "management", "auto-imported"]
+  },
+  {
+    "name": "etcd",
+    "platform": "linux",
+    "category": "database",
+    "description": "etcd: 분산 키-값 저장소 (쿠버네티스 클러스터 상태 및 설정 정보 저장)",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "database", "k8s", "infrastructure", "auto-imported"]
+  }, 
+  {
+    "name": "auditd",
+    "platform": "linux",
+    "category": "security",
+    "description": "Linux Audit Daemon: 커널 이벤트 및 보안 관련 시스템 호출(Syscall) 기록",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "security", "logging", "auto-imported"]
+  },
+  {
+    "name": "fail2ban-server",
+    "platform": "linux",
+    "category": "security",
+    "description": "Fail2Ban: 로그 분석을 통한 무단 침입 차단(Brute-force 방지) 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "security", "network", "auto-imported"]
+  },
+  {
+    "name": "rpcbind",
+    "platform": "linux",
+    "category": "network-service",
+    "description": "RPC Bind Service: NFS(Network File System)와 같은 원격 프로시저 호출을 위한 포트 매핑 서비스",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core"
+    },
+    "tags": ["linux", "network", "nfs", "auto-imported"]
+  }, 
+  {
+    "name": "bpftool",
+    "platform": "linux",
+    "category": "monitoring",
+    "description": "eBPF 관리 도구: 커널 수준의 고성능 네트워킹 및 보안 모니터링 관리",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["linux", "kernel", "ebpf", "auto-imported"]
+  },
+  {
+    "name": "irqbalance",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "IRQ Balance: 여러 CPU 코어에 하드웨어 인터럽트를 균등하게 분산하여 성능 최적화",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "performance", "auto-imported"]
+  },
+  {
+    "name": "rngd",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "Random Number Generator Daemon: 하드웨어 소스를 사용해 커널의 난수 엔트로피 풀을 보충",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "security", "auto-imported"]
+  },
+  {
+    "name": "sntp",
+    "platform": "common",
+    "category": "network-service",
+    "description": "Simple NTP: 가벼운 네트워크 시간 동기화 클라이언트",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["common", "network", "time", "auto-imported"]
+  },
+  {
+    "name": "mDNSResponder",
+    "platform": "common",
+    "category": "network-service",
+    "description": "Bonjour/mDNS 서비스: 로컬 네트워크 내 장치 자동 발견 및 이름 확인",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["common", "network", "apple", "auto-imported"]
+  },
+  {
+    "name": "logrotate",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "Log Rotate: 시스템 로그 파일의 용량 관리 및 순환 관리",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["linux", "logging", "auto-imported"]
+  }, 
+  {
+    "name": "LGHUB.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Logitech G HUB: 로지텍 게이밍 기어(마우스, 키보드) 설정 및 조명 관리",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "gaming", "peripheral", "auto-imported"]
+  },
+  {
+    "name": "RazerCentral.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Razer Central: 레이저 장치 관리 및 시냅스(Synapse) 실행 환경",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "gaming", "peripheral", "auto-imported"]
+  },
+  {
+    "name": "Discord.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Discord: 게이머를 위한 올인원 음성 및 텍스트 채팅 앱",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "communication", "auto-imported"]
+  },
+  {
+    "name": "Spotify.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Spotify: 음악 스트리밍 서비스 데스크톱 클라이언트",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "media", "auto-imported"]
+  },
+  {
+    "name": "Steam.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Steam Client: 밸브의 게임 배포 및 라이브러리 관리 플랫폼",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "gaming", "platform", "auto-imported"]
+  },
+  {
+    "name": "OneDrive.exe",
+    "platform": "windows",
+    "category": "network-service",
+    "description": "Microsoft OneDrive: 클라우드 파일 동기화 서비스",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "cloud", "storage", "auto-imported"]
+  },
+  {
+    "name": "Everything.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Everything Search: 초고속 로컬 파일 및 폴더 검색 유틸리티",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "utility", "search", "auto-imported"]
+  },
+  {
+    "name": "Notion.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Notion: 협업 및 메모 작성 애플리케이션",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "productivity", "auto-imported"]
+  },
+  {
+    "name": "Slack.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Slack: 비즈니스용 협업 메신저",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "communication", "auto-imported"]
+  },
+  {
+    "name": "Zoom.exe",
+    "platform": "windows",
+    "category": "network-service",
+    "description": "Zoom: 화상 회의 및 온라인 미팅 솔루션",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "communication", "video-conf", "auto-imported"]
+  },
+  {
+    "name": "Creative Cloud.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Adobe Creative Cloud: 어도비 앱 설치, 업데이트 및 클라우드 자산 동기화 관리",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "adobe", "creative", "auto-imported"]
+  },
+  {
+    "name": "AdobeUpdateService.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Adobe Update Service: 어도비 소프트웨어 최신 버전 자동 확인 및 다운로드",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "adobe", "update", "auto-imported"]
+  },
+  {
+    "name": "msedge.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Microsoft Edge: Chromium 기반의 윈도우 기본 웹 브라우저",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "browser", "auto-imported"]
+  },
+  {
+    "name": "chrome.exe",
+    "platform": "common",
+    "category": "system-utility",
+    "description": "Google Chrome: 구글의 웹 브라우저 (다중 프로세스 아키텍처 사용)",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "browser", "auto-imported"]
+  },
+  {
+    "name": "Telegram.exe",
+    "platform": "common",
+    "category": "system-utility",
+    "description": "Telegram Desktop: 클라우드 기반 보안 메신저",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "communication", "auto-imported"]
+  },
+  {
+    "name": "PowerToys.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Microsoft PowerToys: 고급 사용자를 위한 윈도우 시스템 튜닝 도구 모음",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "utility", "microsoft", "auto-imported"]
+  },
+  {
+    "name": "TeamViewer.exe",
+    "platform": "common",
+    "category": "network-service",
+    "description": "TeamViewer: 원격 데스크톱 제어 및 온라인 지원 솔루션",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "remote", "network", "auto-imported"]
+  },
+  {
+    "name": "AnyDesk.exe",
+    "platform": "common",
+    "category": "network-service",
+    "description": "AnyDesk: 고성능 원격 제어 애플리케이션",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "remote", "network", "auto-imported"]
+  },
+  {
+    "name": "Origin.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "EA Origin / EA Desktop: 일렉트로닉 아츠(EA)의 게임 플랫폼 클라이언트",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "gaming", "auto-imported"]
+  },
+  {
+    "name": "PowerShell.exe",
+    "platform": "common",
+    "category": "system-utility",
+    "description": "Windows PowerShell: 현대적인 객체 지향 커맨드 라인 쉘 및 스크립팅 언어",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["common", "shell", "management", "auto-imported"]
+  }, 
+  {
+    "name": "Photoshop.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Adobe Photoshop: 전문가용 이미지 편집 및 합성 소프트웨어",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "adobe", "design", "auto-imported"]
+  },
+  {
+    "name": "AdobeIPCBroker.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Adobe IPC Broker: 어도비 프로세스 간 통신을 중계하는 핵심 브로커",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "adobe", "ipc", "auto-imported"]
+  },
+  {
+    "name": "Acrobat.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Adobe Acrobat: PDF 문서 열람, 편집 및 관리 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "adobe", "pdf", "auto-imported"]
+  },
+  {
+    "name": "AcrobatNotificationClient.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Adobe Acrobat 알림 서비스: 문서 업데이트 및 알림 처리",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "adobe", "notification", "auto-imported"]
+  },
+  {
+    "name": "AfterFX.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Adobe After Effects: 디지털 모션 그래픽 및 시각 효과 제작 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "adobe", "video", "auto-imported"]
+  },
+  {
+    "name": "Adobe Premiere Pro.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Adobe Premiere Pro: 비선형 영상 편집 소프트웨어",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "adobe", "video", "auto-imported"]
+  },
+  {
+    "name": "CCXProcess.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Adobe Creative Cloud Experience: 크리에이티브 클라우드 앱에 동적 콘텐츠 제공 및 동기화",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "adobe", "sync", "auto-imported"]
+  },
+  {
+    "name": "CCLBS.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Creative Cloud Libraries Synchronizer: 라이브러리 에셋 동기화 프로세스",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "adobe", "sync", "auto-imported"]
+  },
+  {
+    "name": "Adobe CEF Helper.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Adobe Chromium Embedded Framework Helper: 어도비 앱 내 웹 UI 렌더링 지원",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "adobe", "ui", "auto-imported"]
+  },
+  {
+    "name": "AdobeGCClient.exe",
+    "platform": "windows",
+    "category": "security",
+    "description": "Adobe Genuine Copy Validator: 어도비 정품 인증 및 라이선스 확인 프로세스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "adobe", "security", "auto-imported"]
+  }, 
+  {
+    "name": "Hwp.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "한컴오피스 한글: 국내 표준 워드 프로세서",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "office", "korea", "auto-imported"]
+  },
+  {
+    "name": "HncCheck.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "한컴 업데이트 확인: 한글과컴퓨터 소프트웨어 업데이트 자동 감지",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "hnc", "update", "auto-imported"]
+  },
+  {
+    "name": "Excel.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Microsoft Excel: 스프레드시트 분석 및 관리 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "office", "microsoft", "auto-imported"]
+  },
+  {
+    "name": "Winword.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Microsoft Word: 문서 작성 및 편집 소프트웨어",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "office", "microsoft", "auto-imported"]
+  },
+  {
+    "name": "V3.exe",
+    "platform": "windows",
+    "category": "security",
+    "description": "AhnLab V3: 실시간 악성코드 탐지 및 방역 프로그램",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "security", "korea", "auto-imported"]
+  },
+  {
+    "name": "v3lite.exe",
+    "platform": "windows",
+    "category": "security",
+    "description": "AhnLab V3 Lite: 무료 개인용 실시간 보안 모듈",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "security", "korea", "auto-imported"]
+  },
+  {
+    "name": "Afterburner.exe",
+    "platform": "windows",
+    "category": "monitoring",
+    "description": "MSI Afterburner: 그래픽카드 오버클러킹 및 하드웨어 모니터링 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "gaming", "performance", "auto-imported"]
+  },
+  {
+    "name": "RTSS.exe",
+    "platform": "windows",
+    "category": "monitoring",
+    "description": "RivaTuner Statistics Server: 게임 내 프레임 및 시스템 정보 표시(OSD) 지원",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "gaming", "osd", "auto-imported"]
+  },
+  {
+    "name": "f.lux.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "f.lux: 시간에 따른 모니터 색온도 자동 조절 유틸리티",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "utility", "display", "auto-imported"]
+  },
+  {
+    "name": "Rainmeter.exe",
+    "platform": "windows",
+    "category": "monitoring",
+    "description": "Rainmeter: 바탕화면 위젯 및 시스템 대시보드 커스터마이징 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "utility", "display", "auto-imported"]
+  },
+  {
+    "name": "vmware-vmx.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "VMware Virtual Machine: 가상 머신 실행 및 하드웨어 가상화 처리",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "virtualization", "vmware", "auto-imported"]
+  },
+  {
+    "name": "obs64.exe",
+    "platform": "common",
+    "category": "system-utility",
+    "description": "OBS Studio: 오픈 소스 방송 송출 및 화면 녹화 소프트웨어",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "media", "streaming", "auto-imported"]
+  },
+  {
+    "name": "postman.exe",
+    "platform": "common",
+    "category": "system-utility",
+    "description": "Postman: API 개발 및 테스트를 위한 협업 플랫폼",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "development", "api", "auto-imported"]
+  },
+  {
+    "name": "ScreenClippingHost.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Windows 캡처 및 스케치: 화면 캡처 도구의 실행 호스트",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "utility", "auto-imported"]
+  },
+  {
+    "name": "SearchHost.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows 검색 사용자 인터페이스 및 결과 표시 프로세스",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "utility", "auto-imported"]
+  },
+  {
+    "name": "ShellExperienceHost.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows Shell Experience Host: 시작 메뉴, 작업 표시줄 투명도, 알림창 등 유니버설 앱 UI 요소 관리",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "ui", "shell", "auto-imported"]
+  },
+  {
+    "name": "AggregatorHost.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows Update Aggregator Host: 다양한 업데이트 소스를 모아 처리하는 백그라운드 프로세스",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["windows", "update", "auto-imported"]
+  },
+  {
+    "name": "Thunderbird.exe",
+    "platform": "common",
+    "category": "network-service",
+    "description": "Mozilla Thunderbird: 오픈 소스 이메일 및 뉴스 클라이언트",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "communication", "email", "auto-imported"]
+  },
+  {
+    "name": "gnome-terminal",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "GNOME Terminal: 리눅스 GNOME 데스크탑의 기본 터미널 에뮬레이터",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["linux", "terminal", "ui", "auto-imported"]
+  },
+  {
+    "name": "Handbrake.exe",
+    "platform": "common",
+    "category": "system-utility",
+    "description": "HandBrake: 오픈 소스 비디오 트랜스코딩(변환) 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "media", "video", "auto-imported"]
+  },
+  {
+    "name": "virt-manager",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "Virtual Machine Manager: KVM/QEMU 가상 머신을 관리하는 리눅스 GUI 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["linux", "virtualization", "kvm", "auto-imported"]
+  },
+  {
+    "name": "filezilla",
+    "platform": "common",
+    "category": "network-service",
+    "description": "FileZilla: FTP, SFTP, FTPS 클라이언트 소프트웨어",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "network", "transfer", "auto-imported"]
+  },
+  {
+    "name": "vlc",
+    "platform": "common",
+    "category": "system-utility",
+    "description": "VLC Media Player: 거의 모든 포맷을 지원하는 오픈 소스 멀티미디어 재생기",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "media", "video", "auto-imported"]
+  },
+  {
+    "name": "gimp",
+    "platform": "common",
+    "category": "system-utility",
+    "description": "GIMP: 리눅스와 윈도우에서 널리 쓰이는 오픈 소스 이미지 편집기",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "design", "photo", "auto-imported"]
+  },
+  {
+    "name": "wireshark-gtk",
+    "platform": "common",
+    "category": "monitoring",
+    "description": "Wireshark GUI: 네트워크 패킷 분석을 위한 그래픽 인터페이스",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "network", "security", "auto-imported"]
+  },
+  {
+    "name": "putty.exe",
+    "platform": "windows",
+    "category": "network-service",
+    "description": "PuTTY: SSH, Telnet, Serial 접속을 지원하는 경량 터미널 클라이언트",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "ssh", "network", "auto-imported"]
+  },
+  {
+    "name": "WinSCP.exe",
+    "platform": "windows",
+    "category": "network-service",
+    "description": "WinSCP: GUI 기반의 SFTP, FTP, SCP 파일 전송 클라이언트",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "network", "transfer", "auto-imported"]
+  },
+  {
+    "name": "Tableau.exe",
+    "platform": "common",
+    "category": "database",
+    "description": "Tableau Desktop: 데이터 시각화 및 비즈니스 인텔리전스(BI) 분석 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "data-viz", "business", "auto-imported"]
+  },
+  {
+    "name": "sourcetree.exe",
+    "platform": "common",
+    "category": "system-utility",
+    "description": "SourceTree: Git 및 Mercurial 코드 저장소 관리를 위한 GUI 클라이언트",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "git", "development", "auto-imported"]
+  },
+  {
+    "name": "Unity.exe",
+    "platform": "common",
+    "category": "system-utility",
+    "description": "Unity Editor: 게임 개발 및 3D 콘텐츠 제작 엔진 클라이언트",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "gaming", "development", "3d", "auto-imported"]
+  },
+  {
+    "name": "Insomnia.exe",
+    "platform": "common",
+    "category": "system-utility",
+    "description": "Insomnia: REST, GraphQL, gRPC 디자인 및 테스트를 위한 API 클라이언트",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "development", "api", "auto-imported"]
+  },
+  {
+    "name": "Remmina",
+    "platform": "linux",
+    "category": "network-service",
+    "description": "Remmina: 리눅스용 원격 데스크톱(RDP, VNC, SSH) 통합 클라이언트",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["linux", "remote", "network", "auto-imported"]
+  },
+  {
+    "name": "Charles.exe",
+    "platform": "common",
+    "category": "monitoring",
+    "description": "Charles Proxy: HTTP 프록시, HTTP 모니터 및 역방향 프록시 분석 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["common", "network", "proxy", "development", "auto-imported"]
+  },
+  {
+    "name": "com.docker.backend.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "Docker Desktop 백엔드 엔진 서비스",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["docker", "windows", "virtualization"],
+    "created_at": "2026-01-17T02:50:00Z"
+  },
+  {
+    "name": "mongodbcompass.exe",
+    "platform": "windows",
+    "category": "database",
+    "description": "MongoDB GUI 관리 도구 (Compass)",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["database", "tool", "mongodb"],
+    "created_at": "2026-01-17T02:50:00Z"
+  },
+  {
+    "name": "asussystemdiagnosis.exe",
+    "platform": "windows",
+    "category": "monitoring",
+    "description": "ASUS 시스템 진단 도구",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["asus", "hardware", "diagnosis"],
+    "created_at": "2026-01-17T02:50:00Z"
+  },
+  {
+    "name": "asussystemanalysis.exe",
+    "platform": "windows",
+    "category": "monitoring",
+    "description": "ASUS 시스템 분석 및 최적화 도구",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
+    "tags": ["asus", "hardware", "analysis"],
+    "created_at": "2026-01-17T02:50:00Z"
+  },
+  {
+    "name": "python3.13.exe",
+    "platform": "windows",
+    "category": "runtime",
+    "description": "Python 3.13 인터프리터 실행 파일",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["python", "development", "runtime"],
+    "created_at": "2026-01-17T02:50:00Z"
+  },
+  {
+    "name": "systemsettings.exe",
+    "platform": "windows",
+    "category": "core",
+    "description": "Windows 시스템 설정 제어판",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "settings", "core"],
+    "created_at": "2026-01-17T02:50:00Z"
+  }
+
+]

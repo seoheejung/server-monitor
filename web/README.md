@@ -36,6 +36,7 @@
 web/
 ├── app/
 │   ├── main.py          # FastAPI 엔트리 (URL 및 서버 설정)
+│   ├── database/                  # DB 연결
 │   ├── constants/       # 포트 / 프로세스 정책
 │   │   ├── ports.py
 │   │   ├── processes.py
@@ -52,8 +53,10 @@ web/
 │   │   └── dashboard.html
 │   └── static/          # 정적 파일
 │       └── style.css
-├── db/                  # 데이터 저장용 DB (확장)
-├── requirements.txt     # 설치해야 할 패키지 목록
+├── .env                 
+├── .gitignore           
+├── requirements.txt     # 의존성 패키지 목록
+├── run.py               # 서버 통합 실행 스크립트
 └── README.md
 ```
 ### 프로젝트 진행 흐름
@@ -378,32 +381,39 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
    - KNOWN_PROCESSES에 정의된 프로세스만 활용
    - 매칭 실패 시 → Unknown Process 로 처리 (DB 저장 ❌)
 
+<br>
+
 - `known_processes` 컬렉션 구조
     ```json
     {
         "_id": ObjectId,
 
         "name": "svchost.exe",
-        "platform": "windows",              // windows | linux | common
+        "platform": "windows",
         "category": "system_core",           // 분류용
         "description": "Windows 서비스 호스트",
 
         "policy": {
-        "is_system": true,                 // 시스템 프로세스 여부
-        "terminatable": false,             // 종료 가능 여부
+        "is_system": true, 
+        "terminatable": false, 
         "reason": "Windows core service"
         },
 
         "tags": [
-        "core",
-        "protected",
-        "windows"
+            "core",
+            "protected",
+            "windows"
         ],
-
-        "created_at": ISODate,
-        "updated_at": ISODate
+        "created_at": Date
     }
     ```
+    - 구설명
+      - name: 프로세스 이름
+      - platform: 운영체제 (예: windows | linux | common)
+      - category: 분류 (예: kernel | system_core)
+      - description: 프로세스에 대한 설명
+      - policy: 시스템 여부(is_system), 종료 가능 여부(terminatable), 사유(reason)를 포함하는 정책 객체
+      - tags: 관련 키워드 리스트
     - 플랫폼 처리 방식
     - platform = common (Windows / Linux 공통 적용)
     - 조회 우선순위
@@ -417,6 +427,70 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
         { unique: true }
     )
     ```
+    - 복합 인덱스 생성 (name: 1, platform: 1)
+    - unique=True로 설정하여 중복 데이터 방지
+
+- 데이터 변환 및 분류 규칙
+  1. Platform 판별
+     - .exe가 이름에 있거나 설명에 windows가 포함되면: windows
+     - docker나 nginx가 이름에 포함되면: common
+     - 그 외의 경우: linux
+  2. System 여부 (is_system)
+     - 설명(desc)에 `"시스템", "커널", "core", "보안", "관리자"` 중 하나라도 포함되면 true
+  3. Policy 설정
+     - `is_system true`: terminatable: false, reason: "System Core"
+     - `is_system false`: terminatable: true, reason: "User Application"
+  4. category
+     - kernel / core: 운영체제 부팅 및 유지에 필수적인 경우 (init, kthreadd)
+     - database: 데이터 저장 및 관리 목적 (mysqld, postgres)
+     - network-service: 네트워크 연결, 원격 접속 및 시간 동기화 관리 (sshd, networkmanager)
+     - system-service: 백그라운드에서 시스템 기능 보조 및 로그/권한 관리 (rsyslogd, polkitd)
+     - monitoring: 시스템 리소스 상태 감시 및 프로세스 활동 추적 (top, htop)
+     - container-runtime: 컨테이너의 격리 실행 및 생명주기 관리 레이어 (containerd, tini)
+     - web-server: 웹 요청 처리 및 라우팅 (nginx, apache)
+     - runtime: 프로그래밍 언어 실행 환경 (python, node)
+     - infrastructure: 가상화 및 클러스터 관리 (docker, kubelet)
+     - system-utility: 단순 도구 및 명령어 (grep, ps, tail)
+  5. 기타 필드
+     - 기본적으로 "general"로 설정
+     - tags는 [platform, "auto-imported"] 구성
+     - created_at 필드 추가 (ISO 8601 형식)
+
+<br>
+
+- mongoDB 설치
+  - Window에서 도커로 설치
+    ```
+    docker run -d --name mongodb -p 27017:27017 mongo
+    ```
+  - 도커 컨테이너로 실행 중인 Rocky Linux 환경
+    ```
+    docker exec -it rocky_server /bin/bash
+    ```
+    - MongoDB 공식 레포지토리 등록
+        ```
+        # 레포지토리 파일 생성
+        cat <<EOF | tee /etc/yum.repos.d/mongodb-org-7.0.repo
+        [mongodb-org-7.0]
+        name=MongoDB Repository
+        baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/7.0/x86_64/
+        gpgcheck=1
+        enabled=1
+        gpgkey=https://www.mongodb.org/static/pgp/server-7.0.asc
+        EOF
+        ```
+    - MongoDB 패키지 설치
+        ```
+        dnf install -y mongodb-org
+
+        # 데이터 디렉토리 생성
+        mkdir -p /data/db
+        # MongoDB 실행 (백그라운드)
+        mongod --fork --logpath /var/log/mongodb.log --dbpath /data/db
+
+        systemctl start mongod
+        systemctl enable mongod
+        ```
 
 <br>
 
@@ -504,6 +578,42 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
     | **2차 종료 (Hard)** | `taskkill /PID <pid> /F` | `SIGKILL`                      |
     | **특징**           | Explorer 하위 앱은 대부분 정상 종료 | 데몬/백그라운드 프로세스는 Hard Kill 필요 가능 |
 
+---
+<br>
+
+## [2-3단계] 환경 변수 관리 (.env)
+- DB 접속 정보나 비밀 키 같은 민감한 정보를 코드에 직접 쓰지 않고 외부 파일로 관리
+1. `.env` 파일 생성
+    ```
+    # MongoDB 설정
+    MONGO_URL=mongodb://localhost:27017/
+    DB_NAME=process_monitor
+    COLLECTION_NAME=known_processes
+
+    # 앱 설정
+    DEBUG=True
+    HOST=0.0.0.0
+    PORT=8000
+    ```
+
+2. 패키지 설치
+    ```
+    pip install python-dotenv
+    ```
+3. 코드 적용 
+    ```
+    import os
+    from dotenv import load_dotenv
+    from pymongo import MongoClient
+
+    # .env 파일 로드
+    load_dotenv()
+
+    MONGO_URL = os.getenv("MONGO_URL")
+    DB_NAME = os.getenv("DB_NAME")
+
+    client = MongoClient(MONGO_URL)
+    ```
 ---
 <br>
 

@@ -2,3 +2,5 @@ fastapi
 uvicorn
 psutil
 jinja2
+pymongo
+python-dotenv

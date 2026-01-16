@@ -1,7 +1,5 @@
 import psutil
 import time
-import os
-import platform
 from typing import List, Dict
 
 from app.constants.ports import KNOWN_PORTS
@@ -13,10 +11,9 @@ from app.constants.windows import (
     WINDOWS_DEV_PROCS,
 )
 
-OS_TYPE = platform.system()  # 'Windows' or 'Linux'
+CACHED_KNOWN_PROCS = {} # DB에서 로드된 최적화 맵
 
-
-def collect_processes() -> List[Dict]:
+def collect_processes(os_type: str) -> List[Dict]:
     """
     OS 공통 데이터 수집 
     
@@ -25,14 +22,15 @@ def collect_processes() -> List[Dict]:
     """
     processes = []
 
-    # CPU 측정 초기화 (중요)
+    # CPU 측정 초기화 (중요: 이전 측정값과의 차이를 계산하기 위함)
     for p in psutil.process_iter():
         try:
             p.cpu_percent(None)
         except Exception:
             pass
 
-    time.sleep(0.1)  # 짧은 샘플링 시간
+    # CPU 점유율 계산을 위한 최소한의 샘플링 시간
+    time.sleep(0.1)
 
     # psutil.process_iter를 통해 실행 중인 모든 프로세스를 순회
     for proc in psutil.process_iter(attrs=[
@@ -58,7 +56,7 @@ def collect_processes() -> List[Dict]:
                     info["memory_percent"] = None
 
                 info["ports"] = collect_ports(proc) # 네트워크 포트 정보 추가
-                info["os_type"] = OS_TYPE
+                info["os_type"] = os_type
                 processes.append(info)
 
         except (psutil.NoSuchProcess, psutil.AccessDenied):
@@ -129,7 +127,7 @@ def analyze_process(proc:Dict) -> List[str]:
             continue
 
         if port in KNOWN_PORTS:
-            warnings.append(f"PUBLIC_PORT({port}): {KNOWN_PORTS[port]}")
+            warnings.append(f"PUBLIC_PORT({port}): {KNOWN_PORTS[port]} 포트 사용 중")
         elif port < 1024:
             warnings.append(f"SYSTEM_PORT({port}): 비표준 시스템 포트 개방")
 
@@ -163,24 +161,53 @@ def analyze_process(proc:Dict) -> List[str]:
         "perf_warnings": perf_warnings,
     }
 
+def sync_with_mongodb(db_data_list: List[Dict], current_os: str):
+    """
+    MongoDB의 known_processes 컬렉션 데이터를 메모리로 동기화 로직
+    우선순위: OS별 전용 프로세스 > Common 프로세스
+    """
+
+    global CACHED_KNOWN_PROCS
+    new_map = {}
+
+    # 1. Common 데이터 먼저 로드
+    common_data = [d for d in db_data_list if d['platform'] == 'common']
+    # 2. 현재 OS 전용 데이터 로드 (동일 이름일 경우 덮어씌우기 위해 나중에 처리)
+    os_data = [d for d in db_data_list if d['platform'].lower() == current_os.lower()]
+    
+    temp_map = {}
+
+    # 데이터 가공 루프 (Common -> OS전용 순서로 실행하여 우선순위 확보)
+    for item in (common_data + os_data):
+        name = item['name'].lower()
+        desc = item['description']
+        
+        # 기본 등록
+        temp_map[name] = desc
+        
+        # Windows인 경우 확장자 대응용 가상 키 생성 (실제 DB 데이터는 하나지만 검색은 둘 다 되게)
+        if current_os.lower() == "windows":
+            name_no_ext = name.rsplit('.', 1)[0]
+            name_with_exe = f"{name_no_ext}.exe"
+            temp_map[name_no_ext] = desc
+            temp_map[name_with_exe] = desc
+
+    CACHED_KNOWN_PROCS = temp_map
 
 def explain_process(proc:Dict) -> str:
     """
     프로세스 설명(Explain)
 
     어려운 프로세스 명을 일반 사용자용 언어로 변환
+    이미 최적화된 CACHED_KNOWN_PROCS를 사용하여 O(1)로 조회
     """
-    name = proc["name"].lower()
+    raw_name = (proc.get("name") or "").lower()
+    os_type = proc.get("os_type")
 
-    # 단순 포함 여부(in)로 검사하여 버전이나 확장자가 붙어도 감지하게 함
-    for key, desc in KNOWN_PROCESSES.items():
-        if key in name:
-            return desc
-        
-    return f"미등록 프로세스 ({name})"
+    # 딕셔너리에 있으면 설명 반환, 없으면 미등록 처리 (정책 반영)
+    return CACHED_KNOWN_PROCS.get(raw_name, f"미등록 프로세스 ({raw_name})")
 
-
-def get_process_list() -> List[Dict]:
+def get_process_list(os_type: str) -> List[Dict]:
     """
     최종 조합 함수 (정렬 기능 추가)
     
@@ -191,7 +218,7 @@ def get_process_list() -> List[Dict]:
     result = []
 
     # 1단계: 수집
-    raw_processes = collect_processes()
+    raw_processes = collect_processes(os_type)
 
     # 2단계: 분석
     for proc in raw_processes:
@@ -237,20 +264,18 @@ def get_process_list() -> List[Dict]:
             if proc.get("memory_percent") is not None else "-"
         )
         proc["user"] = proc.get("username") or "-"
-        # 포트 요약 처리 (추가할 부분)
+
         ports_list = proc.get("ports", [])
         if len(ports_list) > 5:
-            # 포트가 너무 많으면(크롬 등) "80 외 12건" 식으로 요약
+            # 포트가 너무 많으면(크롬 등) 요약
             proc["display_ports"] = f"{ports_list[0]} 외 {len(ports_list)-1}건"
         elif len(ports_list) > 0:
-            # 적당히 있으면 콤마로 연결
+            # 5건 이하면 콤마로 연결
             proc["display_ports"] = ", ".join(map(str, ports_list))
         else:
-            # 없으면 빈 문자열 또는 None
             proc["display_ports"] = " - "
 
         result.append(proc)
-
 
     # 3단계: 정렬 로직, 위험도 우선 정렬 (Case C가 항상 맨 위로)
     # warnings 리스트의 개수(len)를 기준으로 내림차순(reverse=True) 정렬

@@ -1,7 +1,6 @@
 import psutil
-import platform
 
-def get_disk_usage():
+def get_disk_usage(os_type: str):
     """
     운영체제별 디스크 사용률 (%) 반환
 
@@ -10,7 +9,7 @@ def get_disk_usage():
     """
 
     try:
-        path = 'C:\\' if platform.system() == 'Windows' else '/'
+        path = 'C:\\' if os_type== 'Windows' else '/'
         disk = psutil.disk_usage(path)
 
         # disk.percent : 전체 디스크 대비 사용 중인 비율 (%)
