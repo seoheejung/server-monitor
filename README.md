@@ -118,6 +118,8 @@ server-monitor/
 │   ├── app/         # API 엔트리 및 시스템 분석 로직 및 DB 연결
 │   ├── requirements.txt
 │   └── README.md
+├── run-dev.ps1        # Windows 개발
+├── run-prod.sh        # Linux 운영
 ├── .gitignore
 └── README.md        # 프로젝트 전체 소개
 ```
@@ -150,6 +152,7 @@ uvicorn app.main:app --reload
 python run.py
 ```
 
+
 - Linux / Docker (운영용)
 ```bash
 # 1. 프로젝트 폴더 이동
@@ -163,6 +166,16 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 # 백그라운드 실행 (추후 pm2로 변경)
 nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
+```
+
+#### 실행 방법
+
+```
+# Windows (개발)
+.\run-dev.ps1
+
+# Linux (운영)
+./run-prod.sh
 ```
 
 ---
@@ -222,17 +235,17 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 ## 개발 순서
 
 1. 프로젝트 구조 / README / 컨셉 정리 ✅
-2. Windows 개발 환경에서 기능 구현 ✅
+2. Windows 개발 환경에서 기능 구현 (1차) ✅
    - process.py 설계 (Windows / Linux 분기 기준)
    - 경고 판단 로직을 순수 함수로 분리
 3. UI 작업 (프로세스 시각화) ✅
 4. Git 저장소 반영 (push) ✅
 5. Docker 기반 Rocky Linux 환경 적용 (Linux 이식 단계) ✅
 6. OS 차이로 인해 동작이 깨지는 지점 식별 및 수정 ✅
-7. mongoDB 연동 ✅
-8. 프로세스 종료 기능
-9. 위험 알림 메일링 서비스
-10. 프로세스 추가 form
+7. mongoDB 연동 (2차) ✅
+8. 프로세스 종료 기능 (2차) ✅
+9. 위험 알림 메일링 서비스 (3차) 
+10. 프로세스 추가 form (3차) 
     - 사용자에게 이름만 받기
     - 중복이 많으면 (cnt) 조사 후 등록
 11. 관리자 페이지

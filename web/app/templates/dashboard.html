@@ -85,8 +85,22 @@
                 
                 {{ p.name }} (PID {{ p.pid }})
             </p>
+
             <p class="process-explain">
                 {{ p.explain }}
+
+                {% if not p.is_system %}
+                <button class="kill-btn"
+                        data-pid="{{ p.pid }}"
+                        data-name="{{ p.name }}"
+                        onclick="terminateProcess(this)">
+                    TERMINATE
+                </button>
+                {% else %}
+                <span style="font-size:10px; color:#666;">
+                    SYSTEM PROTECTED
+                </span>
+                {% endif %}
             </p>
 
             <p class="process-p">
@@ -94,6 +108,7 @@
                 MEM : {{ p.memory }}% |
                 USER : {{ p.user }}
             </p>
+
             {% if p.display_ports %}
             <p class="process-p">
                 PORT : {{ p.display_ports }}
@@ -121,5 +136,31 @@
 <script>
     const logConsole = document.querySelector('.console');
     logConsole.scrollTop = logConsole.scrollHeight; // 페이지 로드 시 최하단으로 이동
+
+    function terminateProcess(button) {
+        const pid = button.dataset.pid;
+        const name = button.dataset.name;
+
+        if (!confirm(`정말로 ${name} (PID ${pid}) 프로세스를 종료하시겠습니까?`)) {
+            return;
+        }
+
+        fetch("/api/process/terminate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ pid: Number(pid) })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || "요청이 처리되었습니다");
+            location.reload();
+        })
+        .catch(error => {
+            alert("프로세스 종료 중 오류 발생");
+            console.error(error);
+        });
+    }
 </script>
 </html>

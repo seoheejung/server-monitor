@@ -212,3 +212,34 @@ h2 {
     font-size: 11px;
     text-align: right;
 }
+
+/* 프로세스 종료 버튼 */
+.kill-btn {
+    margin-left: 18px;              /* process 정보와 정렬 */
+    margin-top: 6px;
+    padding: 6px 8px;
+
+    background: #000;
+    color: #ff5555;
+
+    border: 2px solid #ff5555;
+    box-shadow: 3px 3px 0 #000;
+
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+/* 마우스 올렸을 때 */
+.kill-btn:hover {
+    background: #ff5555;
+    color: #000;
+}
+
+/* 클릭 순간 (눌리는 느낌) */
+.kill-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #000;
+}

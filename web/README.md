@@ -36,7 +36,12 @@
 web/
 ├── app/
 │   ├── main.py          # FastAPI 엔트리 (URL 및 서버 설정)
-│   ├── database/                  # DB 연결
+│   ├── core/            # 전역 설정
+│   │   ├── config.py    
+│   ├── routes/          # URL
+│   │   ├── process.py        # 프로세스 관련 API
+│   │   └── admin.py          # 관리자 API (sync-now 등)
+│   ├── database/        # DB 연결
 │   ├── constants/       # 포트 / 프로세스 정책
 │   │   ├── ports.py
 │   │   ├── processes.py
@@ -48,7 +53,8 @@ web/
 │   │   ├── uptime.py    # 서버 업타임
 │   │   ├── service.py   # 서비스 상태 (systemctl)
 │   │   ├── log.py       # 로그 tail 기능
-│   │   └── process.py   # 프로세스 분석 (확장) 
+│   │   ├── process_control.py    # 프로세스 종료 로직 (확장)
+│   │   └── process_analyzer.py   # 프로세스 분석 (확장) 
 │   ├── templates/       # 웹 화면(HTML)
 │   │   └── dashboard.html
 │   └── static/          # 정적 파일
@@ -519,16 +525,16 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 <br>
 
 1. 종료 대상 구분
-    | 구분        | Windows                    | Linux                   |
+    | 구분        | Windows                 | Linux               |
     | --------- | -------------------------- | ----------------------- |
-    | **종료 대상** | explorer.exe 하위 프로세스       | 로그인 사용자 UID 소유          |
-    |           | 사용자 계정 소유                  | TTY / graphical session |
-    |           | GUI 세션에 속함                 | `/home/*` 경로 실행 파일      |
-    |           | UWP / Win32 사용자 앱          |                         |
-    | **제외 대상** | SESSION 0                  | UID 0 (root)            |
+    | **종료 대상** | explorer.exe 하위 프로세스    | 로그인 사용자 UID 소유    |
+    |           | 사용자 계정 소유            | TTY / graphical session |
+    |           | GUI 세션에 속함          | `/home/*` 경로 실행 파일      |
+    |           | UWP / Win32 사용자 앱      |                         |
+    | **제외 대상** | SESSION 0             | UID 0 (root)            |
     |           | SYSTEM / LOCAL SERVICE     | systemd / daemon        |
     |           | Windows signed core binary | `/usr/lib/systemd`      |
-    |           | svchost 계열                 |                         |
+    |           | svchost 계열           |                         |
 
 <br>
 
@@ -571,12 +577,12 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
     - Hard Kill은 최후 수단
 
 4. OS별 실제 종료 방식
-    | 단계               | Windows                  | Linux                          |
-    | ---------------- | ------------------------ | ------------------------------ |
-    | **1차 종료 (Soft)** | `taskkill /PID <pid>`    | `SIGTERM`                      |
-    | **대기**           | 정상 종료 대기                 | 정상 종료 대기                       |
-    | **2차 종료 (Hard)** | `taskkill /PID <pid> /F` | `SIGKILL`                      |
-    | **특징**           | Explorer 하위 앱은 대부분 정상 종료 | 데몬/백그라운드 프로세스는 Hard Kill 필요 가능 |
+    | 단계         | Windows       | Linux                |
+    | ---------------- | ------------------------ | ------------------- |
+    | **1차 종료 (Soft)** | `taskkill /PID <pid>` | `SIGTERM`     |
+    | **대기**           | 정상 종료 대기      | 정상 종료 대기   |
+    | **2차 종료 (Hard)** | `taskkill /PID <pid> /F` | `SIGKILL`   |
+    | **특징**   | Explorer 하위 앱은 대부분 정상 종료 | 데몬/백그라운드 프로세스는 Hard Kill 필요 가능 |
 
 ---
 <br>
