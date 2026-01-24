@@ -296,7 +296,6 @@ MemCompression.exe (Windows 메모리 압축 관리 프로세스)
 | **MongoDB 연결 성공** | DB 정책 + 실시간 psutil 판단 병행 |
 | **MongoDB 연결 실패** | psutil 기반 실시간 판단만 사용     |
 
-
 > MongoDB 장애, 네트워크 분리 상황에서도 서버 모니터링 및 프로세스 제어 기능이 중단되지 않도록 설계
 
 ---
