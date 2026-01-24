@@ -146,8 +146,9 @@ def startup_event():
         sync_with_mongodb(db_data, OS_TYPE)
         print(f"🚀 분석 엔진 준비 완료 (OS: {OS_TYPE}, 로드된 프로세스: {len(db_data)}개)")
         
-    except Exception as e:
-        print(f"❌ Startup 초기화 오류: {e}")
+    except Exception:
+        traceback.print_exc()
+        raise
 
 # 서버 종료 시 실행
 @app.on_event("shutdown")
