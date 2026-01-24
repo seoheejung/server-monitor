@@ -21,10 +21,10 @@ fi
 echo "▶ Activating virtualenv"
 source venv/bin/activate
 
-# requirements.txt 설치
+# requirements.txt 설치 (이미 설치돼 있으면 스킵 + 캐시 미사용)
 if [ -f "requirements.txt" ]; then
   echo "▶ Installing Python dependencies"
-  pip install -r requirements.txt
+  pip install --no-cache-dir -r requirements.txt --quiet
 else
   echo "❌ requirements.txt 파일이 없습니다."
   exit 1
