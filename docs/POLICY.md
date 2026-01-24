@@ -269,8 +269,9 @@ MemCompression.exe (Windows 메모리 압축 관리 프로세스)
 3. OS 핵심 서비스 또는 데몬 프로세스
 
 ---
+<br>
 
-## [2-1] MongoDB 기반 종료 정책 보조 레이어
+## [3] MongoDB 기반 종료 정책 보조 레이어
 
 > MongoDB는 프로세스 종료 판단의 필수 의존성이 아니라, 정책 일관성과 관리 편의를 위한 보조 정책 레이어(Optional Policy Layer) 로만 사용
 
