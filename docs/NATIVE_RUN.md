@@ -1,5 +1,7 @@
 # Rocky Linux 네이티브 실행 검증
 
+> Rocky Linux 네이티브 환경에서의 동작 검증 기록
+
 <b>
 본 단계는 단순 배포 실험이 아니라 <br>
 서버 모니터링 로직이 OS 환경(Rocky Linux)에서 실제로 어떻게 동작하는지를 <br>
@@ -56,6 +58,18 @@
 ### 3. Python / psutil 의존성 검증
 - psutil 빌드 성공 여부
 - root / non-root 실행 시 차이 확인
+
+## 검증 환경 정보
+
+- OS: Rocky Linux 9.x
+- 커널: 기본 제공 커널 (VirtualBox Guest)
+- Python: 3.x (dnf 패키지 기준)
+- 실행 사용자:
+  - 기능 검증: root
+  - 권한 차이 검증: 일반 사용자
+- 실행 방식:
+  - Docker 컨테이너 (기능/로직 1차 검증)
+  - VirtualBox 네이티브 (운영 제약 2차 검증)
 
 ---
 <br>
@@ -132,7 +146,6 @@ docker run -it -p 2222:8000 --name rocky-93 rockylinux:9.3 /bin/bash
 ### 1-1. VirtualBox rockylinux 서버 접속
 ```
 ssh user@서버IP
-
 ```
 
 ### 2. 기본 패키지 설치
@@ -178,6 +191,15 @@ ls /var/log/messages
 nohup sh -c 'while true; do logger -t [INFO] "System Health Check OK"; sleep 5; done' &
 tail /var/log/messages
 ```
+
+## Docker vs Native 환경 차이 요약
+
+| 항목 | Docker 컨테이너 | VirtualBox 네이티브 |
+|----|----|----|
+| systemctl | 사용 불가 | 사용 가능 |
+| PID 1 | bash / tini | systemd |
+| 로그 | 직접 파일 생성 필요 | 기본 로그 데몬 존재 |
+| 목적 | 로직 검증 | 운영 적합성 검증 |
 
 ---
 <br>
@@ -286,6 +308,15 @@ list(psutil.process_iter(['pid', 'name']))
 - 예외 없이 값이 반환되는지
 - /proc 접근 오류가 발생하지 않는지
 - 프로세스 목록이 실제 서버와 일치하는지
+
+### 권한별 동작 차이 요약
+
+| 항목 | root 실행 | 일반 사용자 실행 |
+|----|----|----|
+| 프로세스 목록 | 전체 수집 | 일부 제한 |
+| 포트 정보 | 전체 수집 | 타 사용자 프로세스 누락 가능 |
+| 로그 접근 | 가능 | PermissionError 가능 |
+| systemctl | 가능 | 제한적 |
 
 ---
 <br>

@@ -1,24 +1,20 @@
 # [서버 관리형 프로젝트] 서버 상태 모니터링 대시보드
 
 ## 프로젝트 개요
-<b>
-서버에서 실행 중인 리소스·서비스·프로세스를 수집하고, <br>
-그 상태와 잠재적 위험 요소를 사용자가 이해할 수 있게 웹으로 시각화하는 서버 관리형 프로젝트
-</>
+
+서버에서 실행 중인 리소스·서비스·프로세스를 수집하고,  
+그 상태와 잠재적 위험 요소를 **운영 관점에서 이해 가능하게 시각화**하는 서버 관리형 프로젝트
 
 <br>
 
-<b>
-단순 수치 나열이 아닌 <br>
-"이 서버에서 무엇이 실행 중이며, 운영 관점에서 안전한 상태인지"를 설명하는 서버 모니터링 대시보드
-</b>
+단순 수치 나열이 아니라  
+"이 서버에서 무엇이 실행 중이며, 지금 안전한 상태인가"를 설명하는 모니터링 대시보드
 
 <br>
 
-<b>
-Windows 개발 환경과 Linux 운영 환경 간에 근본적인 차이가 존재하는 것을 파악하고, <br>
-운영체제별 차이가 서버 모니터링 로직에 어떤 영향을 미치는지 문서가 아닌 직접 구현과 검증을 통해 확인하는 프로젝트
-</b>
+Windows 개발 환경과 Linux 운영 환경의 구조적 차이를   
+**직접 구현·검증을 통해 확인**하는 것을 목표로 하는 프로젝트
+
 
 ---
 <br>
@@ -35,7 +31,7 @@ Windows 개발 환경과 Linux 운영 환경 간에 근본적인 차이가 존�
 | ---------- | ------------- | ---------------- |
 | Rocky Linux (Host) | systemctl | active, inactive, failed |
 | Docker (Container) | psutil (프로세스 검색) | active, active (idle), failed (zombie) | 
-| Window | platform 체크 | not support on Windows |
+| Windows | platform 체크 | not supported on Windows |
 
 - 정상: active → 🟢 초록색 도트
 - 대기/좀비: idle, zombie → 🟡 노란색 도트
@@ -46,7 +42,7 @@ Windows 개발 환경과 Linux 운영 환경 간에 근본적인 차이가 존�
 - 콘솔 스타일 UI로 표시
 - 접근 권한 및 민감 정보 고려
 
-### 4. 프로세스 분석 (확장 핵심 기능)
+### 4. 프로세스 분석 (운영·보안 핵심 기능)
 - 실행 중인 프로세스 목록
 - 프로세스별 정보 수집
   - 프로세스명 / PID
@@ -64,20 +60,22 @@ Windows 개발 환경과 Linux 운영 환경 간에 근본적인 차이가 존�
 <br>
 
 ## 기술 스택
-| 영역         | 기술                            |
+
+| 영역         | 기술                         |
 | ---------- | ----------------------------- |
 | OS         | Rocky Linux 9 / Windows       |
 | Backend    | FastAPI                       |
-| 시스템 정보     | psutil                        |
-| 서비스 상태     | systemctl (Linux)             |
-| 템플릿        | Jinja2                        |
+| 시스템 정보     | psutil                     |
+| 서비스 상태     | systemctl (Linux)          |
+| 템플릿        | Jinja2                       |
 | Front UI   | HTML + CSS (Retro / Pixel 콘솔) |
-| DB         | MongoDB (확장 예정)              |
-| Web Server | Nginx (Reverse Proxy)         |
+| DB         | MongoDB                        |
+| Web Server | Nginx (Reverse Proxy)          |
 
 <br>
 
 ## 프로젝트 특징
+
 - psutil 기반 Cross Platform 설계
 - Linux 서비스(systemctl)와 로그 직접 연동
 - 단순 수치 → 의미 기반 상태 분석
@@ -91,6 +89,7 @@ Windows 개발 환경과 Linux 운영 환경 간에 근본적인 차이가 존�
 <br>
 
 ## 프로젝트 전체 그림
+
 ```
 [ 서버 (Window, Rocky Linux) ]
         |
@@ -110,6 +109,7 @@ Windows 개발 환경과 Linux 운영 환경 간에 근본적인 차이가 존�
 <br>
 
 ## 디렉토리 구조
+
 ```
 server-monitor/
 ├── docs/            # 설계·정책·네이티브 실행 문서
@@ -127,6 +127,7 @@ server-monitor/
 <br>
 
 ### FastAPI 서버를 실행할 때마다 가상환경(venv) 실행
+
 ```
 [ 내 PC 전체 Python ]
         |
@@ -136,7 +137,8 @@ server-monitor/
 ```
 - venv를 안 켜면 FastAPI가 존재하지 않음
 
-#### * 실행 루틴
+### * 실행 루틴
+
 - Windows (개발용)
 ```bash
 # 1. 프로젝트 폴더 이동
@@ -151,7 +153,6 @@ uvicorn app.main:app --reload
 # 3-1. .env 설정 자동 로드
 python run.py
 ```
-
 
 - Linux / Docker (운영용)
 ```bash
@@ -219,15 +220,23 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 
 > 디자인 확정
 
-### ✅ 3차 목표 : 행동 제안
-- DB 연동 (프로세스 판단 기준 / 정책 관리용)
+### ✅ 3차 목표 : 행동 제안 (완료)
+- MongoDB 연동 (프로세스 판단 기준 저장)
 - 프로세스 종료 (권장 종료 대상만 추려서 제안)
+  
+<br>
+<img src="./images/window_4_task.png" width="600" >
+
+> 프로세스 종료 기능을 구현한 화면
 
 ### 🔜 추가 확장 목표
 - 다중 서버 관리
-- Slack / Telegram 알림
-- Prometheus 연계
-- 
+- 위험 이벤트 기반 Email 알림
+- 종료 사유 / 권장 조치 메시지 세분화
+- 프로세스 등록 요청 Form (사용자 입력 기반 등록 요청 / 중복 빈도(cnt) 기반 자동 분류)
+- 관리용 페이지 (프로세스 등록 보조 기능)
+- 운영자 권한 분리 (Viewer / Operator / Admin)
+
 ---
 
 <br>
@@ -235,18 +244,13 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 ## 개발 순서
 
 1. 프로젝트 구조 / README / 컨셉 정리 ✅
-2. Windows 개발 환경에서 기능 구현 (1차) ✅
-   - process.py 설계 (Windows / Linux 분기 기준)
+2. Windows 개발 환경에서 기능 구현 ✅
+   - process.py 설계 (Windows / Linux 분기 기준 수립)
    - 경고 판단 로직을 순수 함수로 분리
 3. UI 작업 (프로세스 시각화) ✅
 4. Git 저장소 반영 (push) ✅
 5. Docker 기반 Rocky Linux 환경 적용 (Linux 이식 단계) ✅
 6. OS 차이로 인해 동작이 깨지는 지점 식별 및 수정 ✅
-7. mongoDB 연동 (2차) ✅
-8. 프로세스 종료 기능 (2차) ✅
-9. 위험 알림 메일링 서비스 (3차) 
-10. 프로세스 추가 form (3차) 
-    - 사용자에게 이름만 받기
-    - 중복이 많으면 (cnt) 조사 후 등록
-11. 관리자 페이지
-12. 실제 Rocky Linux (VirtualBox) 운영 환경 적용 및 네이티브 기준 최종 검증
+7. mongoDB 연동 ✅
+8. 프로세스 종료 기능 ✅
+9. 실제 Rocky Linux (VirtualBox) 운영 환경 적용 및 네이티브 기준 최종 검증
