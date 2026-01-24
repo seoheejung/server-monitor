@@ -131,36 +131,105 @@
         </div>
     </div>
 </div>
+
+<div id="custom-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+        <h2 id="modal-title">SYSTEM MESSAGE</h2>
+        <p id="modal-message"></p>
+        <div class="modal-buttons">
+            <button id="modal-cancel-btn" class="kill-btn" style="color: #eee; border-color: #eee;">CANCEL</button>
+            <button id="modal-ok-btn" class="kill-btn">CONFIRM</button>
+        </div>
+    </div>
+</div>
 </body>
 
 <script>
     const logConsole = document.querySelector('.console');
     logConsole.scrollTop = logConsole.scrollHeight; // 페이지 로드 시 최하단으로 이동
 
-    function terminateProcess(button) {
+    /**
+     * @param {string} title - 제목
+     * @param {string} message - 내용
+     * @param {boolean} showCancel - 취소 버튼 표시 여부
+     * @param {string} type - 'error', 'success', 'info' (기본값: 'error')
+     */
+    function showModal(title, message, showCancel = false, type = 'error') {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('custom-modal');
+            const card = modal.querySelector('.modal-card');
+            const titleEl = document.getElementById('modal-title');
+            const messageEl = document.getElementById('modal-message');
+            const okBtn = document.getElementById('modal-ok-btn');
+            const cancelBtn = document.getElementById('modal-cancel-btn');
+
+            // 타입별 색상 정의
+            const colors = {
+                error: '#ff5555',   // 빨강 (위험, 오류)
+                success: '#00ff9c', // 형광 녹색 (성공, 정상)
+                info: '#ffd866'    // 노랑 (알림, 진행)
+            };
+
+            const themeColor = colors[type] || colors.error;
+
+            // 스타일 적용
+            card.style.borderColor = themeColor;
+            titleEl.style.color = themeColor;
+            okBtn.style.borderColor = themeColor;
+            okBtn.style.color = themeColor;
+            
+            // OK 버튼 호버 시 텍스트 색상 반전 처리를 위한 인라인 스타일 (CSS 변수 활용 권장)
+            okBtn.onmouseover = () => { okBtn.style.backgroundColor = themeColor; okBtn.style.color = '#000'; };
+            okBtn.onmouseout = () => { okBtn.style.backgroundColor = 'transparent'; okBtn.style.color = themeColor; };
+
+            titleEl.innerText = title;
+            messageEl.innerHTML = message;
+            modal.style.display = 'flex';
+
+            cancelBtn.style.display = showCancel ? 'inline-block' : 'none';
+
+            okBtn.onclick = () => {
+                modal.style.display = 'none';
+                resolve(true);
+            };
+
+            cancelBtn.onclick = () => {
+                modal.style.display = 'none';
+                resolve(false);
+            };
+        });
+    }
+
+    async function terminateProcess(button) {
         const pid = button.dataset.pid;
         const name = button.dataset.name;
 
-        if (!confirm(`정말로 ${name} (PID ${pid}) 프로세스를 종료하시겠습니까?`)) {
-            return;
-        }
+        const confirmed = await showModal(
+            "WARNING: TERMINATE", 
+            `[${name}] <br> 프로세스를 종료하시겠습니까?`, 
+            true, 'error'
+        );
+        if (!confirmed) return;
 
-        fetch("/api/process/terminate", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ pid: Number(pid) })
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message || "요청이 처리되었습니다");
-            location.reload();
-        })
-        .catch(error => {
-            alert("프로세스 종료 중 오류 발생");
-            console.error(error);
-        });
+        try {
+            const response = await fetch("/api/process/terminate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pid: Number(pid) })
+            });
+            const data = await response.json();
+            
+            if (data.result === "terminated") {
+                // 종료 성공 → 확인 후 새로고침
+                await showModal("SUCCESS", data.message, false, "success");
+                location.reload(); 
+            } else {
+                // 차단 / 실패 → 메시지만 표시 (새로고침 ❌)
+                await showModal("BLOCKED", data.message, false, "info");
+            }
+        } catch (error) {
+            await showModal("CRITICAL ERROR", "통신 중 오류가 발생했습니다.", false, "error");
+        }
     }
 </script>
 </html>

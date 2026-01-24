@@ -13,9 +13,12 @@ DB_NAME = os.getenv("DB_NAME")
 COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 
 class MongoDB:
+
     def __init__(self):
         self.client = None
         self.db = None
+        self.connected = False   # 연결 상태 명시
+
 
     # 연결
     def connect(self):
@@ -29,21 +32,29 @@ class MongoDB:
             # 연결 성공 직후 인덱스 설정 함수 호출
             self._setup_indexes()
 
+            # 연결 상태 변경 (성공)
+            self.connected = True
+            
             print(f"✅ MongoDB 연결 및 인덱스 설정 완료: {DB_NAME}")
         except ConnectionFailure:
-            print("❌ MongoDB 연결 실패")
+            self.connected = False
             self.db = None
+            print("❌ MongoDB 연결 실패")
+
 
     def _setup_indexes(self):
         """
         name, platform 복합 유니크 인덱스 생성
         """
-        if self.db is not None:
-            # 복합 인덱스 생성 및 중복 데이터 방지
-            self.db[COLLECTION_NAME].create_index(
-                [("name", 1), ("platform", 1)],
-                unique=True
-            )
+        if self.db is None:
+            return
+
+        # 복합 인덱스 생성 및 중복 데이터 방지
+        self.db[COLLECTION_NAME].create_index(
+            [("name", 1), ("platform", 1)],
+            unique=True
+        )
+
 
     def seed_initial_data(self, data_list):
         """
@@ -58,38 +69,44 @@ class MongoDB:
 
         # 개발 단계에서 데이터 깔끔하게 다시 넣고 싶을 때 주석 해제 후 사용
         self.db[COLLECTION_NAME].drop()
-        print("🗑️ 기존 데이터를 삭제하고 초기화를 진행합니다.")
+        print("🗑️  기존 데이터를 삭제하고 초기화를 진행합니다.")
 
         # 2. drop() 하면 인덱스도 사라지므로 다시 생성해야 함
         self._setup_indexes()
         
         current_time = datetime.datetime.now(datetime.UTC)
-        bulk_operations = []
+        bulk_ops = []
 
         try:
             for item in data_list:
                 # name 소문자화 (검색 일관성)
                 process_name = item["name"].lower()
                 platform = item.get("platform", "common")
-                # 파일에 날짜가 있더라도 무시하고 현재 시간(current_time)으로 통일합니다.
+                # 파일에 날짜가 있더라도 무시하고 현재 시간(current_time)으로 통일
                 update_data = {k: v for k, v in item.items() if k != "created_at"}
 
-                bulk_operations.append(
+                bulk_ops .append(
                     UpdateOne(
                         {"name": process_name, "platform": platform},
                         {
-                            "$set": {**update_data, "name": process_name, "platform": platform},
+                            "$set": {
+                                **update_data, 
+                                "name": process_name, 
+                                "platform": platform
+                                },
                             "$setOnInsert": {"created_at": current_time}
                         },
                         upsert=True
                     )
                 )
 
-            if bulk_operations:
-                result = self.db[COLLECTION_NAME].bulk_write(bulk_operations)
-                upserted = result.upserted_count
-                modified = result.modified_count
-                print(f"📦 동기화 완료: {result.upserted_count}개 신규, {result.modified_count}개 업데이트")
+            if bulk_ops:
+                result = self.db[COLLECTION_NAME].bulk_write(bulk_ops )
+                print(
+                    f"📦 동기화 완료: "
+                    f"{result.upserted_count} 신규 / "
+                    f"{result.modified_count} 업데이트"
+                )
         except Exception as e:
             print(f"❌ 시딩 중 오류 발생: {e}")
 
@@ -108,10 +125,31 @@ class MongoDB:
         except Exception as e:
             print(f"❌ DB 데이터 로드 중 오류 발생 (Collection: {COLLECTION_NAME}): {e}")
             return []
+    
 
+    def get_process_policy(self, name: str, platform: str):
+        """
+        프로세스 종료 정책 단건 조회
+        """
+        if not self.connected or self.db is None:
+            return None
+        
+        try:
+            return self.db[COLLECTION_NAME].find_one(
+                {
+                    "name": name.lower(),
+                    "platform": platform.lower()
+                },
+                {"_id": 0}
+            )
+        except Exception:
+            return None
+
+            
     def close(self):
         if self.client:
             self.client.close()
+
 
 # 싱글톤 객체 생성
 db_manager = MongoDB()

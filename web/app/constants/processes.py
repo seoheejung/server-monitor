@@ -219,4 +219,21 @@ KNOWN_PROCESSES = {
     # --- Drivers & Updates ---
     "nvdisplay.container.exe": "NVIDIA 디스플레이 컨테이너: 그래픽 드라이버 설정 및 관리",
     "microsoftedgeupdate.exe": "Microsoft Edge 업데이트: 브라우저 최신 버전 자동 유지",
+
+    # --- Office / Microsoft App-V ---
+    "appvshnotify.exe": "Microsoft App-V: 가상화된 애플리케이션의 알림 및 통합 관리 도구",
+
+    # --- Driver & System Utilities (Third-party) ---
+    "driverbooster.exe": "IObit Driver Booster: 시스템 드라이버 업데이트 및 관리 도구",
+
+    # --- Peripherals / Input (Logitech) ---
+    "logioptionsplus_agent.exe": "Logitech Options+: 로지텍 장치 설정 및 통신 백그라운드 에이전트",
+    "logioptionsplus_appbroker.exe": "Logitech Options+: 앱과 드라이버 간 통신 중개 프로세스",
+    "logioptionsplus_updater.exe": "Logitech Options+: 소프트웨어 최신 버전 자동 업데이트 확인 프로세스",
+
+    # --- Dev Tools (Installers) ---
+    "codesetup-stable-c9d77990917f3102ada88be140d28b038d1dd7c7.exe": "Visual Studio Code Setup: VS Code 설치 및 업데이트 실행 프로세스",
+
+    # --- Manufacturer / OEM (ASUS) ---
+    "asussurvey.exe": "ASUS 고객 경험 개선 프로그램: 시스템 성능 및 사용 데이터 수집 서비스",
 }

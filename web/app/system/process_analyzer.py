@@ -10,6 +10,8 @@ from app.constants.windows import (
     WINDOWS_SYSTEM_PROCS,
     WINDOWS_DEV_PROCS,
 )
+from app.constants.linux import LINUX_CONTAINER_IGNORE_PROCS
+from app.utils.env import is_container_environment
 
 CACHED_KNOWN_PROCS = {} # DB에서 로드된 최적화 맵
 
@@ -20,6 +22,7 @@ def collect_processes(os_type: str) -> List[Dict]:
     psutil을 사용하여 OS 공통 프로세스 정보를 추출
     최대한 모든 OS에서 공통적으로 지원하는 속성만 선택적으로 수집
     """
+    is_container = is_container_environment()
     processes = []
 
     # CPU 측정 초기화 (중요: 이전 측정값과의 차이를 계산하기 위함)
@@ -41,9 +44,17 @@ def collect_processes(os_type: str) -> List[Dict]:
         "create_time"     # 프로세스 시작 시간
     ]):
         try:
+            # 🔒 PID 0 (System Idle Process) 무조건 제외
+            if proc.pid == 0:
+                continue
+            
             # oneshot을 쓰면 내부 데이터를 한 번에 가져와서 작업
             with proc.oneshot():
                 info = proc.info # 수집된 기본 정보 딕셔너리
+                name = (info.get("name") or "").lower()
+                # 컨테이너 환경 쉘 프로세스 제외
+                if is_container and name in LINUX_CONTAINER_IGNORE_PROCS:
+                    continue
 
                 try:
                     info["cpu_percent"] = proc.cpu_percent(None) # 실제 값

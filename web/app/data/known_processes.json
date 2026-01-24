@@ -2361,8 +2361,7 @@
     "category": "infrastructure",
     "description": "Docker Desktop 백엔드 엔진 서비스",
     "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
-    "tags": ["docker", "windows", "virtualization"],
-    "created_at": "2026-01-17T02:50:00Z"
+    "tags": ["docker", "windows", "virtualization"]
   },
   {
     "name": "mongodbcompass.exe",
@@ -2370,8 +2369,7 @@
     "category": "database",
     "description": "MongoDB GUI 관리 도구 (Compass)",
     "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
-    "tags": ["database", "tool", "mongodb"],
-    "created_at": "2026-01-17T02:50:00Z"
+    "tags": ["database", "tool", "mongodb"]
   },
   {
     "name": "asussystemdiagnosis.exe",
@@ -2379,8 +2377,7 @@
     "category": "monitoring",
     "description": "ASUS 시스템 진단 도구",
     "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
-    "tags": ["asus", "hardware", "diagnosis"],
-    "created_at": "2026-01-17T02:50:00Z"
+    "tags": ["asus", "hardware", "diagnosis"]
   },
   {
     "name": "asussystemanalysis.exe",
@@ -2388,8 +2385,7 @@
     "category": "monitoring",
     "description": "ASUS 시스템 분석 및 최적화 도구",
     "policy": { "is_system": true, "terminatable": true, "reason": "System Core" },
-    "tags": ["asus", "hardware", "analysis"],
-    "created_at": "2026-01-17T02:50:00Z"
+    "tags": ["asus", "hardware", "analysis"]
   },
   {
     "name": "python3.13.exe",
@@ -2397,8 +2393,7 @@
     "category": "runtime",
     "description": "Python 3.13 인터프리터 실행 파일",
     "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
-    "tags": ["python", "development", "runtime"],
-    "created_at": "2026-01-17T02:50:00Z"
+    "tags": ["python", "development", "runtime"]
   },
   {
     "name": "systemsettings.exe",
@@ -2406,8 +2401,63 @@
     "category": "core",
     "description": "Windows 시스템 설정 제어판",
     "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
-    "tags": ["windows", "settings", "core"],
-    "created_at": "2026-01-17T02:50:00Z"
+    "tags": ["windows", "settings", "core"]
+  },
+  {
+    "name": "appvshnotify.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Microsoft App-V: 가상화된 애플리케이션의 알림 및 통합 관리 도구",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["windows", "auto-imported", "microsoft"]
+  },
+  {
+    "name": "driverbooster.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "IObit Driver Booster: 시스템 드라이버 업데이트 및 관리 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "auto-imported", "driver"]
+  },
+  {
+    "name": "logioptionsplus_agent.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Logitech Options+: 로지텍 장치 설정 및 통신 백그라운드 에이전트",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "auto-imported", "logitech"]
+  },
+  {
+    "name": "logioptionsplus_appbroker.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Logitech Options+: 앱과 드라이버 간 통신 중개 프로세스",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "auto-imported", "logitech"]
+  },
+  {
+    "name": "codesetup-stable-c9d77990917f3102ada88be140d28b038d1dd7c7.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Visual Studio Code Setup: VS Code 설치 및 업데이트 실행 프로세스",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "auto-imported", "vscode"]
+  },
+  {
+    "name": "asussurvey.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "ASUS 고객 경험 개선 프로그램: 시스템 성능 및 데이터 수집 서비스",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "auto-imported", "asus"]
+  },
+  {
+    "name": "logioptionsplus_updater.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Logitech Options+ 소프트웨어 업데이트를 담당하는 벤더 제공 사용자 환경 보조 프로세스",
+    "policy": {"is_system": false,"terminatable": true, "reason": "Vendor updater (user-safe)" },
+    "tags": ["windows","vendor","updater","auto-imported"],
+    "created_at": "2026-01-24T00:00:00Z"
   }
-
 ]

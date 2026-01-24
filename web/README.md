@@ -2,10 +2,19 @@
 
 **Rocky Linux 서버의 상태를 웹으로 확인하기 위한 서버 모니터링 프로젝트**
 
-> 개발 → Linux 이식 → 운영 확장을 고려한 구조 중심 문서
+> 이 README는 기능 설명서가 아니라, 프로젝트 구조·설계 의도·운영 흐름을 설명하는 상위 문서
 
 
-###  핵심 기능
+### 문서 라벨 기준
+
+- 🧭 [설계] : 왜 이렇게 설계했는가 (판단 기준·구조)
+- 🧪 [구현] : 어떻게 만들었는가 (코드·구조)
+- ▶ [실행] : 어떻게 실행하는가 (환경·명령)
+
+---
+<br>
+
+###  🧭 [설계] 핵심 기능
 1. 기본 모니터링 (1차)
    - 시스템 리소스 시각화
      - CPU, RAM, Disk 사용량을 픽셀 스타일 대시보드로 실시간 확인
@@ -27,10 +36,11 @@
      - Soft Kill → Hard Kill 단계적 종료 로직
    - 운영 확장 기반
      - 운영자 개입 없이 정책에 따른 판단·제어 구조 확보
+
 ---
 <br>
 
-## 프로젝트 구조
+## 🧪 프로젝트 구조
 
 ```
 web/
@@ -45,6 +55,7 @@ web/
 │   ├── constants/       # 포트 / 프로세스 정책
 │   │   ├── ports.py
 │   │   ├── processes.py
+│   │   ├── linux.py
 │   │   └── windows.py
 │   ├── system/          # 서버 정보 수집 코드 모음
 │   │   ├── cpu.py       # CPU 사용량
@@ -55,6 +66,8 @@ web/
 │   │   ├── log.py       # 로그 tail 기능
 │   │   ├── process_control.py    # 프로세스 종료 로직 (확장)
 │   │   └── process_analyzer.py   # 프로세스 분석 (확장) 
+│   ├── utils/
+│   │   └── env.py       # 컨테이너 / 런타임
 │   ├── templates/       # 웹 화면(HTML)
 │   │   └── dashboard.html
 │   └── static/          # 정적 파일
@@ -65,13 +78,26 @@ web/
 ├── run.py               # 서버 통합 실행 스크립트
 └── README.md
 ```
+
 ### 프로젝트 진행 흐름
-#### 🗂️ Windows 개발  → Linux 이식  → 운영 확장
+
+> 🗂️ Windows 개발  → Linux 이식  → 운영 확장
+
+#### Linux 이식 및 검증 전략 (Docker → VirtualBox)
+
+- Linux 이식은 **Docker 기반 Rocky Linux 컨테이너**에서 먼저 진행
+  - Git pull 후 즉시 실행 가능
+  - psutil, /proc, 포트 수집 등 **OS 의존 로직 빠른 검증**
+  - systemd 미지원 환경에서의 fallback 로직 확인
+
+- 이후 **VirtualBox 기반 Rocky Linux 네이티브 환경**에서 최종 검증
+  - systemctl, firewalld, 권한 모델 포함
+  - 실제 운영 서버와 동일한 조건에서 동작 여부 확인
 
 ---
 <br>
 
-## [1단계] Windows에서 FastAPI 서버 실행 확인
+## ▶ [1단계] Windows에서 FastAPI 서버 실행 확인
 ### 1. 가상환경 생성
 ```
 python -m venv venv
@@ -191,7 +217,8 @@ uvicorn app.main:app --reload
 ---
 <br>
 
-## [2단계] API 구현
+## 🧪 [2단계] API 구현
+
 ### 1. 시스템 정보 수집 (CPU)
    - psutil 중 가장 단순 (OS 권한 문제 없음)
    - 정확도 확보: psutil.cpu_percent(interval=1)를 사용하여 1초간의 평균 부하 측정
@@ -258,7 +285,9 @@ uvicorn app.main:app --reload
 ---
 <br>
 
-## [2-1단계] 추가 기능 (2차) : 프로세스 분석 & 보안 관점 모니터링
+## 🧭 [2-1단계] 프로세스 분석 & 보안 관점 모니터링
+
+> ⚠️ 프로세스 분석의 상세 판단 기준과 예외 정책은 `docs/POLICY.md` 문서 참조
 
 ### 실행 중인 프로세스 분석 기능 🔍 (Cross Platform)
 > 단순히 CPU/메모리 수치만 보여주는 모니터링이 아니라,   
@@ -378,7 +407,7 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 ---
 <br>
 
-## [2-2단계] 추가 기능 (3차) : MongoDB 연동 & 프로세스 종료
+## 🧭 [2-2단계] 운영 정책 저장소 (MongoDB) & 프로세스 제어
 
 ### 1. MongoDB
 - 설계 (KNOWN_PROCESSES 전용)
@@ -398,13 +427,11 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
         "platform": "windows",
         "category": "system_core",           // 분류용
         "description": "Windows 서비스 호스트",
-
         "policy": {
-        "is_system": true, 
-        "terminatable": false, 
-        "reason": "Windows core service"
+            "is_system": true, 
+            "terminatable": false, 
+            "reason": "Windows core service"
         },
-
         "tags": [
             "core",
             "protected",
@@ -413,18 +440,18 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
         "created_at": Date
     }
     ```
-    - 구설명
-      - name: 프로세스 이름
-      - platform: 운영체제 (예: windows | linux | common)
-      - category: 분류 (예: kernel | system_core)
-      - description: 프로세스에 대한 설명
-      - policy: 시스템 여부(is_system), 종료 가능 여부(terminatable), 사유(reason)를 포함하는 정책 객체
-      - tags: 관련 키워드 리스트
-    - 플랫폼 처리 방식
-    - platform = common (Windows / Linux 공통 적용)
-    - 조회 우선순위
-      1. (name, platform=os)
-      2. (name, platform=common)
+
+    | 필드 | 설명 |
+    |----|----|
+    | name | 프로세스 실행 파일명 (소문자 기준) |
+    | platform | 운영체제 (windows / linux / common) |
+    | category | 프로세스 분류 (system_core, kernel 등) |
+    | description | 프로세스 설명 |
+    | policy.is_system | 시스템 여부 (true인 경우 시스템 보호 대상) |
+    | policy.terminatable | 종료 가능 여부 (false인 경우 사용자 종료 차단) |
+    | policy.reason | 종료 차단 또는 허용 사유 (UI 표시용) |
+    | tags | 분류 및 검색용 태그 |
+    | created_at | 정책 생성 시각 |
 
 - 인덱스 설계
     ```js
@@ -527,7 +554,7 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 1. 종료 대상 구분
     | 구분        | Windows                 | Linux               |
     | --------- | -------------------------- | ----------------------- |
-    | **종료 대상** | explorer.exe 하위 프로세스    | 로그인 사용자 UID 소유    |
+    | **종료 대상** | explorer.exe 하위 프로세스  | 로그인 사용자 UID 소유   |
     |           | 사용자 계정 소유            | TTY / graphical session |
     |           | GUI 세션에 속함          | `/home/*` 경로 실행 파일      |
     |           | UWP / Win32 사용자 앱      |                         |
@@ -538,7 +565,7 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 
 <br>
 
-2. 프로세스 종료 판단 플로우
+1. 프로세스 종료 판단 플로우
     ```
     [프로세스 수집]
         ↓
@@ -546,14 +573,15 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
         ↓
     [process_rules 조회]   (있다면)
         ↓
-    [policy.is_system 확인]
+    [policy.is_system 확인 (MongoDB)]
         ↓
-    [policy.terminatable 결정]
+    [policy.terminatable 확인 (MongoDB)]
         ↓
-    [UI 종료 버튼 활성화]
+    [psutil 기반 시스템 보호 재확인]
     ```
     - PID / UID / SESSION 판단은 실시간 데이터
     - 이름 기준 정책만 `MongoDB`
+    - process_rules는 향후 자동 종료 정책 확장 시 도입 예정
 
 <br>
 
@@ -587,7 +615,8 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 ---
 <br>
 
-## [2-3단계] 환경 변수 관리 (.env)
+## 🧪 [2-3단계] 환경 변수 관리 (.env)
+
 - DB 접속 정보나 비밀 키 같은 민감한 정보를 코드에 직접 쓰지 않고 외부 파일로 관리
 1. `.env` 파일 생성
     ```
@@ -623,7 +652,7 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 ---
 <br>
 
-## [3단계] Git으로 코드 정리 (Windows)
+## ▶ [3단계] Git으로 코드 정리 (Windows)
 ### 1. Git 저장소 초기화
 ### 2. .gitignore
 ```
@@ -639,7 +668,7 @@ __pycache__/
 ---
 <br>
 
-## [4단계] Rocky Linux 서버에서 준비
+## ▶ [4단계] Rocky Linux 서버에서 준비
 
 ### 1. Rocky Linux 접속
 ```
@@ -666,7 +695,7 @@ cd server-monitor
 ---
 <br>
 
-## [5단계] Rocky Linux에서 가상환경 다시 생성
+## ▶ [5단계] Rocky Linux에서 가상환경 다시 생성
 
 ### ⚠️ Windows venv는 사용 불가 → Linux에서 새로 생성
 
@@ -684,7 +713,8 @@ pip install -r requirements.txt
 ---
 <br>
 
-## [6단계] Rocky Linux에서 서버 실행
+## ▶ [6단계] Rocky Linux에서 서버 실행
+
 ### 1. FastAPI 서버 실행
 ```
 uvicorn app.main:app --host 0.0.0.0 --port 8000
