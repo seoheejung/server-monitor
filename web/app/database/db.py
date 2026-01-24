@@ -75,7 +75,7 @@ class MongoDB:
         # 2. drop() 하면 인덱스도 사라지므로 다시 생성해야 함
         self._setup_indexes()
         
-        current_time = datetime.datetime.now(datetime.UTC)
+        current_time = datetime.datetime.now(datetime.timezone.utc)
         bulk_ops = []
 
         try:
