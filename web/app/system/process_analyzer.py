@@ -181,6 +181,7 @@ def analyze_process(proc:Dict) -> List[str]:
         "perf_warnings": perf_warnings,
     }
 
+
 def sync_with_mongodb(db_data_list: List[Dict], current_os: str):
     """
     MongoDB의 known_processes 컬렉션 데이터를 메모리로 동기화 로직
@@ -188,23 +189,31 @@ def sync_with_mongodb(db_data_list: List[Dict], current_os: str):
     """
 
     global CACHED_KNOWN_PROCS
+    current_os = (current_os or "").lower()
+    temp_map = {}
 
-    # 1. Common 데이터 먼저 로드
+    # 1. Common 데이터
     common_data = [
         d for d in db_data_list
-        if d.get("platform", "").lower() == "common"
+        if isinstance(d.get("platform"), str)
+        and d.get("platform").lower() == "common"
     ]
-    # 2. 현재 OS 전용 데이터 로드 (동일 이름일 경우 덮어씌우기 위해 나중에 처리)
+
+    # 2. OS 전용 데이터
     os_data = [
         d for d in db_data_list
-        if d.get("platform", "").lower() == current_os.lower()
+        if isinstance(d.get("platform"), str)
+        and d.get("platform").lower() == current_os
     ]
-    temp_map = {}
 
     # 데이터 가공 루프 (Common -> OS전용 순서로 실행하여 우선순위 확보)
     for item in (common_data + os_data):
         name = item['name'].lower()
         desc = item['description']
+
+         # 핵심 방어
+        if not isinstance(name, str) or not isinstance(desc, str):
+            continue
         
         # 기본 등록
         temp_map[name] = desc
@@ -216,8 +225,8 @@ def sync_with_mongodb(db_data_list: List[Dict], current_os: str):
             temp_map[name_no_ext] = desc
             temp_map[name_with_exe] = desc
             
-    CACHED_KNOWN_PROCS.clear()
     CACHED_KNOWN_PROCS = temp_map
+
 
 def explain_process(proc:Dict) -> str:
     """
@@ -231,6 +240,7 @@ def explain_process(proc:Dict) -> str:
 
     # 딕셔너리에 있으면 설명 반환, 없으면 미등록 처리 (정책 반영)
     return CACHED_KNOWN_PROCS.get(raw_name, f"미등록 프로세스 ({raw_name})")
+
 
 def get_process_list(os_type: str) -> List[Dict]:
     """
