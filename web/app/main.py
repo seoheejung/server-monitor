@@ -14,6 +14,7 @@ import platform
 import json
 import os
 import datetime
+import traceback
 
 # 직접 생성한 시스템 정보 함수 import
 from app.system.cpu import get_cpu_usage
