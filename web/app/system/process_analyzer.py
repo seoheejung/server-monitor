@@ -3,14 +3,17 @@ import time
 from typing import List, Dict
 
 from app.constants.ports import KNOWN_PORTS
-from app.constants.processes import KNOWN_PROCESSES
 from app.constants.windows import (
     WINDOWS_SYSTEM_PORTS,
     WINDOWS_ALLOWED_USER_PATHS,
     WINDOWS_SYSTEM_PROCS,
     WINDOWS_DEV_PROCS,
 )
-from app.constants.linux import LINUX_CONTAINER_IGNORE_PROCS
+from app.constants.linux import (
+    LINUX_CONTAINER_IGNORE_PROCS,
+    BASE_ALLOWED_PREFIXES,
+    CONDITIONAL_ALLOWED_PREFIXES,
+)
 from app.utils.env import is_container_environment
 
 CACHED_KNOWN_PROCS = {} # DB에서 로드된 최적화 맵
@@ -47,15 +50,16 @@ def collect_processes(os_type: str) -> List[Dict]:
             # 🔒 PID 0 (System Idle Process) 무조건 제외
             if proc.pid == 0:
                 continue
+
+            info = proc.info # 수집된 기본 정보 딕셔너리
+            name = (info.get("name") or "").lower()
+
+            # 컨테이너 환경: 정책상 무시 프로세스 즉시 제외
+            if is_container and name in LINUX_CONTAINER_IGNORE_PROCS:
+                continue
             
             # oneshot을 쓰면 내부 데이터를 한 번에 가져와서 작업
             with proc.oneshot():
-                info = proc.info # 수집된 기본 정보 딕셔너리
-                name = (info.get("name") or "").lower()
-                # 컨테이너 환경 쉘 프로세스 제외
-                if is_container and name in LINUX_CONTAINER_IGNORE_PROCS:
-                    continue
-
                 try:
                     info["cpu_percent"] = proc.cpu_percent(None) # 실제 값
                 except psutil.AccessDenied:
@@ -115,8 +119,8 @@ def analyze_process(proc:Dict) -> List[str]:
 
     name = (proc.get("name") or "").lower()
     username = proc.get("username", "")
-    memory = proc.get("memory_percent", 0)
-    ports = proc.get("ports", [])
+    memory = proc.get("memory_percent")
+    ports = proc.get("ports") or []
     exe = proc.get("exe")
     os_type = proc.get("os_type")
 
@@ -143,7 +147,7 @@ def analyze_process(proc:Dict) -> List[str]:
             warnings.append(f"SYSTEM_PORT({port}): 비표준 시스템 포트 개방")
 
     # [성능] 메모리 점유율이 과도한 경우 (임계치 20%)
-    if memory >= 20:
+    if isinstance(memory, (int, float)) and memory >= 20:
         perf_warnings.append(
             f"HIGH_MEMORY_USAGE: 메모리 점유율 높음 ({memory:.1f}%)"
         )
@@ -153,19 +157,24 @@ def analyze_process(proc:Dict) -> List[str]:
     if os_type == "Windows" and name in WINDOWS_SYSTEM_PROCS:
         pass  # 경로 검사 안 함
     elif exe:
-        # 개발 도구는 경로 경고 완화
-        is_dev_proc = os_type == "Windows" and name in WINDOWS_DEV_PROCS
         if os_type == "Windows":
+            # 개발 도구는 경로 경고 완화
+            is_dev_proc = name in WINDOWS_DEV_PROCS
             if not is_dev_proc and not exe.startswith(WINDOWS_ALLOWED_USER_PATHS):
                 warnings.append(
                     f"SUSPICIOUS_PATH: 비표준 경로에서 실행 중 ({exe})"
                 )
         else:
-            if not exe.startswith(("/usr", "/bin", "/opt")):
+            if exe.startswith(BASE_ALLOWED_PREFIXES):
+                pass  # 정상
+            elif exe.startswith(CONDITIONAL_ALLOWED_PREFIXES):
+                warnings.append(
+                    f"SUSPICIOUS_PATH: 조건부 허용 경로에서 실행 중 ({exe})"
+                )
+            else:
                 warnings.append(
                     f"SUSPICIOUS_PATH: 비표준 경로에서 실행 중 ({exe})"
                 )
-
 
     return {
         "warnings": warnings,
@@ -179,13 +188,17 @@ def sync_with_mongodb(db_data_list: List[Dict], current_os: str):
     """
 
     global CACHED_KNOWN_PROCS
-    new_map = {}
 
     # 1. Common 데이터 먼저 로드
-    common_data = [d for d in db_data_list if d['platform'] == 'common']
+    common_data = [
+        d for d in db_data_list
+        if d.get("platform", "").lower() == "common"
+    ]
     # 2. 현재 OS 전용 데이터 로드 (동일 이름일 경우 덮어씌우기 위해 나중에 처리)
-    os_data = [d for d in db_data_list if d['platform'].lower() == current_os.lower()]
-    
+    os_data = [
+        d for d in db_data_list
+        if d.get("platform", "").lower() == current_os.lower()
+    ]
     temp_map = {}
 
     # 데이터 가공 루프 (Common -> OS전용 순서로 실행하여 우선순위 확보)
@@ -202,7 +215,8 @@ def sync_with_mongodb(db_data_list: List[Dict], current_os: str):
             name_with_exe = f"{name_no_ext}.exe"
             temp_map[name_no_ext] = desc
             temp_map[name_with_exe] = desc
-
+            
+    CACHED_KNOWN_PROCS.clear()
     CACHED_KNOWN_PROCS = temp_map
 
 def explain_process(proc:Dict) -> str:
