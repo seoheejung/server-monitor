@@ -12,7 +12,7 @@ cd "$PROJECT_DIR" || {
   exit 1
 }
 
-# 가상환경 활성화
+# 가상환경 확인
 if [ ! -f "venv/bin/activate" ]; then
   echo "❌ venv 가상환경이 없습니다."
   exit 1
@@ -20,6 +20,15 @@ fi
 
 echo "▶ Activating virtualenv"
 source venv/bin/activate
+
+# requirements.txt 설치
+if [ -f "requirements.txt" ]; then
+  echo "▶ Installing Python dependencies"
+  pip install -r requirements.txt
+else
+  echo "❌ requirements.txt 파일이 없습니다."
+  exit 1
+fi
 
 # FastAPI 서버 실행 (포그라운드)
 echo "▶ Starting FastAPI (0.0.0.0:8000)"
