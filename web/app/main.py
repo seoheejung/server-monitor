@@ -122,6 +122,14 @@ def startup_event():
             with open(JSON_FILE_PATH, "r", encoding="utf-8") as f:
                 local_data = json.load(f)
 
+            for i, item in enumerate(local_data):
+                name = item.get("name")
+                if not isinstance(name, str) or not name.strip():
+                    print(f"❌ 잘못된 항목 발견 (index={i}): {item}")
+                    break
+            else:
+                print("✅ name 필드 이상 없음")
+
 
         # 3. DB에 시딩
         db_data = []

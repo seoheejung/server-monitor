@@ -518,8 +518,12 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 
         # 데이터 디렉토리 생성
         mkdir -p /data/db
+
         # MongoDB 실행 (백그라운드)
         mongod --fork --logpath /var/log/mongodb.log --dbpath /data/db
+        
+        # 프로세스 확인
+        ps -ef | grep mongod
 
         systemctl start mongod
         systemctl enable mongod

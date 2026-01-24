@@ -3,6 +3,7 @@ from pymongo.errors import ConnectionFailure
 import datetime
 import os
 from dotenv import load_dotenv
+import json
 
 # .env 파일 로드
 load_dotenv()
