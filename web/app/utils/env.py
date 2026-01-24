@@ -31,8 +31,8 @@ def is_container_environment() -> bool:
                 )
                 return True
 
-        logger.info("네이티브 Linux 환경으로 판단됨 (컨테이너 시그니처 없음)")
-        logger.debug(
+        logger.info("컨테이너 환경 아님 (host/VM Linux 실행)")
+        logger.info(
             "cgroup 내용 일부:\n%s",
             "\n".join(data.splitlines()[:5])
         )
