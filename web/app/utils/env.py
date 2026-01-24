@@ -1,25 +1,45 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 def is_container_environment() -> bool:
     """
     현재 실행 환경이 컨테이너(Docker / containerd / Kubernetes / Podman)인지 판단
-
-    판단 기준:
     - /proc/1/cgroup 기반
-    - 네이티브 Linux 환경에서는 False
     """
+
+    container_signatures = (
+        "docker",
+        "containerd",
+        "kubepods",       # Kubernetes
+        "libpod",         # Podman
+        "machine.slice",  # systemd-nspawn
+    )
 
     try:
         with open("/proc/1/cgroup", "r") as f:
             data = f.read()
 
-        container_signatures = (
-            "docker",
-            "containerd",
-            "kubepods",   # Kubernetes
-            "libpod",     # Podman
-            "machine.slice",  # systemd-nspawn
+        for sig in container_signatures:
+            if sig in data:
+                logger.info(
+                    "컨테이너 환경 감지됨 (signature=%s)", sig
+                )
+                logger.debug(
+                    "cgroup 내용 일부:\n%s",
+                    "\n".join(data.splitlines()[:5])  # 상위 몇 줄만
+                )
+                return True
+
+        logger.info("네이티브 Linux 환경으로 판단됨 (컨테이너 시그니처 없음)")
+        logger.debug(
+            "cgroup 내용 일부:\n%s",
+            "\n".join(data.splitlines()[:5])
         )
+        return False
 
-        return any(sig in data for sig in container_signatures)
-
-    except Exception:
+    except Exception as e:
+        logger.warning(
+            "컨테이너 환경 감지 실패: /proc/1/cgroup 접근 불가 (%s)", e
+        )
         return False
