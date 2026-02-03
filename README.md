@@ -61,16 +61,18 @@ Windows 개발 환경과 Linux 운영 환경의 구조적 차이를
 
 ## 기술 스택
 
-| 영역         | 기술                         |
-| ---------- | ----------------------------- |
-| OS         | Rocky Linux 9 / Windows       |
-| Backend    | FastAPI                       |
-| 시스템 정보     | psutil                     |
-| 서비스 상태     | systemctl (Linux)          |
-| 템플릿        | Jinja2                       |
+| 영역         | 기술                          |
+| ---------- | ------------------------------ |
+| OS         | Rocky Linux 9 / Windows        |
+| Backend    | FastAPI                        |
+| 시스템 정보  | psutil                      |
+| 서비스 상태  | systemctl (Linux)           |
+| 템플릿      | Jinja2                       |
 | Front UI   | HTML + CSS (Retro / Pixel 콘솔) |
-| DB         | MongoDB                        |
-| Web Server | Nginx (Reverse Proxy)          |
+| DB         | MongoDB                       |
+| Web Server | Nginx (Reverse Proxy)         |
+| 운영 자동화 | Ansible                       |
+
 
 <br>
 
@@ -81,6 +83,7 @@ Windows 개발 환경과 Linux 운영 환경의 구조적 차이를
 - 단순 수치 → 의미 기반 상태 분석
 - Retro / Pixel 콘솔 UI로 서버 관리 감성 강화
 - FastAPI 기반 가벼운 모니터링 서버 
+- Ansible 기반 운영 환경 재현 및 자동 구성
 - 운영 서버 기준 실전 구조
 
 > 이 프로젝트는 단순한 모니터링 도구가 아니라    
@@ -118,15 +121,33 @@ server-monitor/
 │   ├── app/         # API 엔트리 및 시스템 분석 로직 및 DB 연결
 │   ├── requirements.txt
 │   └── README.md
+├── infra/           # 운영 자동화
+│   └── ansible/
+│        ├─ inventory/
+│        │   └─ prod.ini
+│        ├─ playbooks/
+│        │   ├─ setup.yml        # 서버 초기 세팅
+│        │   ├─ docker.yml       # Docker 설치
+│        │   ├─ monitoring.yml  # 에이전트 설치
+│        └─ roles/
+│            ├─ common
+│            ├─ docker
+│            └─ security
+│ 
 ├── run-dev.ps1        # Windows 개발
-├── run-prod.sh        # Linux 운영
+├── run-prod.sh        # Linux / Docker (이식 검증 / 임시 실행)
 ├── .gitignore
 └── README.md        # 프로젝트 전체 소개
 ```
 
 <br>
 
-### FastAPI 서버를 실행할 때마다 가상환경(venv) 실행
+### Python 가상환경(venv) 사용 정책
+
+- 개발 환경(Windows)에서는 개발 편의를 위해 가상환경을 수동으로 활성화하여 서버를 실행한다.
+- 운영 환경(Linux)에서는 가상환경을 직접 활성화하지 않으며,   
+  systemd 서비스에서 venv 경로의 python/uvicorn을 직접 사용한다.
+- 운영 환경의 서버 실행 및 등록은 Ansible을 통해 자동화 진행한다.
 
 ```
 [ 내 PC 전체 Python ]
@@ -154,7 +175,7 @@ uvicorn app.main:app --reload
 python run.py
 ```
 
-- Linux / Docker (운영용)
+- Linux / Docker (이식 검증 / 임시 실행)
 ```bash
 # 1. 프로젝트 폴더 이동
 cd /root/projects/server-monitor/web
@@ -169,15 +190,58 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 ```
 
+> ※ 본 실행 방식은 이식 검증 및 초기 테스트용이며,   
+> 실제 운영 환경에서는 Ansible + systemd 서비스로 실행한다.
+
+
 #### 실행 방법
 
 ```
 # Windows (개발)
 .\run-dev.ps1
 
-# Linux (운영)
+# Linux / Docker (이식 검증 / 임시 실행)
 ./run-prod.sh
 ```
+
+---
+<br>
+
+## 운영 자동화 (Ansible)
+
+> 서비스 배포 도구가 아니라 **운영 환경 재현 도구**로 사용
+
+### Rocky Linux / Ubuntu 등 공통
+
+1. 필수 패키지 설치
+   - docker, docker-compose
+   - python3, pip, firewalld
+2. 유저 / 권한
+   - 운영 계정 생성
+   - sudo 권한
+   - SSH 키 배포
+3. 보안 기본값
+   - 방화벽 포트 허용 (22, 80, 443 등)
+   - root SSH 로그인 차단
+   - 타임존, 로케일, NTP
+
+👉 “서버 1대 재설치 → 동일 상태 복구”가 목적일 때 가장 가치 있음
+
+### Ansible의 역할
+1. Python / venv 준비
+2. requirements.txt 설치
+3. 실행 스크립트 배치
+4. systemd 서비스 등록
+5. 서비스 enable / start
+
+- Ansible이 관여하면 안 되는 영역
+| 영역            | 이유           |
+| ------------- | ------------ |
+| FastAPI 내부 로직 | 앱 책임         |
+| psutil 분석     | 코드 책임        |
+| 위험 판단 기준      | MongoDB + 로직 |
+| UI / 템플릿      | 프론트 책임       |
+
 
 ---
 <br>
@@ -253,4 +317,5 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 6. OS 차이로 인해 동작이 깨지는 지점 식별 및 수정 ✅
 7. mongoDB 연동 ✅
 8. 프로세스 종료 기능 ✅
-9. 실제 Rocky Linux (VirtualBox) 운영 환경 적용 및 네이티브 기준 최종 검증
+9. Ansible을 운영 자동화·재현성 확보
+10. 실제 Rocky Linux (VirtualBox) 운영 환경 적용 및 네이티브 기준 최종 검증
