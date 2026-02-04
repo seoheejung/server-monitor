@@ -1,6 +1,6 @@
 # Rocky Linux 네이티브 실행 검증
 
-> Rocky Linux 네이티브 환경에서의 동작 검증 기록
+> Rocky Linux 네이티브 환경에서의 동작 검증 기록 문서
 
 본 단계는 단순 배포 실험이 아니라 <br>
 서버 모니터링 로직이 OS 환경(Rocky Linux)에서 실제로 어떻게 동작하는지를 <br>

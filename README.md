@@ -123,16 +123,6 @@ server-monitor/
 │   └── README.md
 ├── infra/           # 운영 자동화
 │   └── ansible/
-│        ├─ inventory/
-│        │   └─ prod.ini
-│        ├─ playbooks/
-│        │   ├─ setup.yml        # 서버 초기 세팅
-│        │   ├─ docker.yml       # Docker 설치
-│        │   ├─ monitoring.yml  # 에이전트 설치
-│        └─ roles/
-│            ├─ common
-│            ├─ docker
-│            └─ security
 │ 
 ├── run-dev.ps1        # Windows 개발
 ├── run-prod.sh        # Linux / Docker (이식 검증 / 임시 실행)
@@ -317,5 +307,5 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 6. OS 차이로 인해 동작이 깨지는 지점 식별 및 수정 ✅
 7. mongoDB 연동 ✅
 8. 프로세스 종료 기능 ✅
-9. Ansible을 운영 자동화·재현성 확보
+9. Ansible을 통한 운영 환경 자동 구성 및 재현성 확보
 10. 실제 Rocky Linux (VirtualBox) 운영 환경 적용 및 네이티브 기준 최종 검증
