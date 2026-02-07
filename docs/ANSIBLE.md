@@ -200,15 +200,15 @@ infra/ansible/
 ├── ansible.cfg
 ├── inventory/
 │   ├── dev.ini
-│   └── prod.ini
-├── group_vars/
-│   ├── all.yml          # OS / 환경 공통
-│   ├── dev.yml          # 개발 환경
-│   └── prod.yml         # 운영 환경
+│   ├── prod.ini
+│   └── group_vars/
+│       ├── all.yml          # OS / 환경 공통 (항상 로드)
+│       ├── dev.yml          # 개발 환경 (dev.ini 사용 시 로드)
+│       └── prod.yml         # 운영 환경 (prod.ini 사용 시 로드)
 ├── playbooks/
 │   ├── setup.yml        # 서버 기본 세팅
 │   ├── docker.yml       # Docker 설치
-│   ├── monitoring.yml   # server-monitor 배치
+│   └── monitoring.yml   # server-monitor 배치
 ├── roles/
 │   ├── common
 │   │   ├── tasks/
@@ -218,9 +218,9 @@ infra/ansible/
 │   │   └── vars/
 │   │       └── main.yml
 │   ├── docker
-│   ├─ security
-│   │   └─ tasks/
-│   │       └── main.yml
+│   └─ security
+│       └─ tasks/
+│           └── main.yml
 ```
 - common : OS 공통
 - security : 보안
