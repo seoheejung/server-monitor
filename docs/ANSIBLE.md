@@ -221,7 +221,7 @@ infra/ansible/
 │   ├── docker
 │   ├─ security
 │   │   └─ tasks/
-└   └       └── main.yml
+│   │       └── main.yml
 ```
 - common : OS 공통
 - security : 보안
@@ -453,6 +453,7 @@ dev-server | SUCCESS => {
 ### 6. 서버 기본 상태 구성 실행
 ```
 cd /home/rockylinux/server-monitor/infra/ansible
+
 ansible-playbook playbooks/setup.yml -i inventory/dev.ini
 ```
 
