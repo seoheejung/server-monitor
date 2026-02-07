@@ -5,7 +5,6 @@
 > 본 문서는 웹 애플리케이션 구조와 내부 설계를 설명한다.   
 > 개발 환경 구축 단계는 기록 목적이며, 운영 기준은 아니다.
 
-
 ---
 <br>
 
@@ -22,6 +21,7 @@
 - [[4단계] Rocky Linux 서버에서 준비](#4단계-rocky-linux-서버에서-준비)
 - [[5단계] Rocky Linux에서 가상환경 다시 생성](#5단계-rocky-linux에서-가상환경-다시-생성)
 - [[6단계] Rocky Linux에서 서버 실행](#6단계-rocky-linux에서-서버-실행)
+- [이 문서의 범위](#이-문서의-범위)
 
 ---
 <br>
@@ -777,5 +777,20 @@ Client → Nginx (80) → FastAPI (8000)
   - Nginx는 Reverse Proxy 역할
   - HTTPS, 인증, 접근 제어는 Nginx에서 처리
 
-#### 👉 Nginx 설정은 운영 단계에서 별도 문서로 진행
+#### Nginx 설정은 운영 단계에서 별도 문서로 진행
+
+---
+<br>
+
+## 이 문서의 범위
+
+- FastAPI 기반 웹 애플리케이션 구조
+- API / 템플릿 / 시스템 수집 로직 구성
+- 개발 및 실행 흐름 정리
+
+> ※ 설계 의도 및 판단 기준: docs/FASTAPI_DEV.md 참조  
+> ※ Linux Native 실행 검증: docs/NATIVE_RUN.md 참조  
+> ※ 운영 환경 자동화: docs/ANSIBLE.md 참조  
+> ※ 프로세스 보안 정책: docs/POLICY.md 참조
+
 ---

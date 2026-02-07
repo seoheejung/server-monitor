@@ -16,7 +16,8 @@
 - [운영 자동화 (Ansible)](#운영-자동화-ansible)
 - [기능 범위](#기능-범위)
 - [개발 순서](#개발-순서)
-
+- [이 문서의 범위](#이-문서의-범위)
+  
 ---
 <br>
 
@@ -159,7 +160,6 @@ server-monitor/
 - docs/NATIVE_RUN.md : Linux Native 실행 검증
 - docs/POLICY.md : 프로세스 보안 정책
 - web/README.md : 웹 애플리케이션 구조
-
 
 <br>
 
@@ -340,3 +340,21 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 8. 프로세스 종료 기능 ✅
 9. Ansible을 통한 운영 환경 자동 구성 및 재현성 확보
 10. 실제 Rocky Linux (VirtualBox) 운영 환경 적용 및 네이티브 기준 최종 검증
+
+---
+<br>
+
+## 이 문서의 범위
+
+- 프로젝트 전체 개요 및 목표 설명
+- 기능 구성과 기술 스택 요약
+- 문서 및 디렉토리 역할 안내
+- 개발·운영 흐름의 큰 그림 제시
+
+> ※ FastAPI 애플리케이션 설계: docs/FASTAPI_DEV.md 참조  
+> ※ Linux Native 실행 검증: docs/NATIVE_RUN.md 참조  
+> ※ 운영 환경 자동화: docs/ANSIBLE.md 참조  
+> ※ 프로세스 보안 정책: docs/POLICY.md 참조  
+> ※ 웹 애플리케이션 구조 및 구현 상세: web/README.md 참조
+
+---

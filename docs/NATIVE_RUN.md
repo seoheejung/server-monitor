@@ -27,7 +27,8 @@ psutil / systemctl / /proc / 권한 제약이 <br>
 - [psutil 동작 검증](#psutil-동작-검증)
 - [코드 기준 OS 의존 동작 정리](#코드-기준-os-의존-동작-정리)
 - [서비스 상태 판단 전략 (Native 기준)](#서비스-상태-판단-전략-Native-기준)
-
+- [이 문서의 범위](#이-문서의-범위)
+- 
 ---
 <br>
 
@@ -366,3 +367,18 @@ list(psutil.process_iter(['pid', 'name']))
 - nginx → 프로세스 존재 여부
 - mysql → 포트 리스닝 여부
 - Docker → 프로세스 + 소켓 존재 여부
+
+---
+<br>
+
+## 이 문서의 범위
+
+- Rocky Linux Native 환경에서의 실행 가능성 검증
+- psutil / systemctl / /proc 기반 OS 의존 동작 확인
+- 권한(root / non-root)에 따른 동작 차이 검증
+
+> ※ 애플리케이션 구조 및 설계 의도: docs/FASTAPI_DEV.md 참조  
+> ※ 운영 환경 자동화: docs/ANSIBLE.md 참조  
+> ※ 프로세스 보안 정책: docs/POLICY.md 참조
+
+---

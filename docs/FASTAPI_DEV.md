@@ -142,9 +142,13 @@ source venv/bin/activate
 
 ## 이 문서의 범위
 
-- FastAPI 선택과 사용 이유
-- 서버 모니터링 구조 설계
-- 운영 관점의 판단 기준
+- FastAPI 선택 및 사용 이유
+- 서버 모니터링 애플리케이션 구조 설계
+- 운영 관점의 판단 기준과 설계 철학
 
-> ※ 구현 세부 코드: web/README.md 참조   
-> ※ Linux Native 실행 검증: docs/NATIVE_RUN.md 참조
+> ※ 웹 애플리케이션 전체 구조: web/README.md 참조  
+> ※ Linux Native 실행 검증: docs/NATIVE_RUN.md 참조  
+> ※ 운영 환경 자동화: docs/ANSIBLE.md 참조  
+> ※ 프로세스 보안 정책: docs/POLICY.md 참조
+
+---

@@ -18,7 +18,7 @@
 - [운영 장애 시 Ansible 재적용 시나리오](#운영-장애-시-ansible-재적용-시나리오)
 - [Ansible 사용을 위한 초기 준비 절차 (Bootstrap)](#ansible-사용을-위한-초기-준비-절차-bootstrap)
 - [운영자 퀵 가이드 (Cheatsheet)](#운영자-퀵-가이드-cheatsheet)
-
+- [이 문서의 범위](#이-문서의-범위)
 
 ---
 <br>
@@ -473,3 +473,18 @@ ansible-playbook playbooks/monitoring.yml -i inventory/prod.ini --tags "deploy"
 ```
 ansible-playbook ... -l [hostname]
 ```
+
+---
+<br>
+
+## 이 문서의 범위
+
+- 운영 서버의 OS 상태 및 실행 환경 자동화 기준
+- 서버 재현성 확보를 위한 Ansible 설계 원칙
+- 서비스 등록, 보안 기본 설정, 런타임 구성
+
+> ※ 애플리케이션 내부 구조 및 로직: docs/FASTAPI_DEV.md 참조  
+> ※ Linux Native 실행 검증: docs/NATIVE_RUN.md 참조  
+> ※ 프로세스 판단 기준 및 정책: docs/POLICY.md 참조
+
+---
