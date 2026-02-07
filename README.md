@@ -214,17 +214,6 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 > ※ 본 실행 방식은 이식 검증 및 초기 테스트용이며,   
 > 실제 운영 환경에서는 Ansible + systemd 서비스로 실행한다.
 
-
-#### 실행 방법
-
-```
-# Windows (개발)
-.\run-dev.ps1
-
-# Linux / Docker (이식 검증 / 임시 실행)
-./run-prod.sh
-```
-
 ---
 <br>
 
