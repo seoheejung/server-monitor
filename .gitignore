@@ -12,8 +12,8 @@ venv/
 .idea/
 
 # Ansible inventory (real environments)
-infra/ansible/inventory/*.ini
-!infra/ansible/inventory/*.example
+infra/ansible/inventory/dev.ini
+infra/ansible/inventory/prod.ini
 
 # shell 스크립트
 run-dev.ps1
