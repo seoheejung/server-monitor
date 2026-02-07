@@ -3,6 +3,6 @@
 - name: Create service user
   user: 
     name: server-monitor
-    sysyem: true
+    system: true
     shell: /sbin/nologin
     create_home: false

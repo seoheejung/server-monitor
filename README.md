@@ -235,7 +235,7 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
    - root SSH 로그인 차단
    - 타임존, 로케일, NTP
 
-👉 “서버 1대 재설치 → 동일 상태 복구”가 목적일 때 가장 가치 있음
+> “서버 1대 재설치 → 동일 상태 복구”가 목적일 때 가장 가치 있음
 
 ### Ansible의 역할
 1. Python / venv 준비
@@ -252,6 +252,29 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 | 위험 판단 기준      | MongoDB + 로직 |
 | UI / 템플릿      | 프론트 책임       |
 
+
+### 서버 기준 디렉토리 배치
+```
+/home/rockylinux/
+└── server-monitor/           ← Git 레포 전체 clone
+    ├── docs/
+    ├── docker/
+    ├── web/
+    │   └── app/              ← 실제 FastAPI 코드 원본
+    ├── infra/
+    │   └── ansible/
+    └── README.md
+```
+
+### 운영 대상은 별도
+```
+/opt/server-monitor/
+├── app/        ← Ansible이 web/app을 배치
+├── venv/
+├── logs/
+├── data/
+└── scripts/
+```
 
 ---
 <br>

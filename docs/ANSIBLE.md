@@ -113,17 +113,28 @@ local PC (컨트롤 노드)
 
 ### Ansible이 기준으로 삼는 운영 서버 구조
 ```
-/opt/server-monitor/
-├── app/        # FastAPI 코드
-├── venv/       # Python 가상환경
-├── logs/       # 애플리케이션 로그
-├── data/       # DB / 런타임 데이터
-├── scripts/    # 실행 스크립트
+/
+├── opt/
+│   └── server-monitor/
+│       ├── app/        ← FastAPI 코드 (git clone 대상)
+│       ├── venv/       ← Ansible이 생성
+│       ├── logs/       ← 런타임 데이터
+│       ├── data/
+│       └── scripts/
+│
+├── home/
+│   └── rockylinux/
+│       └── ansible-repo/   ← Ansible 리포지토리
+│           └── infra/ansible/
 ```
 
-- /opt : 서비스성 애플리케이션 표준 위치
-- Docker / Native / systemd 공통 유지 가능
-- 운영 서버 이식 시 경로 고정
+| 구분              | 위치                              |
+| --------------- | ------------------------------- |
+| 운영 대상 (FastAPI) | `/opt/server-monitor`           |
+| 운영 도구 (Ansible) | `/home/rockylinux/ansible-repo` |
+
+- `/opt/server-monitor/` → Ansible만 변경
+- `/home/` → 운영자 작업 공간
 
 ---
 <br>
@@ -192,13 +203,13 @@ infra/ansible/
 ├── group_vars/
 │   ├── all.yml          # OS / 환경 공통
 │   ├── linux.yml        # Rocky Linux 계열
-│   ├── windows.yml     # Windows 전용
+│   ├── windows.yml      # Windows 전용
 │   ├── dev.yml          # 개발 환경
 │   └── prod.yml         # 운영 환경
 ├── playbooks/
 │   ├── setup.yml        # 서버 기본 세팅
 │   ├── docker.yml       # Docker 설치
-│   ├── monitoring.yml  # server-monitor 배치
+│   ├── monitoring.yml   # server-monitor 배치
 ├── roles/
 │   ├── common
 │   │   ├── tasks/
@@ -367,14 +378,6 @@ infra/ansible/inventory/
 ├── dev.ini.example  # ⭕ 커밋
 └── prod.ini.example # ⭕ 커밋
 ```
-
-- .gitignore 예시
-```
-# Ansible inventory (real environments)
-infra/ansible/inventory/*.ini
-!infra/ansible/inventory/*.example
-```
-
 - dev.ini.example 예시
   - 실제 IP / 계정은 각 환경에서 .example을 복사해 직접 작성
 ```
@@ -390,8 +393,10 @@ dev-server ansible_host= ansible_user=
 #### Rocky Linux 서버
 ```
 sudo dnf install -y git
-git clone https://github.com/<your-repo>.git
-cd <your-repo>/infra/ansible
+
+cd ~
+git clone https://github.com/seoheejung/server-monitor.git
+cd server-monitor/infra/ansible
 ```
 - 서버에는 inventory 파일만 로컬에서 생성
 - playbook / role / 문서는 Git 기준으로 동기화
@@ -425,19 +430,29 @@ cp dev.ini.example dev.ini
 
 ### 5. 최초 연결 확인
 ```
-ansible all -m ping -i inventory/dev.ini
+# 비밀번호 방식 허용 (임시용)
+ansible all -m ping -i inventory/dev.ini --ask-pass
 ```
 - 성공 시
 ```
 dev-server | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
     "ping": "pong"
 }
 ```
-
+- SSH 키 인증 성공
+- Ansible 실행 성공 
+- Python 인터프리터 자동 감지 성공 (/usr/bin/python3)
+- 네트워크 / 계정 / 권한 문제 없음
+  
 > 이 단계가 실패하면 **Ansible 이전의 문제(SSH, 계정, 네트워크)**로 판단
 
 ### 6. 서버 기본 상태 구성 실행
 ```
+cd /home/rockylinux/server-monitor/infra/ansible
 ansible-playbook playbooks/setup.yml -i inventory/dev.ini
 ```
 
