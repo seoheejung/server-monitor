@@ -203,8 +203,6 @@ infra/ansible/
 │   └── prod.ini
 ├── group_vars/
 │   ├── all.yml          # OS / 환경 공통
-│   ├── linux.yml        # Rocky Linux 계열
-│   ├── windows.yml      # Windows 전용
 │   ├── dev.yml          # 개발 환경
 │   └── prod.yml         # 운영 환경
 ├── playbooks/
