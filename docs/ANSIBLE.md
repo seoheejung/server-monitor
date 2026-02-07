@@ -367,11 +367,12 @@ ansible-playbook playbooks/monitoring.yml
 > 즉, 최소한의 부트스트랩 절차가 필요
 
 ### 1. Git 저장소 구성 원칙 (Inventory 관리)
-- 원칙
-  1. 실제 서버 IP / 계정 정보는 Git에 직접 커밋하지 않는다
-  2. dev.ini, prod.ini는 환경별 로컬 파일
 
-- 적용 방식
+#### 원칙
+1. 실제 서버 IP / 계정 정보는 Git에 직접 커밋하지 않는다
+2. dev.ini, prod.ini는 환경별 로컬 파일
+
+#### 적용 방식
 ```
 infra/ansible/inventory/
 ├── dev.ini          # ❌ git 제외
@@ -379,12 +380,14 @@ infra/ansible/inventory/
 ├── dev.ini.example  # ⭕ 커밋
 └── prod.ini.example # ⭕ 커밋
 ```
-- dev.ini.example 예시
-  - 실제 IP / 계정은 각 환경에서 .example을 복사해 직접 작성
+#### dev.ini.example 예시
+- 실제 IP / 계정은 각 환경에서 .example을 복사해 직접 작성
 ```
 [servers]
 dev-server ansible_host= ansible_user=
 ```
+
+<br>
 
 ### 2. 관리 대상 서버에서 Git 저장소 가져오기
 
@@ -402,24 +405,28 @@ cd server-monitor/infra/ansible
 - 서버에는 inventory 파일만 로컬에서 생성
 - playbook / role / 문서는 Git 기준으로 동기화
 
+<br>
+
 ### 3. Rocky Linux에 Ansible 설치
 
-- Rocky Linux 9 기준
+#### Rocky Linux 9 기준
 ```
 sudo dnf install -y epel-release
 sudo dnf install -y ansible-core
 ```
 
-- 설치 확인
+#### 설치 확인
 ```
 ansible --version
 
 # ansible [core 2.14.18]
 ```
 
-- 권장 사항
+#### 권장 사항
 1. Ansible은 시스템 패키지로 설치
 2. venv 안에 설치하지 않음 (운영 도구이기 때문)
+
+<br>
 
 ### 4. Inventory 파일 생성 (서버별)
 ```
@@ -429,12 +436,12 @@ cp dev.ini.example dev.ini
 - ansible_user는 이미 존재하는 SSH 계정
 - 서비스 계정(server-monitor)은 Ansible이 생성
 
-### 5. 최초 연결 확인
+#### 최초 연결 확인
 ```
 # 비밀번호 방식 허용 (임시용)
 ansible all -m ping -i inventory/dev.ini --ask-pass
 ```
-- 성공 시
+#### 성공 시
 ```
 dev-server | SUCCESS => {
     "ansible_facts": {
@@ -451,12 +458,111 @@ dev-server | SUCCESS => {
   
 > 이 단계가 실패하면 **Ansible 이전의 문제(SSH, 계정, 네트워크)**로 판단
 
-### 6. 서버 기본 상태 구성 실행
+<br>
+
+### 5. Ansible 컬렉션 경로 초기화
+- Ansible Core 2.10+부터 다수의 시스템 제어 모듈은 core에서 제거되고 Collection 단위로 분리되었다.
+- Ansible 설치 직후, 컬렉션 저장 경로를 명시적으로 준비해야 한다.
+- Rocky Linux에서 ansible-core만 설치한 초기 상태에서는 컬렉션을 설치할 기본 경로가 존재하지 않을 수 있다.
+
+#### 사용자 영역 컬렉션 경로 생성
+```
+mkdir -p ~/.ansible/collections
+```
+- Ansible 실행 사용자 기준
+- sudo 불필요
+- 사용자별 실행 환경 분리 가능
+
+> 이 디렉토리가 없으면 `ansible-galaxy collection install` 실행 시   
+> 설치 경로를 찾지 못해 실패한다.
+
+<br>
+
+### 6. 필수 Ansible 컬렉션 설치
+
+- 운영 서버 기본 제어에 필요한 모듈(`firewalld`, `selinux`, `authorized_key` 등)은 `ansible.posix` 컬렉션에 포함되어 있다.
+
+#### 필수 컬렉션 설치
+```
+ansible-galaxy collection install ansible.posix \
+  --collections-path ~/.ansible/collections
+```
+
+#### 설치 확인
+```
+ansible-galaxy collection list --collections-path ~/.ansible/collections
+```
+
+#### 정상 출력 예시
+```
+Collection        Version
+----------------- -------
+ansible.posix     1.x.x
+```
+
+> 이 단계가 누락되면 couldn't resolve module/action 'firewalld' 와 같은 오류가 발생한다.
+
+<br>
+
+#### 7. ansible.cfg 설정 (roles / collections 경로 고정)
+
+- 컬렉션과 roles를 설치했더라도, Ansible이 해당 경로를 명시적으로 인식하지 못하면 실행에 실패한다.
+
+#### `infra/ansible/ansible.cfg`
+```
+[defaults]
+inventory = ./inventory
+roles_path = ./roles
+collections_paths = ~/.ansible/collections:/usr/share/ansible/collections
+```
+
+- `roles_path`: playbooks 하위가 아닌 상위 roles/ 디렉토리 사용
+- `collections_paths`: 사용자 컬렉션 우선, 시스템 전역 컬렉션 fallback
+- 실행 디렉토리 기준 상대 경로 사용
+
+> 이 설정이 없을 경우 컬렉션을 설치했더라도 모듈을 찾지 못하는 문제가 발생할 수 있다.
+
+#### 컬렉션 모듈 사용 원칙
+- Ansible 2.14 기준, 컬렉션 모듈은 FQCN(Fully Qualified Collection Name) 사용을 원칙으로 한다.
+
+#### `roles/common/tasks/main.yml`
+```
+- name: Open SSH port
+  ansible.posix.firewalld:
+    port: 22/tcp
+    permanent: true
+    state: enabled
+    immediate: true
+```
+
+#### `roles/common/handlers/main.yml`
+```
+---
+- name: Reload firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded
+
+```
+
+<br>
+
+### 8. 서버 기본 상태 구성 실행
 ```
 cd /home/rockylinux/server-monitor/infra/ansible
 
 ansible-playbook playbooks/setup.yml -i inventory/dev.ini
 ```
+
+#### Bootstrap 단계 전체 요약
+1. Git 저장소 clone
+2. inventory 파일 로컬 생성
+3. ansible-core 설치
+4. 컬렉션 경로 생성 
+5. 필수 컬렉션 설치 (ansible.posix)
+6. ansible.cfg 설정
+7. ansible ping 테스트
+8. setup.yml 실행
 
 #### 이 단계에서 수행되는 것
 1. 필수 패키지 설치

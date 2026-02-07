@@ -1,3 +1,5 @@
 ---
 - name: Reload firewalld
-  command: firewall-cmd --reload
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded

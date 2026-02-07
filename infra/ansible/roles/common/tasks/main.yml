@@ -2,27 +2,33 @@
 # 이 role이 실제로 수행하는 작업 목록
 
 - name: Install basic packages (Linux)
-  dnf:
+  ansible.builtin.dnf:
     name: "{{ common_packages }}"
     state: present
 
-# firewalld 설정 추가
+# firewalld 설치 보장
+- name: Install firewalld
+  ansible.builtin.dnf:
+    name: firewalld
+    state: present
+
 - name: Ensure firewalld is running
-  service:
+  ansible.builtin.service:
     name: firewalld
     state: started
     enabled: true
 
 - name: Open SSH port
-  firewalld:
+  ansible.posix.firewalld:
     service: ssh
     permanent: true
     state: enabled
+    immediate: true
   notify: Reload firewalld
 
 # Python venv
 - name: Create application directory
-  file: 
+  ansible.builtin.file:
     path: /opt/server-monitor
     state: directory
     owner: server-monitor
@@ -30,6 +36,6 @@
     mode: '0755'
 
 - name: Create virtualenv
-  command: python3 -m venv /opt/server-monitor/venv
-  args:
-    creates: /opt/server-monitor/venv/bin/activate # 해당 파일이 있으면 다시 실행 안 함
+  ansible.builtin.command:
+    cmd: python3 -m venv /opt/server-monitor/venv
+    creates: /opt/server-monitor/venv/bin/activate
