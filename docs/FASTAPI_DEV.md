@@ -148,7 +148,8 @@ source venv/bin/activate
 
 > ※ 웹 애플리케이션 전체 구조: web/README.md 참조  
 > ※ Linux Native 실행 검증: docs/NATIVE_RUN.md 참조  
-> ※ 운영 환경 자동화: docs/ANSIBLE.md 참조  
-> ※ 프로세스 보안 정책: docs/POLICY.md 참조
+> ※ 운영 환경 자동화 기준: docs/ANSIBLE_INFRA.md 참조  
+> ※ 프로세스 보안 정책: docs/POLICY.md 참조  
+> ※ 인프라 자동화 구조 개요: infra/README.md 참조
 
 ---

@@ -1,4 +1,4 @@
-# server-monitor web
+# 서버 모니터링 웹 애플리케이션 설계·구현·실행 노트
 
 **Rocky Linux 서버의 상태를 웹으로 확인하기 위한 서버 모니터링 프로젝트**
 
@@ -790,7 +790,8 @@ Client → Nginx (80) → FastAPI (8000)
 
 > ※ 설계 의도 및 판단 기준: docs/FASTAPI_DEV.md 참조  
 > ※ Linux Native 실행 검증: docs/NATIVE_RUN.md 참조  
-> ※ 운영 환경 자동화: docs/ANSIBLE.md 참조  
-> ※ 프로세스 보안 정책: docs/POLICY.md 참조
+> ※ 운영 환경 자동화 기준: docs/ANSIBLE_INFRA.md 참조  
+> ※ 프로세스 보안 정책: docs/POLICY.md 참조  
+> ※ 인프라 디렉토리 및 자동화 구조 개요: infra/README.md 참조
 
 ---

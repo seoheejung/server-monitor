@@ -390,6 +390,6 @@ MemCompression.exe (Windows 메모리 압축 관리 프로세스)
 
 > ※ 프로세스 수집 및 분석 구현: web/README.md 참조  
 > ※ FastAPI 설계 및 역할: docs/FASTAPI_DEV.md 참조  
-> ※ 운영 환경 구성: docs/ANSIBLE.md 참조
+> ※ 운영 환경 구성: docs/ANSIBLE_INFRA.md 참조
 
 ---

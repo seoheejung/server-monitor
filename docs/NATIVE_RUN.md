@@ -378,7 +378,7 @@ list(psutil.process_iter(['pid', 'name']))
 - 권한(root / non-root)에 따른 동작 차이 검증
 
 > ※ 애플리케이션 구조 및 설계 의도: docs/FASTAPI_DEV.md 참조  
-> ※ 운영 환경 자동화: docs/ANSIBLE.md 참조  
+> ※ 운영 환경 자동화: docs/ANSIBLE_INFRA.md 참조  
 > ※ 프로세스 보안 정책: docs/POLICY.md 참조
 
 ---

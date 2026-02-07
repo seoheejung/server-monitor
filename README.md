@@ -155,7 +155,7 @@ server-monitor/
 ### 문서 역할 분리
 
 - README.md : 프로젝트 전체 개요
-- docs/ANSIBLE.md : 운영 환경 자동화
+- docs/ANSIBLE_INFRA.md : 운영 환경 자동화
 - docs/FASTAPI_DEV.md : FastAPI 설계
 - docs/NATIVE_RUN.md : Linux Native 실행 검증
 - docs/POLICY.md : 프로세스 보안 정책
@@ -365,8 +365,9 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 
 > ※ FastAPI 애플리케이션 설계: docs/FASTAPI_DEV.md 참조  
 > ※ Linux Native 실행 검증: docs/NATIVE_RUN.md 참조  
-> ※ 운영 환경 자동화: docs/ANSIBLE.md 참조  
+> ※ 운영 환경 자동화 기준: docs/ANSIBLE_INFRA.md 참조  
 > ※ 프로세스 보안 정책: docs/POLICY.md 참조  
-> ※ 웹 애플리케이션 구조 및 구현 상세: web/README.md 참조
+> ※ 웹 애플리케이션 구조 및 구현 상세: web/README.md 참조  
+> ※ 인프라 디렉토리 구성 및 자동화 구조: infra/README.md 참조
 
 ---
