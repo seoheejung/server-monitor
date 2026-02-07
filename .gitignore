@@ -1,11 +1,20 @@
+.env
+
 # Python 캐시
 __pycache__/
 *.py[cod]
 
 # 가상환경
 venv/
-.env
 
 # 에디터 설정
 .vscode/
 .idea/
+
+# Ansible inventory (real environments)
+infra/ansible/inventory/*.ini
+!infra/ansible/inventory/*.example
+
+# shell 스크립트
+run-dev.ps1
+run-prod.sh

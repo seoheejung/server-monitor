@@ -14,6 +14,25 @@ psutil / systemctl / /proc / 권한 제약이 <br>
 ---
 <br>
 
+## 📑 목차
+
+- [Rocky Linux 선택 기준 (VirtualBox 기준)](#rocky-linux-선택-기준-virtualbox-기준)
+- [목적](#목적)
+- [[1단계 목표] 네이티브 실행 검증 범위 (완료)](#1단계-목표-네이티브-실행-검증-범위-완료)
+- [환경 설계](#환경-설계)
+- [Rocky Linux 서버 준비](#rocky-linux-서버-준비)
+- [Docker vs Native 환경 차이 요약](#docker-vs-native-환경-차이-요약)
+- [Rocky Linux 가상환경 생성](#rocky-linux-가상환경-생성)
+- [FastAPI 네이티브 실행](#fastapi-네이티브-실행)
+- [방화벽 설정 (VirtualBox Rocky Linux)](#방화벽-설정-virtualbox-rocky-linux)
+- [psutil 동작 검증](#psutil-동작-검증)
+- [코드 기준 OS 의존 동작 정리](#코드-기준-os-의존-동작-정리)
+- [서비스 상태 판단 전략 (네이티브 기준)](#서비스-상태-판단-전략-네이티브-기준)
+
+---
+<br>
+
+
 ## Rocky Linux 선택 기준 (VirtualBox 기준)
 ### 1. OS 선택 기준
 - RHEL 계열 운영체제
@@ -37,7 +56,6 @@ psutil / systemctl / /proc / 권한 제약이 <br>
 - Docker 적용 이전 OS 레벨 동작 분리 검증
 
 ---
-
 <br>
 
 ## 목적

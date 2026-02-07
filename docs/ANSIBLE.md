@@ -1,8 +1,28 @@
 # Ansible 기반 운영 환경 자동화 설계
 
-> 프로젝트에서 Ansible을 운영 환경 재현 도구로 사용하는 것을 정의하는 문서
+> 프로젝트에서 Rocky Linux를 기준으로 Ansible을 운영 환경 재현 도구로 사용하는 것을 정의하는 문서
 
 > Ansible은 자동화 도구로 운영 환경을 하나의 ‘코드 상태’로 구현하는 장치로 사용
+
+---
+<br>
+
+## 📑 목차
+
+- [Ansible 도입 배경](#ansible-도입-배경)
+- [Ansible의 역할 정의](#ansible의-역할-정의)
+- [Ansible 사용 철학](#ansible-사용-철학)
+- [서버 배포 기준 디렉토리](#서버-배포-기준-디렉토리)
+- [Ansible 적용 단계](#ansible-적용-단계)
+- [Ansible 디렉토리 구조](#ansible-디렉토리-구조)
+- [Ansible과 프로젝트의 경계 요약](#ansible과-프로젝트의-경계-요약)
+- [운영 장애 시 Ansible 재적용 시나리오](#운영-장애-시-ansible-재적용-시나리오)
+- [Ansible 사용을 위한 초기 준비 절차 (Bootstrap)](#ansible-사용을-위한-초기-준비-절차-bootstrap)
+- [운영자 퀵 가이드 (Cheatsheet)](#운영자-퀵-가이드-cheatsheet)
+
+
+---
+<br>
 
 ## Ansible 도입 배경
 
@@ -138,7 +158,8 @@ local PC (컨트롤 노드)
 
 ### 4. systemd 서비스 등록
 
-> Ansible은 FastAPI를 서비스로 등록한다
+> Ansible은 FastAPI를 서비스로 등록한다.   
+> > ※ 아래 systemd 유닛은 예시이며, 실제 값은 Ansible 템플릿에서 관리한다.
 
 - 부팅 시 자동 실행
 - 비정상 종료 시 재시작
@@ -181,10 +202,14 @@ infra/ansible/
 │   ├── common
 │   │   ├── tasks/
 │   │   │   └── main.yml
+│   │   ├── handlers/
+│   │   │   └── main.yml
 │   │   └── vars/
 │   │       └── main.yml
 │   ├── docker
-│   └── security
+│   ├─ security
+│   │   └─ tasks/
+└   └       └── main.yml
 ```
 - common : OS 공통
 - security : 보안
@@ -321,6 +346,108 @@ ansible-playbook playbooks/monitoring.yml
 - “누가 언제 뭘 고쳤는지” 추적 불필요
 - 운영자 숙련도 의존 최소화
 
+---
+<br>
+
+## Ansible 사용을 위한 초기 준비 절차 (Bootstrap)
+> Ansible은 “이미 준비된 서버”가 아니라 아무것도 없는 서버를 운영 상태로 끌어올리기 위한 도구   
+> 즉, 최소한의 부트스트랩 절차가 필요
+
+### 1. Git 저장소 구성 원칙 (Inventory 관리)
+- 원칙
+  1. 실제 서버 IP / 계정 정보는 Git에 직접 커밋하지 않는다
+  2. dev.ini, prod.ini는 환경별 로컬 파일
+
+- 적용 방식
+```
+infra/ansible/inventory/
+├── dev.ini          # ❌ git 제외
+├── prod.ini         # ❌ git 제외
+├── dev.ini.example  # ⭕ 커밋
+└── prod.ini.example # ⭕ 커밋
+```
+
+- .gitignore 예시
+```
+# Ansible inventory (real environments)
+infra/ansible/inventory/*.ini
+!infra/ansible/inventory/*.example
+```
+
+- dev.ini.example 예시
+  - 실제 IP / 계정은 각 환경에서 .example을 복사해 직접 작성
+```
+[servers]
+dev-server ansible_host= ansible_user=
+```
+
+### 2. 관리 대상 서버에서 Git 저장소 가져오기
+
+> Ansible은 **컨트롤 노드(local PC)**에서 실행되지만,   
+> 운영 서버에서도 구성과 문서를 동일하게 확인 가능해야 한다.
+
+#### Rocky Linux 서버
+```
+sudo dnf install -y git
+git clone https://github.com/<your-repo>.git
+cd <your-repo>/infra/ansible
+```
+- 서버에는 inventory 파일만 로컬에서 생성
+- playbook / role / 문서는 Git 기준으로 동기화
+
+### 3. Rocky Linux에 Ansible 설치
+
+- Rocky Linux 9 기준
+```
+sudo dnf install -y epel-release
+sudo dnf install -y ansible-core
+```
+
+- 설치 확인
+```
+ansible --version
+
+# ansible [core 2.14.18]
+```
+
+- 권장 사항
+1. Ansible은 시스템 패키지로 설치
+2. venv 안에 설치하지 않음 (운영 도구이기 때문)
+
+### 4. Inventory 파일 생성 (서버별)
+```
+cd infra/ansible/inventory
+cp dev.ini.example dev.ini
+```
+- ansible_user는 이미 존재하는 SSH 계정
+- 서비스 계정(server-monitor)은 Ansible이 생성
+
+### 5. 최초 연결 확인
+```
+ansible all -m ping -i inventory/dev.ini
+```
+- 성공 시
+```
+dev-server | SUCCESS => {
+    "ping": "pong"
+}
+```
+
+> 이 단계가 실패하면 **Ansible 이전의 문제(SSH, 계정, 네트워크)**로 판단
+
+### 6. 서버 기본 상태 구성 실행
+```
+ansible-playbook playbooks/setup.yml -i inventory/dev.ini
+```
+
+#### 이 단계에서 수행되는 것
+1. 필수 패키지 설치
+2. firewalld 활성화
+3. SSH 포트 설정
+4. 서비스 계정 생성
+5. /opt/server-monitor 디렉토리 생성
+6. Python venv 구성
+   
 ---
 <br>
 
