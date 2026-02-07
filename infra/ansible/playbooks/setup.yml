@@ -1,0 +1,7 @@
+---
+- name: Initial server setup
+  hosts: servers
+  become: true # sudo 사용
+  roles:
+    - security
+    - common

@@ -1,0 +1,5 @@
+common_packages:
+  - git
+  - firewalld
+  - python3
+  - python3-pip

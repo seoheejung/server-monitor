@@ -1,0 +1,5 @@
+[servers]
+# prod-server: 관리 대상 서버 이름 (임의)
+# ansible_host: 실제 접속할 서버 IP 또는 DNS
+# ansible_user: SSH 접속 계정 (root 금지, 기존 일반 계정)
+prod-server ansible_host= ansible_user=
