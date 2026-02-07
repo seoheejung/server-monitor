@@ -12,6 +12,7 @@
 - [Ansible 적용 단계](#ansible-적용-단계)
 - [Ansible과 프로젝트의 경계 요약](#ansible과-프로젝트의-경계-요약)
 - [Ansible 사용을 위한 초기 준비 절차 (Bootstrap)](#ansible-사용을-위한-초기-준비-절차-bootstrap)
+- [이후 작업](#이후-작업)
 - [이 문서의 범위](#이-문서의-범위)
 
 ---
@@ -348,9 +349,51 @@ dev-server                 : ok=8    changed=3    unreachable=0    failed=0    s
 5. /opt/server-monitor 디렉토리 생성
 6. Python venv 구성
 
-#### 이후 진행 단계 
-- 서비스를 올리는 단계
-- monitoring.yml → systemd 기동 → curl 확인 → 그 다음이 UI
+---
+<br>
+
+## 이후 작업
+
+### 1. 애플리케이션 배치 자동화 확장
+- `monitoring.yml` 기준 배치 로직 고도화
+  - Git clone / pull 전략 정리
+  - requirements.txt 변경 감지 시 venv 재구성 여부 판단
+- FastAPI 실행 옵션 표준화
+  - worker 수
+  - log level
+  - 실행 사용자 고정
+
+<br>
+
+### 2. systemd 서비스 운영 안정화
+- systemd unit 템플릿 분리 및 변수화
+- restart 정책 세분화
+  - 실패 횟수 기준
+  - 재시작 간격
+- journalctl 로그 수집 범위 정의
+
+<br>
+
+### 3. 네트워크 및 프록시 구성
+- Nginx Reverse Proxy 연동
+  - 외부 포트 노출 최소화
+  - FastAPI 내부 포트 보호
+- HTTPS 적용 (Let’s Encrypt 또는 내부 인증서)
+- firewalld 규칙 점검 자동화 여부 검토
+
+<br>
+
+### 4. 운영 환경 분리
+- dev / prod inventory 분리 강화
+- group_vars 기준 환경별 설정 차등 적용
+- 테스트 서버 → 운영 서버 전환 시 재현성 검증
+
+<br>
+
+### 5. 관측 및 운영 보조 도구 연계 (선택)
+- 로그 수집기 연동 여부 검토
+- 메트릭 수집(Prometheus 등) 도입 가능성 검토
+- 장애 발생 시 Ansible 재적용 기준 명확화
 
 ---
 <br>
