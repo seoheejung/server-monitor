@@ -552,6 +552,13 @@ collections_paths = ~/.ansible/collections:/usr/share/ansible/collections
 cd /home/rockylinux/server-monitor/infra/ansible
 
 ansible-playbook playbooks/setup.yml -i inventory/dev.ini
+
+# SSH 키 대신 비밀번호 입력 (임시)
+ansible-playbook playbooks/setup.yml \
+  -i inventory/dev.ini \
+  --ask-pass \
+  --ask-become-pass
+
 ```
 
 #### Bootstrap 단계 전체 요약

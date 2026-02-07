@@ -1,6 +1,4 @@
 ---
-# 이 role이 실제로 수행하는 작업 목록
-
 - name: Install basic packages (Linux)
   ansible.builtin.dnf:
     name: "{{ common_packages }}"

@@ -1,7 +1,7 @@
 ---
 # 사용자 생성
 - name: Create service user
-  user: 
+  uansible.builtin.user: 
     name: server-monitor
     system: true
     shell: /sbin/nologin
