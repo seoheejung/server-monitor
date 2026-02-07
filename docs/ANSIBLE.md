@@ -197,6 +197,7 @@ WantedBy=multi-user.target
 ## Ansible 디렉토리 구조
 ```
 infra/ansible/
+├── ansible.cfg
 ├── inventory/
 │   ├── dev.ini
 │   └── prod.ini
