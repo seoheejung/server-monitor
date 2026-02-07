@@ -495,9 +495,9 @@ ansible-galaxy collection list --collections-path ~/.ansible/collections
 
 #### 정상 출력 예시
 ```
-Collection        Version
------------------ -------
-ansible.posix     1.x.x
+Collection    Version
+------------- -------
+ansible.posix 2.1.0
 ```
 
 > 이 단계가 누락되면 couldn't resolve module/action 'firewalld' 와 같은 오류가 발생한다.
