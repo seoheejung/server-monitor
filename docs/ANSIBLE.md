@@ -11,7 +11,20 @@
 - 권한 모델 (root / non-root)
 - 서비스 관리 방식 (systemd / container)
 
-#### Ansible은 운영 환경을 “증명 가능하게 고정”하기 위한 필수 구성 요소
+> Ansible은 운영 환경을 “증명 가능하게 고정”하기 위한 필수 구성 요소
+
+### Ansible 동작 방식 
+```
+local PC (컨트롤 노드)
+   |
+   |  SSH
+   ↓
+서버 (관리 대상 노드)
+```
+- 에이전트 없음
+- SSH로 명령 실행
+- YAML 파일에 “원하는 상태”를 적음
+- Ansible이 현재 상태 <-> 원하는 상태를 비교해서 필요한 작업만 수행
 
 > 서버를 다시 설치해도, 같은 조건의 운영 환경을 사람 손 개입 없이 재현 가능
 
@@ -166,6 +179,10 @@ infra/ansible/
 │   ├── monitoring.yml  # server-monitor 배치
 ├── roles/
 │   ├── common
+│   │   ├── tasks/
+│   │   │   └── main.yml
+│   │   └── vars/
+│   │       └── main.yml
 │   ├── docker
 │   └── security
 ```
