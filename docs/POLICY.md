@@ -1,6 +1,7 @@
-# 🔐 프로세스 보안 분석 규칙 (Process Analysis Policy)
+# 프로세스 보안 분석 규칙 (Process Analysis Policy)
 
-> 운영 서버 환경에서 프로세스를 분석·진단·제어하기 위한 보안 판단 기준과 정책 규칙 정의 문서
+> 본 문서는 운영 서버 환경에서    
+> 프로세스를 분석·진단·제어하기 위한 보안 판단 기준과 정책 규칙을 정의한다.
 
 ---
 <br>
@@ -269,7 +270,8 @@ MemCompression.exe (Windows 메모리 압축 관리 프로세스)
 
 ## [3] MongoDB 기반 종료 정책 보조 레이어
 
-> MongoDB는 프로세스 종료 판단의 필수 의존성이 아니라, 정책 일관성과 관리 편의를 위한 보조 정책 레이어(Optional Policy Layer) 로만 사용
+> MongoDB는 프로세스 종료 판단의 필수 의존성이 아니며,   
+> 실시간 psutil 기반 판단을 대체하지 않는다.
 
 ### MongoDB 사용 원칙
 

@@ -1,5 +1,7 @@
 # [서버 관리형 프로젝트] 서버 상태 모니터링 대시보드
 
+> 본 프로젝트의 최종 운영 기준은 Rocky Linux Native + systemd + Ansible이다.
+
 ---
 <br>
 
@@ -32,6 +34,7 @@
 
 Windows 개발 환경과 Linux 운영 환경의 구조적 차이를   
 **직접 구현·검증을 통해 확인**하는 것을 목표로 하는 프로젝트
+
 
 
 ---
@@ -147,6 +150,16 @@ server-monitor/
 ├── .gitignore
 └── README.md        # 프로젝트 전체 소개
 ```
+
+### 문서 역할 분리
+
+- README.md : 프로젝트 전체 개요
+- docs/ANSIBLE.md : 운영 환경 자동화
+- docs/FASTAPI_DEV.md : FastAPI 설계
+- docs/NATIVE_RUN.md : Linux Native 실행 검증
+- docs/POLICY.md : 프로세스 보안 정책
+- web/README.md : 웹 애플리케이션 구조
+
 
 <br>
 

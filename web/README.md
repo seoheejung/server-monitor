@@ -2,7 +2,9 @@
 
 **Rocky Linux 서버의 상태를 웹으로 확인하기 위한 서버 모니터링 프로젝트**
 
-> 이 README는 기능 설명서가 아니라, 프로젝트 구조·설계 의도·운영 흐름을 설명하는 상위 문서
+> 본 문서는 웹 애플리케이션 구조와 내부 설계를 설명한다.   
+> 개발 환경 구축 단계는 기록 목적이며, 운영 기준은 아니다.
+
 
 ---
 <br>
@@ -101,7 +103,7 @@ web/
 
 ### 프로젝트 진행 흐름
 
-> 🗂️ Windows 개발  → Linux 이식  → 운영 확장
+> 🗂️ Windows 개발  → Linux 이식  → 운영 환경 확장
 
 #### Linux 이식 및 검증 전략 (Docker → VirtualBox)
 
@@ -232,7 +234,7 @@ uvicorn app.main:app --reload
        ```
        /opt/server-monitor/venv/bin/uvicorn app.main:app
        ```
-   - 👉 운영에서는 자동
+   - 👉 운영 환경에서는 자동
 
 ---
 <br>
@@ -427,7 +429,7 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 ---
 <br>
 
-## 🧭 [2-2단계] 운영 정책 저장소 (MongoDB) & 프로세스 제어
+## 🧭 [2-2단계] 운영 환경 정책 저장소 (MongoDB) & 프로세스 제어
 
 ### 1. MongoDB
 - 설계 (KNOWN_PROCESSES 전용)
@@ -435,6 +437,9 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
    - 실행 중 프로세스 저장 ❌
    - KNOWN_PROCESSES에 정의된 프로세스만 활용
    - 매칭 실패 시 → Unknown Process 로 처리 (DB 저장 ❌)
+
+> MongoDB는 정책 저장소 역할만 수행하며,   
+> 모든 최종 판단은 실시간 프로세스 정보(psutil)를 기준으로 한다.
 
 <br>
 

@@ -1,10 +1,9 @@
-# Rocky Linux 네이티브 실행 검증
+# Rocky Linux Native 실행 검증
 
-> Rocky Linux 네이티브 환경에서의 동작 검증 기록 문서
+> 본 문서는 서버 모니터링 애플리케이션이  
+> Rocky Linux Native 환경에서 정상적으로 동작하는지를 검증하기 위한 실행·환경 검증 기준을 정의한다.  
+> 애플리케이션 설계, 운영 자동화, 정책 판단 기준은 다루지 않는다.
 
-본 단계는 단순 배포 실험이 아니라 <br>
-서버 모니터링 로직이 OS 환경(Rocky Linux)에서 실제로 어떻게 동작하는지를 <br>
-코드 단위로 검증하기 위한 필수 절차
 
 <br>
 
@@ -18,16 +17,16 @@ psutil / systemctl / /proc / 권한 제약이 <br>
 
 - [Rocky Linux 선택 기준 (VirtualBox 기준)](#rocky-linux-선택-기준-virtualbox-기준)
 - [목적](#목적)
-- [[1단계 목표] 네이티브 실행 검증 범위 (완료)](#1단계-목표-네이티브-실행-검증-범위-완료)
+- [[1단계 목표] Native 실행 검증 범위 (완료)](#1단계-목표-Native-실행-검증-범위-완료)
 - [환경 설계](#환경-설계)
 - [Rocky Linux 서버 준비](#rocky-linux-서버-준비)
 - [Docker vs Native 환경 차이 요약](#docker-vs-native-환경-차이-요약)
 - [Rocky Linux 가상환경 생성](#rocky-linux-가상환경-생성)
-- [FastAPI 네이티브 실행](#fastapi-네이티브-실행)
+- [FastAPI Native 실행](#fastapi-Native-실행)
 - [방화벽 설정 (VirtualBox Rocky Linux)](#방화벽-설정-virtualbox-rocky-linux)
 - [psutil 동작 검증](#psutil-동작-검증)
 - [코드 기준 OS 의존 동작 정리](#코드-기준-os-의존-동작-정리)
-- [서비스 상태 판단 전략 (네이티브 기준)](#서비스-상태-판단-전략-네이티브-기준)
+- [서비스 상태 판단 전략 (Native 기준)](#서비스-상태-판단-전략-Native-기준)
 
 ---
 <br>
@@ -60,7 +59,7 @@ psutil / systemctl / /proc / 권한 제약이 <br>
 
 ## 목적
 
-### 1. Rocky Linux + psutil + FastAPI 순수 네이티브 실행 검증
+### 1. Rocky Linux + psutil + FastAPI 순수 Native 실행 검증
 - Docker, systemd, 보안 옵션 적용 이전 단계
 - “이 코드가 OS에서 가능한가?”를 먼저 증명
 
@@ -83,12 +82,12 @@ psutil / systemctl / /proc / 권한 제약이 <br>
   - 권한 차이 검증: 일반 사용자
 - 실행 방식:
   - Docker 컨테이너 (기능/로직 1차 검증)
-  - VirtualBox 네이티브 (운영 제약 2차 검증)
+  - VirtualBox Native (운영 제약 2차 검증)
 
 ---
 <br>
 
-## [1단계 목표] 네이티브 실행 검증 범위 (완료)
+## [1단계 목표] Native 실행 검증 범위 (완료)
 ### 1. FastAPI
 - FastAPI 서버 정상 기동
 - HTML 템플릿 + static 파일 정상 렌더링
@@ -148,7 +147,7 @@ psutil / systemctl / /proc / 권한 제약이 <br>
 ## Rocky Linux 서버 준비
 
 > 기본 동작 확인은 Docker 기반 Rocky Linux에서 수행하고,
-> 최종 검증은 VirtualBox 기반 Rocky Linux 네이티브 환경에서 진행한다.
+> 최종 검증은 VirtualBox 기반 Rocky Linux Native 환경에서 진행한다.
 
 
 ### 1. Docker rockylinux 설치 및 실행
@@ -208,7 +207,7 @@ tail /var/log/messages
 
 ## Docker vs Native 환경 차이 요약
 
-| 항목 | Docker 컨테이너 | VirtualBox 네이티브 |
+| 항목 | Docker 컨테이너 | VirtualBox Native |
 |----|----|----|
 | systemctl | 사용 불가 | 사용 가능 |
 | PID 1 | bash / tini | systemd |
@@ -247,7 +246,7 @@ pip install psutil
 ---
 <br>
 
-## FastAPI 네이티브 실행
+## FastAPI Native 실행
 
 ### 1. FastAPI 서버 실행
 ```
@@ -359,7 +358,7 @@ list(psutil.process_iter(['pid', 'name']))
 ---
 <br>
 
-## 서비스 상태 판단 전략 (네이티브 기준)
+## 서비스 상태 판단 전략 (Native 기준)
 ### 1. systemctl 결과 참고
 - systemctl은 Docker 환경에서 제한될 수 있으므로 프로세스 / 포트 기반 판단이 핵심
   
