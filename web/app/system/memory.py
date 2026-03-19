@@ -1,4 +1,6 @@
 import psutil
+import logging
+logger = logging.getLogger(__name__)
 
 def get_memory_usage():
     """
@@ -11,5 +13,5 @@ def get_memory_usage():
         # memory.percent : 전체 메모리 대비 사용 중인 비율 (%)
         return memory.percent
     except Exception as e:
-        print(f"메모리 측정 에러: {e}")
+        logger.exception("메모리 사용률 측정 실패")
         return 0.0

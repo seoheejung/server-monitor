@@ -1,5 +1,8 @@
+import logging
 import psutil
 from app.database.db import db_manager
+
+logger = logging.getLogger(__name__)
 
 
 def get_live_process(pid: int):
@@ -116,17 +119,17 @@ def terminate_process(pid: int, os_type: str):
             "message": "프로세스를 찾을 수 없습니다"
         }
     
-    print(f"[TERMINATE] request pid={pid} name={proc.name()}")
+    logger.info("[TERMINATE] request pid=%s name=%s", pid, proc.name())
     
     # 1. MongoDB 정책 차단 (연결된 경우만)
     mongo_block = blocked_by_mongo_policy(proc, os_type)
     if mongo_block:
-        print(f"[TERMINATE] blocked by mongo policy: {mongo_block}")
+        logger.warning("[TERMINATE] blocked by mongo policy: %s", mongo_block)
         return mongo_block
 
     # 2. 시스템 프로세스 보호 (실시간 최종 보호)
     if is_system_process(proc, os_type):
-        print(f"[TERMINATE] blocked by system process")
+        logger.warning("[TERMINATE] blocked by system process")
         return {
             "result": "blocked",
             "message": "SYSTEM 권한으로 실행 중인 프로세스는 <br> 안전상 자동 종료를 허용하지 않습니다"
@@ -136,7 +139,7 @@ def terminate_process(pid: int, os_type: str):
 
     # 3. Soft Kill
     if soft_kill(proc):
-        print(f"[TERMINATE] soft kill success")
+        logger.info("[TERMINATE] soft kill success")
         return {
             "result": "terminated",
             "method": "soft",
@@ -145,13 +148,13 @@ def terminate_process(pid: int, os_type: str):
 
     # 4. Hard Kill
     if hard_kill(proc):
-        print(f"[TERMINATE] hard kill success")
+        logger.warning("[TERMINATE] hard kill success")
         return {
             "result": "terminated",
             "method": "hard",
             "message": f"{name} <br> 프로세스가 강제 종료되었습니다"
         }
-
+    logger.error("[TERMINATE] terminate failed pid=%s name=%s", pid, name)
     return {
         "result": "failed",
         "message": f"{name}<br>프로세스 종료에 실패했습니다"

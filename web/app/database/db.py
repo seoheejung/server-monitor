@@ -3,9 +3,9 @@ from pymongo.errors import ConnectionFailure
 import datetime
 import os
 from dotenv import load_dotenv
-import json
+import logging
 
-# .env 파일 로드
+logger = logging.getLogger(__name__)
 load_dotenv()
 
 # 환경변수 읽기
@@ -36,11 +36,11 @@ class MongoDB:
             # 연결 상태 변경 (성공)
             self.connected = True
             
-            print(f"✅ MongoDB 연결 및 인덱스 설정 완료: {DB_NAME}")
+            logger.info("✅ MongoDB 연결 및 인덱스 설정 완료: %s", DB_NAME)
         except ConnectionFailure:
             self.connected = False
             self.db = None
-            print("❌ MongoDB 연결 실패")
+            logger.error("❌ MongoDB 연결 실패")
 
 
     def _setup_indexes(self):
@@ -65,12 +65,12 @@ class MongoDB:
         넘겨받은 리스트를 소문자화/날짜추가 하여 DB에 Upsert
         """    
         if self.db is None or not data_list:
-            print("⚠️ DB 연결 부재 또는 시딩 데이터 없음")
+            logger.warning("⚠️ DB 연결 부재 또는 시딩 데이터 없음")
             return
 
         # 개발 단계에서 데이터 깔끔하게 다시 넣고 싶을 때 주석 해제 후 사용
         self.db[COLLECTION_NAME].drop()
-        print("🗑️  기존 데이터를 삭제하고 초기화를 진행합니다.")
+        logger.info("🗑️ 기존 데이터를 삭제하고 초기화 진행")
 
         # 2. drop() 하면 인덱스도 사라지므로 다시 생성해야 함
         self._setup_indexes()
@@ -103,13 +103,13 @@ class MongoDB:
 
             if bulk_ops:
                 result = self.db[COLLECTION_NAME].bulk_write(bulk_ops )
-                print(
-                    f"📦 동기화 완료: "
-                    f"{result.upserted_count} 신규 / "
-                    f"{result.modified_count} 업데이트"
+                logger.info(
+                    "📦 동기화 완료: %s 신규 / %s 업데이트",
+                    result.upserted_count,
+                    result.modified_count
                 )
         except Exception as e:
-            print(f"❌ 시딩 중 오류 발생: {e}")
+            logger.exception("❌ 시딩 중 오류 발생")
 
 
     def get_known_processes(self):
@@ -124,7 +124,10 @@ class MongoDB:
             cursor = self.db[COLLECTION_NAME].find({}, {"_id": 0})
             return list(cursor)
         except Exception as e:
-            print(f"❌ DB 데이터 로드 중 오류 발생 (Collection: {COLLECTION_NAME}): {e}")
+            logger.exception(
+                "❌ DB 데이터 로드 중 오류 발생 (Collection: %s)",
+                COLLECTION_NAME
+            )
             return []
     
 
@@ -144,13 +147,18 @@ class MongoDB:
                 {"_id": 0}
             )
         except Exception:
+            logger.exception(
+                "❌ 프로세스 정책 조회 중 오류 발생 (name=%s, platform=%s)",
+                name,
+                platform
+            )
             return None
 
             
     def close(self):
         if self.client:
             self.client.close()
-
+            logger.info("MongoDB 연결 종료")
 
 # 싱글톤 객체 생성
 db_manager = MongoDB()

@@ -1,20 +1,15 @@
+from fastapi import FastAPI, Request, Response, status
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+import json
+import os
 import logging
 
 logging.basicConfig(
     level=logging.INFO,
     format="[%(levelname)s] %(name)s: %(message)s",
 )
-
-
-from fastapi import FastAPI, Request, Response, status
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-import platform
-import json
-import os
-import datetime
-import traceback
 
 # 직접 생성한 시스템 정보 함수 import
 from app.system.cpu import get_cpu_usage
@@ -28,6 +23,7 @@ from app.database.db import db_manager
 from app.routes import process, admin
 from app.core.config import OS_TYPE
 
+logger = logging.getLogger(__name__)
 
 # FastAPI app 생성
 app = FastAPI()
@@ -104,7 +100,6 @@ def dashboard(request: Request):
 # DevTools(개발자 도구)나 특정 크롬 확장 프로그램이 서버의 상세 정보를 파악하기 위해 자동으로 던지는 요청 막기
 @app.get("/.well-known/appspecific/com.chrome.devtools.json")
 def ignore_chrome_devtools():
-    # 204 No Content를 반환하여 에러 로그가 남지 않게 합니다.
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 # 서버 시작 시 실행
@@ -126,10 +121,10 @@ def startup_event():
             for i, item in enumerate(local_data):
                 name = item.get("name")
                 if not isinstance(name, str) or not name.strip():
-                    print(f"❌ 잘못된 항목 발견 (index={i}): {item}")
+                    logger.error("잘못된 항목 발견 (index=%s): %s", i, item)
                     break
             else:
-                print("✅ name 필드 이상 없음")
+                logger.info("name 필드 이상 없음")
 
 
         # 3. DB에 시딩
@@ -141,14 +136,18 @@ def startup_event():
         else: 
             # DB 연결 실패 시 JSON 파일 데이터 그대로 사용 (Fallback)
             db_data = local_data
-            print("⚠️ DB 연결 실패. JSON 로컬 데이터를 엔진에 로드 진행")
+            logger.warning("⚠️ DB 연결 실패. JSON 로컬 데이터를 엔진에 로드 진행")
         
         # 4. 메모리 캐시 동기화
         sync_with_mongodb(db_data, OS_TYPE)
-        print(f"🚀 분석 엔진 준비 완료 (OS: {OS_TYPE}, 로드된 프로세스: {len(db_data)}개)")
+        logger.info(
+            "🚀 분석 엔진 준비 완료 (OS: %s, 로드된 프로세스: %s개)",
+            OS_TYPE,
+            len(db_data),
+        )
         
     except Exception:
-        traceback.print_exc()
+        logger.exception("startup_event 실행 중 예외 발생")
         raise
 
 # 서버 종료 시 실행

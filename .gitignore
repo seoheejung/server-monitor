@@ -1,4 +1,6 @@
-.env
+web/.env
+**/.env
+.env.*
 
 # Python 캐시
 __pycache__/

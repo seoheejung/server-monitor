@@ -1,4 +1,6 @@
 import psutil
+import logging
+logger = logging.getLogger(__name__)
 
 def get_cpu_usage():
     """
@@ -9,5 +11,5 @@ def get_cpu_usage():
         cpu_percent = psutil.cpu_percent(interval=1)
         return cpu_percent
     except Exception as e:
-        print(f"CPU 측정 에러: {e}")
+        logger.exception("CPU 사용률 측정 실패")
         return 0.0
