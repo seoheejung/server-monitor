@@ -23,16 +23,14 @@
 infra/ansible/
 ├── ansible.cfg
 ├── inventory/
-│   ├── dev.ini
-│   ├── prod.ini
+│   ├── dev.ini           # 로컬 생성 (Git 제외)
+│   ├── prod.ini          # 로컬 생성 (Git 제외)
 │   └── group_vars/
-│       ├── all.yml          # OS / 환경 공통 (항상 로드)
-│       ├── dev.yml          # 개발 환경 (dev.ini 사용 시 로드)
-│       └── prod.yml         # 운영 환경 (prod.ini 사용 시 로드)
+│       └── all.yml          # OS / 환경 공통 (항상 로드)
 ├── playbooks/
 │   ├── setup.yml        # 서버 기본 세팅
 │   ├── docker.yml       # Docker 설치
-│   └── monitoring.yml   # server-monitor 배치
+│   └── server_monitor.yml   # server-monitor 배치
 ├── roles/
 │   ├── common
 │   │   ├── tasks/
@@ -42,14 +40,14 @@ infra/ansible/
 │   │   └── vars/
 │   │       └── main.yml
 │   ├── docker
-│   └─ security
-│       └─ tasks/
+│   └── security
+│       └── tasks/
 │           └── main.yml
 ```
-- common : OS 공통
-- security : 보안
-- docker : 컨테이너
-- monitoring : 앱 배치
+- common (role): OS 공통 설정
+- security (role): 보안 설정
+- docker (role): 컨테이너 환경 구성
+- server_monitor.yml (playbook): 앱 배치 및 서비스 구성
 
 ---
 <br>
@@ -127,8 +125,7 @@ WantedBy=multi-user.target
 <br>
 
 ## Ansible 사용을 위한 초기 준비 절차 (Bootstrap)
-> Ansible은 “이미 준비된 서버”가 아니라 아무것도 없는 서버를 운영 상태로 끌어올리기 위한 도구   
-> 즉, 최소한의 부트스트랩 절차가 필요
+> Ansible은 최소 SSH 접속과 권한 확보가 된 초기 서버를 운영 상태로 끌어올리기 위한 도구
 
 ### 1. Git 저장소 구성 원칙 (Inventory 관리)
 
@@ -355,7 +352,7 @@ dev-server                 : ok=8    changed=3    unreachable=0    failed=0    s
 ## 이후 작업
 
 ### 1. 애플리케이션 배치 자동화 확장
-- `monitoring.yml` 기준 배치 로직 고도화
+- `server_monitor.yml` 기준 배치 로직 고도화
   - Git clone / pull 전략 정리
   - requirements.txt 변경 감지 시 venv 재구성 여부 판단
 - FastAPI 실행 옵션 표준화

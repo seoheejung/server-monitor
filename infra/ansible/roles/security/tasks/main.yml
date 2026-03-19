@@ -1,7 +1,7 @@
 ---
-# 사용자 생성
+# 서비스 계정 생성
 - name: Create service user
-  ansible.builtin.user: 
+  ansible.builtin.user:
     name: server-monitor
     system: true
     shell: /sbin/nologin

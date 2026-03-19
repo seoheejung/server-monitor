@@ -26,7 +26,7 @@
 - 권한 모델 (root / non-root)
 - 서비스 관리 방식 (systemd / container)
 
-> Ansible은 운영 환경을 “증명 가능하게 고정”하기 위한 필수 구성 요소
+> Ansible은 운영 환경을 "증명 가능하게 고정"하기 위한 필수 구성 요소
 
 ### Ansible 동작 방식 
 ```
@@ -43,7 +43,7 @@ local PC (컨트롤 노드)
 
 > 서버를 다시 설치해도, 같은 조건의 운영 환경을 사람 손 개입 없이 재현 가능
 
-#### Ansible은 자동화 도구로 운영 환경을 하나의 ‘코드 상태’로 구현하는 장치로 사용
+#### Ansible은 자동화 도구로 운영 환경을 하나의 '코드 상태'로 구현하는 도구로 사용
 
 ---
 <br>
@@ -63,7 +63,7 @@ local PC (컨트롤 노드)
 | 서비스 등록   | systemd 서비스 등록/활성화      |
 
 ### 2. Ansible이 관여하지 않는 것
-- 판단 로직에 관여 불가
+- 판단 로직 관여 불가
 
 | 영역                      | 이유           |
 | ----------------------- | ------------ |
@@ -129,7 +129,7 @@ local PC (컨트롤 노드)
 | 운영 대상 (FastAPI) | `/opt/server-monitor`           |
 | 운영 도구 (Ansible) | `/home/rockylinux/ansible-repo` |
 
-- `/opt/server-monitor/` → Ansible만 변경
+- `/opt/server-monitor/` → Ansible 기준으로 관리
 - `/home/` → 운영자 작업 공간
 
 ---
@@ -137,12 +137,12 @@ local PC (컨트롤 노드)
 
 ## 운영 장애 시 Ansible 재적용 시나리오
 
-> 장애 발생 시 문제 원인을 “고쳐서 유지”하지 않고,   
-> 환경을 다시 만들어 정상 상태로 복귀하는 전략 적용
+> 장애 발생 시 문제 원인을 "고쳐서 유지하지 않고",   
+> "환경을 다시 만들어" 정상 상태로 복귀하는 전략 적용
 
 ### 1. 전제 원칙
-- 운영 서버는 수동 수정 대상이 아님
-- 장애 대응 시 해당 서버를 고치지 않고 다시 새로운 서버를 생성
+- 운영 서버는 수동 수정 대상 X
+- 장애 대응 시 해당 서버를 고치지 않고 다시 새로운 서버 생성
 
 <br>
 
@@ -160,12 +160,12 @@ Ansible 실행
    ↓
 동일 환경 복구
 ```
-- 코드 / 정책 / 설정은 Git + MongoDB 기준으로 복원
-- 운영자 개입 없음
+- 코드, 정책, 설정은 Git + MongoDB 기준으로 복원
+- 운영자 수동 개입 최소화
 
 #### 운영 중 환경 위험 신호 감지
-- 수동으로 설치된 패키지
-- 임의로 수정된 systemd 서비스
+- 수동으로 설치된 패키지 발견
+- 임의로 수정된 systemd 서비스 발견
 - 방화벽 포트가 문서와 불일치
 - venv 내부 라이브러리 버전 불일치
 -  대응 전략
@@ -178,14 +178,14 @@ Ansible 실행
 
 #### 서비스 실행 불능 (FastAPI / systemd)
 - systemd 서비스가 반복 실패
-- FastAPI 실행 경로 깨짐
+- FastAPI 실행 경로 손상
 - venv 손상
 - psutil 빌드 오류
 - 대응 절차
   1. FastAPI 로그 확인 (systemd)
-  2. 코드 자체 문제 아님 확인
-  3. Ansible monitoring.yml 재적용
-  4. 실패 시 → 서버 재구성 판단
+  2. 코드 자체 문제 여부 분리
+  3. Ansible server_monitor.yml 재적용
+  4. 실패 시 서버 재구성 여부 판단
 
 <br>
 
@@ -208,7 +208,7 @@ Ansible 실행
 - 서비스 파일 손상
 - 방화벽 설정 불일치
 ```
-ansible-playbook playbooks/monitoring.yml
+ansible-playbook playbooks/server_monitor.yml -i inventory/prod.ini
 ```
 
 #### 전체 재적용
@@ -216,9 +216,9 @@ ansible-playbook playbooks/monitoring.yml
 - 누적 수동 수정 의심
 - 운영 이력 불명확
 ```
-ansible-playbook playbooks/setup.yml
-ansible-playbook playbooks/security.yml
-ansible-playbook playbooks/monitoring.yml
+ansible-playbook playbooks/setup.yml -i inventory/prod.ini
+ansible-playbook playbooks/security.yml -i inventory/prod.ini
+ansible-playbook playbooks/server_monitor.yml -i inventory/prod.ini
 ```
 
 #### 서버 폐기 + 재생성
@@ -228,16 +228,16 @@ ansible-playbook playbooks/monitoring.yml
   3. 보안 사고 의심
   4. 재현 불가 상태
 
-> 새 서버 + Ansible
+> 새 서버에 Ansible 다시 적용
 
 <br>
 
 ### 5. Ansible 기반 운영의 핵심 이점
 
-- 장애 복구 시간이 분 단위
+- 장애 복구 시간 최소화 가능
 - 환경 상태가 문서와 항상 일치
-- “누가 언제 뭘 고쳤는지” 추적 불필요
-- 운영자 숙련도 의존 최소화
+- “누가 언제 무엇을 수정했는지” 추적하는 운영 비용 감소
+- 운영자 숙련도 의존 최소화 가능
 
 ---
 <br>
@@ -256,12 +256,12 @@ ansible-playbook playbooks/setup.yml -i inventory/prod.ini
 
 ### 3. 모니터링 앱만 재배포
 ```
-ansible-playbook playbooks/monitoring.yml -i inventory/prod.ini --tags "deploy"
+ansible-playbook playbooks/server_monitor.yml -i inventory/prod.ini --tags "deploy"
 ```
 
 ### 4. 특정 서버만 복구
 ```
-ansible-playbook ... -l [hostname]
+ansible-playbook playbooks/server_monitor.yml -i inventory/prod.ini -l [hostname]
 ```
 
 ---

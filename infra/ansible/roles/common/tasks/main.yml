@@ -1,21 +1,18 @@
 ---
+# 기본 패키지 설치
 - name: Install basic packages (Linux)
   ansible.builtin.dnf:
     name: "{{ common_packages }}"
     state: present
 
-# firewalld 설치 보장
-- name: Install firewalld
-  ansible.builtin.dnf:
-    name: firewalld
-    state: present
-
+# firewalld 실행 보장
 - name: Ensure firewalld is running
   ansible.builtin.service:
     name: firewalld
     state: started
     enabled: true
 
+# SSH 포트 허용
 - name: Open SSH port
   ansible.posix.firewalld:
     service: ssh
@@ -24,7 +21,7 @@
     immediate: true
   notify: Reload firewalld
 
-# Python venv
+# 애플리케이션 루트 디렉토리 생성
 - name: Create application directory
   ansible.builtin.file:
     path: /opt/server-monitor
@@ -33,7 +30,30 @@
     group: server-monitor
     mode: '0755'
 
+# 하위 디렉토리 생성
+- name: Create sub directories
+  ansible.builtin.file:
+    path: "/opt/server-monitor/{{ item }}"
+    state: directory
+    owner: server-monitor
+    group: server-monitor
+    mode: '0755'
+  loop:
+    - logs
+    - data
+    - scripts
+
+# Python virtualenv 생성
 - name: Create virtualenv
   ansible.builtin.command:
     cmd: python3 -m venv /opt/server-monitor/venv
     creates: /opt/server-monitor/venv/bin/activate
+
+# 권한 보정
+- name: Set ownership for application directory
+  ansible.builtin.file:
+    path: /opt/server-monitor
+    state: directory
+    recurse: true
+    owner: server-monitor
+    group: server-monitor
