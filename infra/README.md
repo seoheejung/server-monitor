@@ -39,15 +39,20 @@ infra/ansible/
 │   │   │   └── main.yml
 │   │   └── vars/
 │   │       └── main.yml
+│   ├── server_monitor
+│   │   ├── tasks/
+│   │   │   └── main.yml
+│   │   └── vars/
+│   │       └── main.yml
 │   ├── docker
 │   └── security
 │       └── tasks/
 │           └── main.yml
 ```
-- common (role): OS 공통 설정
-- security (role): 보안 설정
-- docker (role): 컨테이너 환경 구성
-- server_monitor.yml (playbook): 앱 배치 및 서비스 구성
+- common : OS 공통 설정
+- security : 보안 설정
+- docker : 컨테이너 환경 구성
+- server_monitor : 앱 배치 및 서비스 구성
 
 ---
 <br>

@@ -1,0 +1,5 @@
+---
+app_root: /opt/server-monitor
+app_dir: /opt/server-monitor/app
+app_user: server-monitor
+app_group: server-monitor

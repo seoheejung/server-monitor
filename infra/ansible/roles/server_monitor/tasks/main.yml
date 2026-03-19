@@ -1,0 +1,9 @@
+---
+# FastAPI 애플리케이션 배치 경로 생성
+- name: Create application deploy directory
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'

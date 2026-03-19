@@ -1,0 +1,6 @@
+---
+- name: Deploy server-monitor base structure
+  hosts: servers
+  become: true
+  roles:
+    - server_monitor
