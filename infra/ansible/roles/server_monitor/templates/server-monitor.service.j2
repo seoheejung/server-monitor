@@ -5,13 +5,9 @@ After=network.target
 [Service]
 User={{ app_user }}
 Group={{ app_group }}
-
 WorkingDirectory={{ app_dir }}
-
 EnvironmentFile={{ env_file }}
-
 ExecStart={{ venv_path }}/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
-
 Restart=always
 
 [Install]

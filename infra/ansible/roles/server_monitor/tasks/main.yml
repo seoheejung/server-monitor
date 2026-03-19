@@ -8,7 +8,7 @@
     group: "{{ app_group }}"
     mode: '0755'
 
-# .env 파일 배치
+# 환경 변수 파일 배치
 - name: Deploy environment file
   ansible.builtin.template:
     src: app.env.j2
@@ -24,13 +24,42 @@
     dest: "/etc/systemd/system/{{ service_name }}.service"
     mode: '0644'
 
-# systemd daemon reload
+# systemd 설정 반영
 - name: Reload systemd daemon
   ansible.builtin.systemd:
     daemon_reload: true
 
-# 서비스 활성화만 수행
+# 서비스 자동 시작 등록
 - name: Enable service
   ansible.builtin.service:
     name: "{{ service_name }}"
     enabled: true
+
+# systemd 유닛 파일 존재 확인
+- name: Check systemd unit file exists
+  ansible.builtin.stat:
+    path: "/etc/systemd/system/{{ service_name }}.service"
+  register: systemd_unit_file
+
+# 유닛 파일이 실제로 생성되었는지 검증
+- name: Assert systemd unit file exists
+  ansible.builtin.assert:
+    that:
+      - systemd_unit_file.stat.exists
+    fail_msg: "systemd unit file was not created."
+    success_msg: "systemd unit file exists."
+
+# 서비스 enable 상태 확인
+- name: Check service is enabled
+  ansible.builtin.command:
+    cmd: "systemctl is-enabled {{ service_name }}"
+  register: service_enabled_result
+  changed_when: false
+
+# 서비스가 enable 상태인지 검증
+- name: Assert service is enabled
+  ansible.builtin.assert:
+    that:
+      - service_enabled_result.stdout == "enabled"
+    fail_msg: "service is not enabled."
+    success_msg: "service is enabled."

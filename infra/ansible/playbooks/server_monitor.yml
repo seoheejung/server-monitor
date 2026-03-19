@@ -1,5 +1,5 @@
 ---
-- name: Deploy server-monitor base structure
+- name: Register server-monitor service resources
   hosts: servers
   become: true
   roles:
