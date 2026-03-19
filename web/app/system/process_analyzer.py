@@ -25,14 +25,14 @@ def collect_processes(os_type: str) -> List[Dict]:
     psutil을 사용하여 OS 공통 프로세스 정보를 추출
     최대한 모든 OS에서 공통적으로 지원하는 속성만 선택적으로 수집
     """
-    is_container = is_container_environment()
+    is_container = is_container_environment(os_type)
     processes = []
 
     # CPU 측정 초기화 (중요: 이전 측정값과의 차이를 계산하기 위함)
     for p in psutil.process_iter():
         try:
             p.cpu_percent(None)
-        except Exception:
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
 
     # CPU 점유율 계산을 위한 최소한의 샘플링 시간
@@ -74,7 +74,7 @@ def collect_processes(os_type: str) -> List[Dict]:
                 info["os_type"] = os_type
                 processes.append(info)
 
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             # 프로세스가 순회 중 종료되었거나, 접근 권한이 없는 경우 스킵
             continue
 
@@ -99,14 +99,13 @@ def collect_ports(proc: psutil.Process) -> List[int]:
             #     ports.add(conn.laddr.port) # 로컬 주소(laddr)의 포트 번호 저장
             if conn.laddr:
                 ports.add(conn.laddr.port)
-    except psutil.AccessDenied:
-        # 권한이 없거나 도중에 프로세스가 종료된 경우 빈 리스트 반환
+    except (psutil.AccessDenied, psutil.NoSuchProcess, psutil.ZombieProcess):
         pass
 
     return sorted(list(ports))
 
 
-def analyze_process(proc:Dict) -> List[str]:
+def analyze_process(proc: Dict) -> Dict[str, List[str]]:
     """
     경고 판단 로직
 
@@ -208,13 +207,14 @@ def sync_with_mongodb(db_data_list: List[Dict], current_os: str):
 
     # 데이터 가공 루프 (Common -> OS전용 순서로 실행하여 우선순위 확보)
     for item in (common_data + os_data):
-        name = item['name'].lower()
-        desc = item['description']
+        name = item.get("name")
+        desc = item.get("description")
 
          # 핵심 방어
         if not isinstance(name, str) or not isinstance(desc, str):
             continue
-        
+
+        name = name.lower()
         # 기본 등록
         temp_map[name] = desc
         
@@ -236,7 +236,6 @@ def explain_process(proc:Dict) -> str:
     이미 최적화된 CACHED_KNOWN_PROCS를 사용하여 O(1)로 조회
     """
     raw_name = (proc.get("name") or "").lower()
-    os_type = proc.get("os_type")
 
     # 딕셔너리에 있으면 설명 반환, 없으면 미등록 처리 (정책 반영)
     return CACHED_KNOWN_PROCS.get(raw_name, f"미등록 프로세스 ({raw_name})")

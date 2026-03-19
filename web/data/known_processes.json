@@ -2459,5 +2459,253 @@
     "policy": {"is_system": false,"terminatable": true, "reason": "Vendor updater (user-safe)" },
     "tags": ["windows","vendor","updater","auto-imported"],
     "created_at": "2026-01-24T00:00:00Z"
+  },
+  {
+    "name": "armourycratekeycontrol.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "ASUS Armoury Crate: 키보드 매크로 및 단축키 제어 프로세스",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application (Vendor Utility)"
+    },
+    "tags": ["windows", "asus", "utility"]
+  },
+  {
+    "name": "cloudcode_cli.exe",
+    "platform": "windows",
+    "category": "infrastructure",
+    "description": "Google Cloud Code CLI: IDE 연동 클라우드 개발 도구",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application (Development Tool)"
+    },
+    "tags": ["windows", "gcp", "development"]
+  },
+  {
+    "name": "copilot.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Microsoft Copilot: Windows 통합 AI 어시스턴트",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application"
+    },
+    "tags": ["windows", "microsoft", "ai"]
+  },
+  {
+    "name": "midisrv.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows MIDI 서비스: 오디오 장치 및 악기 통신 관리",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core (Audio Service)"
+    },
+    "tags": ["windows", "audio", "multimedia"]
+  },
+  {
+    "name": "amdpmfserviceuser.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "AMD PMF(Power Management Framework) 사용자 모드 서비스: 전력 프로필 최적화",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core (Driver)"
+    },
+    "tags": ["windows", "amd", "power-management"]
+  },
+  {
+    "name": "armourycratecontrolinterface.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "ASUS Armoury Crate: 하드웨어 제어 인터페이스(조명, 팬 속도 등)",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core (Hardware Interface)"
+    },
+    "tags": ["windows", "asus", "utility"]
+  },
+  {
+    "name": "amdpmfservice.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "AMD Power Management Framework Service: 시스템 발열 및 성능 동적 관리",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core (Driver)"
+    },
+    "tags": ["windows", "amd", "power-management"]
+  },
+  {
+    "name": "ghelper.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "G-Helper: Armoury Crate를 대체하는 경량 ASUS 노트북 제어 도구",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application (Community Tool)"
+    },
+    "tags": ["windows", "asus", "utility", "open-source"]
+  },
+  {
+    "name": "kubectl.exe",
+    "platform": "common",
+    "category": "infrastructure",
+    "description": "Kubernetes CLI: 클러스터 리소스 관리 및 배포 제어 도구",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application (K8s Management)"
+    },
+    "tags": ["common", "k8s", "development", "auto-imported"]
+  },
+  {
+    "name": "minikube.exe",
+    "platform": "common",
+    "category": "infrastructure",
+    "description": "Minikube: 로컬 환경의 가상 Kubernetes 클러스터 실행 엔진",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application (Virtualization)"
+    },
+    "tags": ["common", "k8s", "docker-compatible"]
+  },
+  {
+    "name": "skaffold.exe",
+    "platform": "common",
+    "category": "infrastructure",
+    "description": "Skaffold: Kubernetes 애플리케이션의 지속적 개발(CD) 및 워크플로우 자동화",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application (Development Workflow)"
+    },
+    "tags": ["common", "gcp", "ci-cd"]
+  },
+  {
+    "name": "gcloud.exe",
+    "platform": "common",
+    "category": "infrastructure",
+    "description": "Google Cloud SDK: GCP 리소스 관리 및 인증 통합 CLI",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application (Cloud Management)"
+    },
+    "tags": ["common", "gcp", "cloud-sdk"]
+  },
+  {
+    "name": "com.docker.proxy.exe",
+    "platform": "windows",
+    "category": "network-service",
+    "description": "Docker Proxy: 호스트와 컨테이너 간의 네트워크 트래픽 중계 및 포트 포워딩",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core (Docker Network)"
+    },
+    "tags": ["windows", "docker", "network"]
+  },
+  {
+    "name": "com.docker.vpnkit.exe",
+    "platform": "windows",
+    "category": "network-service",
+    "description": "VPNKit: Docker Desktop을 위한 사용자 모드 네트워킹 인프라",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core (Docker Network)"
+    },
+    "tags": ["windows", "docker", "network"]
+  },
+  {
+    "name": "phoneexperiencehost.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Link to Windows: 스마트폰-PC 간 알림, 문자, 화면 공유 연동 서비스",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application (System Experience)"
+    },
+    "tags": ["windows", "microsoft", "connectivity"]
+  },
+  {
+    "name": "crossdeviceservice.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Windows Cross-Device Service: 여러 기기 간 파일 공유 및 원격 제어 지원",
+    "policy": {
+      "is_system": true,
+      "terminatable": true,
+      "reason": "System Core"
+    },
+    "tags": ["windows", "microsoft", "connectivity"]
+  },
+  {
+    "name": "amdcrashtool.exe",
+    "platform": "windows",
+    "category": "monitoring",
+    "description": "AMD Crash User Tool: 그래픽 드라이버 오류 감지 및 보고 도구",
+    "policy": {
+      "is_system": true,
+      "terminatable": true,
+      "reason": "System Core (Diagnostics)"
+    },
+    "tags": ["windows", "amd", "driver"]
+  },
+  {
+    "name": "asussaio.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "ASUS System Analysis IO: 하드웨어 상태 분석을 위한 입출력 드라이버 서비스",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core (Hardware Interface)"
+    },
+    "tags": ["windows", "asus", "hardware"]
+  },
+  {
+    "name": "asussystemcontrolinterface.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "ASUS System Control Interface: MyASUS 앱과 하드웨어 간의 통신용 드라이버 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core (Driver)" },
+    "tags": ["windows", "asus", "hardware"]
+  },
+  {
+    "name": "gamemanager.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "ASUS GameFirst/GameVisual: 네트워크 게임 우선순위 지정 및 화면 모드 제어 도구",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["windows", "asus", "gaming"]
+  },
+  {
+    "name": "wsqmcons.exe",
+    "platform": "windows",
+    "category": "monitoring",
+    "description": "Windows Customer Experience Improvement Program: 시스템 성능 및 사용 데이터를 수집하여 MS로 전송",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core (Telemetry)" },
+    "tags": ["windows", "microsoft", "telemetry"]
+  },
+  {
+    "name": "agservice.exe",
+    "platform": "windows",
+    "category": "system-service",
+    "description": "Adobe Genuine Service: 어도비 소프트웨어의 정품 유효성을 주기적으로 확인하는 서비스",
+    "policy": { "is_system": true, "terminatable": true, "reason": "System Core (License)" },
+    "tags": ["windows", "adobe", "security"]
   }
 ]

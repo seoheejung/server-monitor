@@ -94,6 +94,7 @@ web/
 │   │   └── dashboard.html
 │   └── static/          # 정적 파일
 │       └── style.css
+├── data/
 ├── .env                 
 ├── .gitignore           
 ├── requirements.txt     # 의존성 패키지 목록

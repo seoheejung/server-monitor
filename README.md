@@ -196,6 +196,9 @@ uvicorn app.main:app --reload
 python run.py
 ```
 
+#### 4. 브라우저 확인 (http://127.0.0.1:8000/)
+
+
 - Linux / Docker (이식 검증 / 임시 실행)
 ```bash
 # 1. 프로젝트 폴더 이동

@@ -43,7 +43,7 @@ app.include_router(admin.router, prefix="/api")
 templates = Jinja2Templates(directory="app/templates")
 
 # DB에 넣을 mork Data
-JSON_FILE_PATH = "app/data/known_processes.json"
+JSON_FILE_PATH = "data/known_processes.json"
 
 def usage_class(value):
     if value < 60:
