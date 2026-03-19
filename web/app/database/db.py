@@ -69,7 +69,7 @@ class MongoDB:
             return
 
         # 개발 단계에서 데이터 깔끔하게 다시 넣고 싶을 때 주석 해제 후 사용
-        self.db[COLLECTION_NAME].drop()
+        # self.db[COLLECTION_NAME].drop()
         print("🗑️  기존 데이터를 삭제하고 초기화를 진행합니다.")
 
         # 2. drop() 하면 인덱스도 사라지므로 다시 생성해야 함

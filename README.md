@@ -276,6 +276,12 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 └── scripts/
 ```
 
+### Ansible이 수행할 핵심 작업 흐름
+1. Git Clone: 운영 서버의 /home/rockylinux/server-monitor/ 경로로 코드 다운로드
+2. 운영 디렉토리 세팅: 구동 전용 디렉토리인 /opt/server-monitor/를 만들고, Git에서 다운받은 web/app/을 복사
+3. Python 환경 구성: /opt/server-monitor/venv/를 만들고 requirements.txt에 있는 패키지 설치
+4. Systemd 등록: FastAPI 앱이 백그라운드에서 영구적으로 돌아가도록 OS의 서비스 매니저(systemctl)에 등록하고 실행(enable/start)
+
 ---
 <br>
 

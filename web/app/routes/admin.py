@@ -8,7 +8,7 @@ from app.core.config import OS_TYPE
 router = APIRouter()
 
 
-@router.get("/api/admin/sync-now")
+@router.get("/admin/sync-now")
 def manual_sync():
     """
     관리자가 호출 시 MongoDB에서 최신 known_processes를 다시 로드하여 메모리 캐시를 즉시 갱신
