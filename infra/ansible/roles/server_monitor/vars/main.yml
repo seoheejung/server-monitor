@@ -1,5 +1,11 @@
 ---
 app_root: /opt/server-monitor
 app_dir: /opt/server-monitor/app
+venv_path: /opt/server-monitor/venv
+
 app_user: server-monitor
 app_group: server-monitor
+
+service_name: server-monitor
+
+env_file: /opt/server-monitor/app/.env

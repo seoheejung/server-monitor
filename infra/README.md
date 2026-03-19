@@ -42,6 +42,9 @@ infra/ansible/
 │   ├── server_monitor
 │   │   ├── tasks/
 │   │   │   └── main.yml
+│   │   ├── templates
+│   │   │   ├── server-monitor.service.j2
+│   │   │   └── app.env.j2
 │   │   └── vars/
 │   │       └── main.yml
 │   ├── docker

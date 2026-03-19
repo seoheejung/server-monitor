@@ -7,3 +7,30 @@
     owner: "{{ app_user }}"
     group: "{{ app_group }}"
     mode: '0755'
+
+# .env 파일 배치
+- name: Deploy environment file
+  ansible.builtin.template:
+    src: app.env.j2
+    dest: "{{ env_file }}"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0600'
+
+# systemd 서비스 파일 배치
+- name: Deploy systemd service
+  ansible.builtin.template:
+    src: server-monitor.service.j2
+    dest: "/etc/systemd/system/{{ service_name }}.service"
+    mode: '0644'
+
+# systemd daemon reload
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+# 서비스 활성화만 수행
+- name: Enable service
+  ansible.builtin.service:
+    name: "{{ service_name }}"
+    enabled: true
