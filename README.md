@@ -227,8 +227,8 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 ### Rocky Linux / Ubuntu 등 공통
 
 1. 필수 패키지 설치
-   - docker, docker-compose
    - python3, pip, firewalld
+   - Docker 계열은 별도 playbook에서 관리
 2. 유저 / 권한
    - 운영 계정 생성
    - sudo 권한
@@ -242,12 +242,13 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 
 ### Ansible의 역할
 1. Python / venv 준비
-2. requirements.txt 설치
-3. 실행 스크립트 배치
+2. 애플리케이션 실행 환경 구성
+3. 환경 변수 및 실행 설정 배치
 4. systemd 서비스 등록
-5. 서비스 enable / start
+5. 서비스 자동 시작 기반 구성
 
-- Ansible이 관여하면 안 되는 영역
+#### Ansible이 관여하면 안 되는 영역
+  
 | 영역            | 이유           |
 | ------------- | ------------ |
 | FastAPI 내부 로직 | 앱 책임         |
@@ -283,7 +284,7 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 1. Git Clone: 운영 서버의 /home/rockylinux/server-monitor/ 경로로 코드 다운로드
 2. 운영 디렉토리 세팅: 구동 전용 디렉토리인 /opt/server-monitor/를 만들고, Git에서 다운받은 web/app/을 복사
 3. Python 환경 구성: /opt/server-monitor/venv/를 만들고 requirements.txt에 있는 패키지 설치
-4. Systemd 등록: FastAPI 앱이 백그라운드에서 영구적으로 돌아가도록 OS의 서비스 매니저(systemctl)에 등록하고 실행(enable/start)
+4. Systemd 등록: FastAPI 앱이 운영 서버에서 서비스 형태로 구동될 수 있도록 systemd 유닛을 배치하고 자동 시작 기반을 구성
 
 ---
 <br>

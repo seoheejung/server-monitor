@@ -1,0 +1,10 @@
+services:
+  ansible:
+    build: .
+    image: monitoring-ansible-verify:latest
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    network_mode: host
+    stdin_open: true
+    tty: true

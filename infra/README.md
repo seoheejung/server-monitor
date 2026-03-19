@@ -12,6 +12,7 @@
 - [Ansible 적용 단계](#ansible-적용-단계)
 - [Ansible과 프로젝트의 경계 요약](#ansible과-프로젝트의-경계-요약)
 - [Ansible 사용을 위한 초기 준비 절차 (Bootstrap)](#ansible-사용을-위한-초기-준비-절차-bootstrap)
+- [로컬 검증 방법](#로컬-검증-방법)
 - [이후 작업](#이후-작업)
 - [이 문서의 범위](#이-문서의-범위)
 
@@ -23,6 +24,7 @@
 infra/ansible/
 ├── ansible.cfg
 ├── inventory/
+│   ├── local.ini
 │   ├── dev.ini           # 로컬 생성 (Git 제외)
 │   ├── prod.ini          # 로컬 생성 (Git 제외)
 │   └── group_vars/
@@ -118,7 +120,7 @@ WantedBy=multi-user.target
 ---
 <br>
 
-## Ansible과 프로젝트의 경계 요약
+## Ansible과 프로젝트의 경계
 
 | 구분    | 책임          |
 | ----- | ----------- |
@@ -138,7 +140,7 @@ WantedBy=multi-user.target
 ### 1. Git 저장소 구성 원칙 (Inventory 관리)
 
 #### 원칙
-1. 실제 서버 IP / 계정 정보는 Git에 직접 커밋하지 않는다
+1. 실제 서버 IP / 계정 정보는 Git에 직접 커밋 금지
 2. dev.ini, prod.ini는 환경별 로컬 파일
 
 #### 적용 방식
@@ -357,6 +359,30 @@ dev-server                 : ok=8    changed=3    unreachable=0    failed=0    s
 ---
 <br>
 
+## 로컬 검증 방법
+### 1. 컨테이너 실행
+```
+docker compose build
+docker compose up -d
+docker compose exec ansible sh
+```
+### 2. 정적 검증
+```
+chmod 755 /workspace
+
+ansible-lint .
+ansible-playbook -i inventory/local.ini playbooks/setup.yml --syntax-check
+ansible-playbook -i inventory/local.ini playbooks/server_monitor.yml --syntax-check
+```
+
+### 3. 연결 확인
+```
+ansible all -i inventory/local.ini -m ping
+```
+
+---
+<br>
+
 ## 이후 작업
 
 ### 1. 애플리케이션 배치 자동화 확장
@@ -399,6 +425,11 @@ dev-server                 : ok=8    changed=3    unreachable=0    failed=0    s
 - 로그 수집기 연동 여부 검토
 - 메트릭 수집(Prometheus 등) 도입 가능성 검토
 - 장애 발생 시 Ansible 재적용 기준 명확화
+
+---
+<br>
+
+
 
 ---
 <br>
