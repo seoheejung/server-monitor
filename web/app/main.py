@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Response, status
+from fastapi import Depends, FastAPI, Request, Response, status
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -21,8 +21,9 @@ from app.system.service import get_service_status
 from app.system.log import get_tail_log
 from app.system.process_analyzer import get_process_list, sync_with_mongodb
 from app.database.db import db_manager
-from app.routes import process, admin
+from app.routes import process, admin, auth
 from app.core.config import OS_TYPE
+from app.core.security import require_admin_cookie, issue_admin_cookie
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 # API 라우터 등록
 app.include_router(process.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(auth.router, prefix="/api")
 
 # templates 등록
 templates = Jinja2Templates(directory="app/templates")
@@ -51,64 +53,53 @@ def usage_class(value):
 
 def collect_dashboard_data() -> dict:
     """
-    대시보드 화면과 JSON API에서 공통으로 사용할 데이터 수집 함수
+    기본 모니터링 데이터 수집 함수
     """
     cpu = get_cpu_usage()
     memory = get_memory_usage()
     disk = get_disk_usage(OS_TYPE)
     uptime = get_uptime()
 
-    # 서비스 상태 수집 (딕셔너리 형태로 자동화)
     services_to_check = ["nginx", "sshd", "rsyslog", "python", "docker"]
     service_results = {
         name: get_service_status(name, OS_TYPE)
         for name in services_to_check
     }
 
-    LOG_FILE = "/var/log/messages"
-    logs = get_tail_log(LOG_FILE, 10, OS_TYPE)
-
+    log_file = "/var/log/messages"
+    logs = get_tail_log(log_file, 10, OS_TYPE)
     processes = get_process_list(OS_TYPE)
 
     return {
-        # 시스템 자원
         "cpu": cpu,
         "memory": memory,
         "disk": disk,
         "uptime": uptime,
         "cpu_class": usage_class(cpu),
         "memory_class": usage_class(memory),
-
-        # 서비스 상태 (전체 딕셔너리 전달)
-        "services": service_results,
-
-        # 로그
-        "logs": logs,
-        "log_source": LOG_FILE,
-        
-        # 프로세스 분석 결과
-        "processes": processes, 
-
         "os_type": OS_TYPE,
-        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        "services": service_results,
+        "logs": logs,
+        "log_source": log_file,
+        "processes": processes,
+        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request):
     """
-    브라우저 메인 화면 렌더링
+    브라우저 메인 화면 렌더링 + 관리자 세션 자동 발급
     """
-    data = collect_dashboard_data()
-
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         "dashboard.html",
         {
             "request": request,
-            **data,
         }
     )
+    issue_admin_cookie(response)
+    return response
 
-@app.get("/api/dashboard")
+@app.get("/api/dashboard", dependencies=[Depends(require_admin_cookie)])
 def dashboard_api():
     """
     대시보드 부분 갱신용 JSON API

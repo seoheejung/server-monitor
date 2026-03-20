@@ -258,8 +258,10 @@ const refreshDashboard = async () => {
             method: "GET",
             headers: {
                 Accept: "application/json",
+                "X-Requested-With": "XMLHttpRequest"
             },
             cache: "no-store",
+            credentials: "same-origin",
         });
 
         if (!response.ok) {
@@ -341,8 +343,12 @@ const terminateProcess = async (button) => {
     try {
         const response = await fetch("/api/process/terminate", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+             },
             body: JSON.stringify({ pid: Number(pid) }),
+            credentials: "same-origin",
         });
 
         const data = await response.json();
@@ -362,10 +368,10 @@ const terminateProcess = async (button) => {
 window.terminateProcess = terminateProcess;
 
 // 초기 1회 렌더와 설정한 주기로 자동 갱신을 시작한다.
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     updateLastUpdated();
     scrollLogToBottom();
     syncRefreshIntervalSelect();
-    refreshDashboard();
+    await refreshDashboard();
     startAutoRefresh();
 });

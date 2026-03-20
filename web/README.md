@@ -70,7 +70,9 @@ web/
 │   ├── main.py          # FastAPI 엔트리 (URL 및 서버 설정)
 │   ├── core/            # 전역 설정
 │   │   ├── config.py    
+│   │   └── security.py  # 보안 설정
 │   ├── routes/          # URL
+│   │   ├── auth.py           # 인증 관련 API
 │   │   ├── process.py        # 프로세스 관련 API
 │   │   └── admin.py          # 관리자 API (sync-now 등)
 │   ├── database/        # DB 연결
@@ -305,6 +307,25 @@ uvicorn app.main:app --reload
       - box-shadow → 픽셀 카드 연출
       - 리소스 수치에 따라 good/warn/bad CSS 클래스 자동 부여.
       - 서비스 상태(active, failed)에 따라 도트 색상 변경.
+
+### 6. 관리자 인증 구조
+- 모든 주요 API는 인증이 필요
+
+#### 인증 방식
+1. 클라이언트는 `/api/auth`에 `X-API-Key` 헤더를 포함하여 요청
+2. 서버는 환경변수 `ADMIN_API_KEY`와 비교 검증
+3. 검증 성공 시 `admin_session` 쿠키 발급 (HttpOnly)
+
+#### 이후 요청
+- `/api/dashboard`
+- `/api/process/terminate`
+- `/api/admin/*`
+
+모든 API는 쿠키 기반 인증(`admin_session`)을 통해 접근 제어
+
+#### 특징
+- API Key는 최초 1회만 사용
+- 이후는 세션 쿠키로 인증 유지
 
 ---
 <br>

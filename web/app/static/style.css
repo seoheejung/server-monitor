@@ -101,7 +101,6 @@ h2 {
     color: #00ff9c;
     border: 4px solid #00ff9c;
     padding: 10px;          /* 안쪽 여백 살짝 조절 */
-    width: 560px;           /* 카드 너비에 맞춰 조정 */
     overflow-y: auto;
     overflow-x: hidden;
     font-family: 'Courier New', monospace; /* 로그는 고정폭 글꼴이 가독성이 좋습니다 */
@@ -111,6 +110,8 @@ h2 {
     display: block;         /* Flex 영향 방지 */
     max-height: 550px;
     min-height: 300px;
+    width: 92%;
+    margin: 10px;
 }
 
 /* 로그 한 줄에 대한 설정 */

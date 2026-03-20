@@ -1,14 +1,15 @@
-from fastapi import APIRouter
+from fastapi import Depends, APIRouter
 import datetime
 
 from app.database.db import db_manager
 from app.system.process_analyzer import sync_with_mongodb
 from app.core.config import OS_TYPE
+from app.core.security import require_admin_cookie
 
 router = APIRouter()
 
 
-@router.get("/admin/sync-now")
+@router.get("/admin/sync-now", dependencies=[Depends(require_admin_cookie)])
 def manual_sync():
     """
     관리자가 호출 시 MongoDB에서 최신 known_processes를 다시 로드하여 메모리 캐시를 즉시 갱신

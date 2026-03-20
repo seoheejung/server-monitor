@@ -13,7 +13,7 @@
     <div class="refresh-meta">
         <div class="refresh-info">
             <span>[LAST UPDATED] <span id="last-updated">-</span></span>
-            <span id="refresh-status">[AUTO REFRESH] ON (60s)</span>
+            <span id="refresh-status">[AUTO REFRESH] READY</span>
         </div>
 
         <div class="refresh-control">
@@ -31,16 +31,16 @@
     <div class="container-row">
         <div class="card">
             <p>CPU :
-                <span id="cpu" class="{{ cpu_class }}">{{ cpu }}%</span>
+                <span id="cpu" class="">-</span>
             </p>
             <p>MEMORY :
-                <span id="memory" class="{{ memory_class }}">{{ memory }}%</span>
+                <span id="memory" class="">-</span>
             </p>
             <p>DISK :
-                <span id="disk" class="good">{{ disk }}%</span>
+                <span id="disk" class="">-</span>
             </p>
             <p>UPTIME :
-                <span id="uptime">{{ uptime }}</span>
+                <span id="uptime">-</span>
             </p>
         </div>
 
@@ -48,23 +48,13 @@
         <div class="card">
             <h2>SERVICES</h2>
             <div id="service-list" class="service-list">
-                {% for name, status in services.items() %}
                 <div class="service-item">
                     <div class="service-name-group">
-                        <span class="dot 
-                            {% if 'zombie' in status.lower() or 'idle' in status.lower() %}
-                                warn
-                            {% elif status.lower().startswith('active') %}
-                                on
-                            {% else %}
-                                off
-                            {% endif %}">
-                        </span>
-                        <span class="service-name">{{ name }}</span>
+                        <span class="dot"></span>
+                        <span class="service-name">LOADING...</span>
                     </div>
-                    <span class="service-status">[ {{ status | upper }} ]</span>
+                    <span class="service-status">[ WAIT ]</span>
                 </div>
-                {% endfor %}
             </div>
         </div>
     </div>
@@ -74,10 +64,10 @@
         <div class="card log-card">
             <h2>LOG CONSOLE</h2>
             <p id="log-source" style="font-size:9px; color:#999; margin-bottom: 15px;">
-                SOURCE : {{ log_source }}
+                SOURCE : -
             </p>
             <div id="log-console" class="console">
-                {% for line in logs %}<div class="log-line">{{ line }}</div>{% endfor %}
+                <div class="log-line">AUTHENTICATION REQUIRED</div>
             </div>
         </div>
 
@@ -85,64 +75,10 @@
         <div class="card process-card">
             <h2>PROCESSES</h2>
             <div id="process-list">
-                {% for p in processes %}
                 <p class="process-status">
-                    <!-- 상태 도트 -->
-                    {% if p.status_code == 'OK' %}
-                        <span class="dot on"></span>    
-                    {% elif p.status_code == 'WARN' %}
-                        <span class="dot warn"></span>  
-                    {% elif p.status_code == 'DANGER' %}
-                        <span class="dot off"></span>   
-                    {% else %}
-                        <span class="dot"></span>       
-                    {% endif %}
-                    
-                    {{ p.name }} (PID {{ p.pid }})
+                    <span class="dot"></span>
+                    WAITING FOR AUTHENTICATION...
                 </p>
-
-                <p class="process-explain">
-                    {{ p.explain }}
-
-                    {% if not p.is_system %}
-                    <button class="kill-btn"
-                            data-pid="{{ p.pid }}"
-                            data-name="{{ p.name }}"
-                            onclick="terminateProcess(this)">
-                        TERMINATE
-                    </button>
-                    {% else %}
-                    <span style="font-size:10px; color:#666;">
-                        SYSTEM PROTECTED
-                    </span>
-                    {% endif %}
-                </p>
-
-                <p class="process-p">
-                    CPU : {{ p.cpu }}% |
-                    MEM : {{ p.memory }}% |
-                    USER : {{ p.user }}
-                </p>
-
-                {% if p.display_ports %}
-                <p class="process-p">
-                    PORT : {{ p.display_ports }}
-                </p>
-                {% endif %}
-                <span style="font-size: 10px; margin-left: 5px;">
-                    {{ p.status_summary }}
-                </span>
-
-                {% if p.warnings %}
-                    <p class="bad warning-text">
-                        {% for warning in p.warnings %}
-                            ⚠ {{ warning }}{% if not loop.last %}<br>{% endif %}
-                        {% endfor %}
-                    </p>
-                {% endif %}
-
-                <hr style="border:1px dashed #00ff9c; margin:10px 0;">
-            {% endfor %}
             </div>
         </div>
     </div>
