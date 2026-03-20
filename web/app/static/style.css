@@ -11,7 +11,15 @@ body {
 }
 
 /* 전체 컨테이너는 위에서 아래로 쌓이게 설정 */
-.container {
+.container-header {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.container-body {
     display: flex;
     flex-direction: column;
     gap: 30px; /* 줄 간격 */
@@ -43,7 +51,6 @@ h2 {
     background: #111;
     border: 4px solid #00ff9c;
     padding: 20px;
-    margin-bottom: 30px;
     width: 600px;
     box-shadow: 6px 6px 0 #000;
 }
@@ -311,4 +318,88 @@ h2 {
 #modal-cancel-btn:hover {
     background: #999 !important;
     color: #000 !important;
+}
+
+/* 상단 갱신 정보 영역 */
+.refresh-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    background: #111;
+    border: 3px solid #00ff9c;
+    box-shadow: 6px 6px 0 #000;
+
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+.refresh-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+.refresh-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.refresh-control label {
+    font-size: 10px;
+    color: #888;
+}
+
+.refresh-control select {
+    appearance: none;
+
+    background: #000;
+    color: #00ff9c;
+
+    border: 2px solid #00ff9c;
+    box-shadow: 3px 3px 0 #000;
+
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+
+    padding: 6px 24px 6px 8px;
+    cursor: pointer;
+
+    /* ▼ 아이콘 */
+    background-image: linear-gradient(45deg, transparent 50%, #00ff9c 50%),
+                      linear-gradient(135deg, #00ff9c 50%, transparent 50%);
+    background-position: calc(100% - 10px) calc(50% - 2px),
+                         calc(100% - 5px) calc(50% - 2px);
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+}
+
+.refresh-control select:hover {
+    background-color: #00ff9c;
+    color: #000;
+}
+
+/* 작은 화면 대응 */
+@media (max-width: 900px) {
+    .refresh-meta {
+        align-items: flex-start;
+    }
+
+    .refresh-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .refresh-control {
+        width: 80%;
+        justify-content: flex-start;
+    }
 }

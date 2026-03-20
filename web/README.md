@@ -90,9 +90,10 @@ web/
 │   │   └── process_analyzer.py   # 프로세스 분석 (확장) 
 │   ├── utils/
 │   │   └── env.py       # 컨테이너 / 런타임
-│   ├── templates/       # 웹 화면(HTML)
+│   ├── templates/       # 웹 화면
 │   │   └── dashboard.html
 │   └── static/          # 정적 파일
+│       ├── dashboard.js
 │       └── style.css
 ├── data/
 ├── .env                 

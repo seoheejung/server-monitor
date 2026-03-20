@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from datetime import datetime
 import json
 import os
 import logging
@@ -48,16 +49,16 @@ def usage_class(value):
         return "warn"
     return "bad"
 
-# 주소 http://127.0.0.1:8000/
-@app.get("/", response_class=HTMLResponse)
-def dashboard(request: Request):
-    # 브라우저로 접속했을 때 보여줄 메인 화면
+def collect_dashboard_data() -> dict:
+    """
+    대시보드 화면과 JSON API에서 공통으로 사용할 데이터 수집 함수
+    """
     cpu = get_cpu_usage()
     memory = get_memory_usage()
     disk = get_disk_usage(OS_TYPE)
     uptime = get_uptime()
 
-    # 2. 서비스 상태 수집 (딕셔너리 형태로 자동화)
+    # 서비스 상태 수집 (딕셔너리 형태로 자동화)
     services_to_check = ["nginx", "sshd", "rsyslog", "python", "docker"]
     service_results = {
         name: get_service_status(name, OS_TYPE)
@@ -69,40 +70,60 @@ def dashboard(request: Request):
 
     processes = get_process_list(OS_TYPE)
 
+    return {
+        # 시스템 자원
+        "cpu": cpu,
+        "memory": memory,
+        "disk": disk,
+        "uptime": uptime,
+        "cpu_class": usage_class(cpu),
+        "memory_class": usage_class(memory),
+
+        # 서비스 상태 (전체 딕셔너리 전달)
+        "services": service_results,
+
+        # 로그
+        "logs": logs,
+        "log_source": LOG_FILE,
+        
+        # 프로세스 분석 결과
+        "processes": processes, 
+
+        "os_type": OS_TYPE,
+        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+@app.get("/", response_class=HTMLResponse)
+def dashboard(request: Request):
+    """
+    브라우저 메인 화면 렌더링
+    """
+    data = collect_dashboard_data()
 
     return templates.TemplateResponse(
         "dashboard.html",
         {
             "request": request,
-
-            # 시스템 자원
-            "cpu": cpu,
-            "memory": memory,
-            "disk": disk,
-            "uptime": uptime,
-            "cpu_class": usage_class(cpu),
-            "memory_class": usage_class(memory),
-
-            # 서비스 상태 (전체 딕셔너리 전달)
-            "services": service_results,
-
-            # 로그
-            "logs": logs,
-            "log_source": LOG_FILE,
-            
-            # 프로세스 분석 결과
-            "processes": processes, 
-
-            "os_type": OS_TYPE
+            **data,
         }
     )
 
-# DevTools(개발자 도구)나 특정 크롬 확장 프로그램이 서버의 상세 정보를 파악하기 위해 자동으로 던지는 요청 막기
+@app.get("/api/dashboard")
+def dashboard_api():
+    """
+    대시보드 부분 갱신용 JSON API
+    - 프론트 JS가 60초마다 호출
+    """
+    return collect_dashboard_data()
+
 @app.get("/.well-known/appspecific/com.chrome.devtools.json")
 def ignore_chrome_devtools():
+    """
+    DevTools(개발자 도구)나 특정 크롬 확장 프로그램이 
+    서버의 상세 정보를 파악하기 위해 자동으로 던지는 요청 막기용
+    """
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-# 서버 시작 시 실행
 @app.on_event("startup")
 def startup_event():
     """
@@ -150,7 +171,9 @@ def startup_event():
         logger.exception("startup_event 실행 중 예외 발생")
         raise
 
-# 서버 종료 시 실행
 @app.on_event("shutdown")
 def shutdown_event():
+    """
+    서버가 종료될 때 DB 연결을 끊음
+    """
     db_manager.close()
