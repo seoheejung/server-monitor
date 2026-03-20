@@ -1,6 +1,6 @@
-# 서버 모니터링 웹 애플리케이션 설계·구현·실행 노트
+# 서버 모니터링 웹 애플리케이션 - Server Monitoring & Process Security Engine
 
-**Rocky Linux 서버의 상태를 웹으로 확인하기 위한 서버 모니터링 프로젝트**
+**서버의 상태를 웹으로 확인하기 위한 서버 모니터링 프로젝트**
 
 > 본 문서는 웹 애플리케이션 구조와 내부 설계를 설명한다.   
 > 개발 환경 구축 단계는 기록 목적이며, 운영 기준은 아니다.
@@ -14,13 +14,9 @@
 - [프로젝트 구조](#프로젝트-구조)
 - [[1단계] Windows에서 FastAPI 서버 실행 확인](#1단계-windows에서-fastapi-서버-실행-확인)
 - [[2단계] API 구현](#2단계-api-구현)
-- [[2-1단계] 프로세스 분석 & 보안 관점 모니터링](#2-1단계-프로세스-분석--보안-관점-모니터링)
-- [[2-2단계] 운영 정책 저장소 (MongoDB) & 프로세스 제어](#2-2단계-운영-정책-저장소-mongodb--프로세스-제어)
-- [[2-3단계] 환경 변수 관리 (.env)](#2-3단계-환경-변수-관리-env)
-- [[3단계] Git으로 코드 정리 (Windows)](#3단계-git으로-코드-정리-windows)
-- [[4단계] Rocky Linux 서버에서 준비](#4단계-rocky-linux-서버에서-준비)
-- [[5단계] Rocky Linux에서 가상환경 다시 생성](#5단계-rocky-linux에서-가상환경-다시-생성)
-- [[6단계] Rocky Linux에서 서버 실행](#6단계-rocky-linux에서-서버-실행)
+- [[3단계] 프로세스 분석 & 보안 관점 모니터링](#3단계-프로세스-분석--보안-관점-모니터링)
+- [[4단계] 운영 정책 저장소 (MongoDB) & 프로세스 제어](#4단계-운영-정책-저장소-mongodb--프로세스-제어)
+- [[5단계] 환경 변수 관리 (.env)](#5단계-환경-변수-관리-env)
 - [이 문서의 범위](#이-문서의-범위)
 
 ---
@@ -75,21 +71,25 @@ web/
 │   │   ├── auth.py           # 인증 관련 API
 │   │   ├── process.py        # 프로세스 관련 API
 │   │   └── admin.py          # 관리자 API (sync-now 등)
-│   ├── database/        # DB 연결
+│   ├── repositories/
+│   │   └── db.py
 │   ├── constants/       # 포트 / 프로세스 정책
 │   │   ├── ports.py
 │   │   ├── processes.py
 │   │   ├── linux.py
 │   │   └── windows.py
-│   ├── system/          # 서버 정보 수집 코드 모음
-│   │   ├── cpu.py       # CPU 사용량
-│   │   ├── memory.py    # 메모리 사용량
-│   │   ├── disk.py      # 디스크 사용량
-│   │   ├── uptime.py    # 서버 업타임
-│   │   ├── service.py   # 서비스 상태 (systemctl)
-│   │   ├── log.py       # 로그 tail 기능
-│   │   ├── process_control.py    # 프로세스 종료 로직 (확장)
-│   │   └── process_analyzer.py   # 프로세스 분석 (확장) 
+│   ├── services/
+│   │   ├── init/       
+│   │   │   └── process_seed.py  #  초기 데이터 로드/검증/시드 준비
+│   │   ├── system/          # 서버 상태 모음
+│   │   │   ├── cpu.py       # CPU 사용량
+│   │   │   ├── memory.py    # 메모리 사용량
+│   │   │   ├── disk.py      # 디스크 사용량
+│   │   │   ├── uptime.py    # 서버 업타임
+│   │   │   ├── service.py   # 서비스 상태 (systemctl)
+│   │   │   ├── log.py       # 로그 tail 기능
+│   │   │   ├── process_control.py    # 프로세스 종료 로직
+│   │   │   └── process_analyzer.py   # 프로세스 분석
 │   ├── utils/
 │   │   └── env.py       # 컨테이너 / 런타임
 │   ├── templates/       # 웹 화면
@@ -128,27 +128,14 @@ web/
 ```
 python -m venv venv
 ```
-### 2. 보안 설정
-- Windows PowerShell은 보안 때문에 기본적으로 .ps1 스크립트 실행을 막아둠
-- Activate.ps1는 PowerShell 스크립트 그래서 가상환경 활성화가 차단됨
-- powerShell을 관리자 말고 그냥 그대로 실행 후 명령어 입력
-    ```
-    Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-    ```
 
- | 항목           | 설명             |
- | ------------ | -------------- |
- | CurrentUser  | 내 계정에만 적용      |
- | RemoteSigned | 인터넷에서 받은 것만 제한 |
- | 로컬 venv 스크립트 | 실행 가능          |
-
-### 3. 가상환경 활성화 (Windows PowerShell)
+### 2. 가상환경 활성화 (Windows PowerShell)
 ```
 venv\Scripts\activate
 ```
 - 프롬프트에 (venv) 뜨면 OK
 
-### 4. 패키지 설치 (Windows)
+### 3. 패키지 설치 (Windows)
 ```
 pip install fastapi uvicorn psutil jinja2
 
@@ -175,18 +162,7 @@ pip list
 [ 브라우저 ]
 ```
 
-### 5. app/main.py 작성
-```
-from fastapi import FastAPI
-
-app = FastAPI(title="server-monitor")
-
-@app.get("/")
-def root():
-    return {"message": "server-monitor running"}
-```
-
-### 6. FastAPI 서버 실행 (Windows)
+### 4. FastAPI 서버 실행 (Windows)
 ```
 uvicorn app.main:app --reload
 
@@ -194,7 +170,7 @@ uvicorn app.main:app --reload
 Uvicorn running on http://127.0.0.1:8000
 ```
 
-### 7. 브라우저 확인 (http://127.0.0.1:8000/)
+### 5. 브라우저 확인 (http://127.0.0.1:8000/)
 ```
 {"message":"server-monitor running"}
 ```
@@ -330,7 +306,7 @@ uvicorn app.main:app --reload
 ---
 <br>
 
-## 🧭 [2-1단계] 프로세스 분석 & 보안 관점 모니터링
+## 🧭 [3단계] 프로세스 분석 & 보안 관점 모니터링
 
 > ⚠️ 프로세스 분석의 상세 판단 기준과 예외 정책은 `docs/POLICY.md` 문서 참조
 
@@ -452,7 +428,7 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 ---
 <br>
 
-## 🧭 [2-2단계] 운영 환경 정책 저장소 (MongoDB) & 프로세스 제어
+## 🧭 [4단계] 운영 환경 정책 저장소 (MongoDB) & 프로세스 제어
 
 ### 1. MongoDB
 - 설계 (KNOWN_PROCESSES 전용)
@@ -536,46 +512,6 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
      - 기본적으로 "general"로 설정
      - tags는 [platform, "auto-imported"] 구성
      - created_at 필드 추가 (ISO 8601 형식)
-
-<br>
-
-- mongoDB 설치
-  - Window에서 도커로 설치
-    ```
-    docker run -d --name mongodb -p 27017:27017 mongo
-    ```
-  - 도커 컨테이너로 실행 중인 Rocky Linux 환경
-    ```
-    docker exec -it rocky_server /bin/bash
-    ```
-    - MongoDB 공식 레포지토리 등록
-        ```
-        # 레포지토리 파일 생성
-        cat <<EOF | tee /etc/yum.repos.d/mongodb-org-7.0.repo
-        [mongodb-org-7.0]
-        name=MongoDB Repository
-        baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/7.0/x86_64/
-        gpgcheck=1
-        enabled=1
-        gpgkey=https://www.mongodb.org/static/pgp/server-7.0.asc
-        EOF
-        ```
-    - MongoDB 패키지 설치
-        ```
-        dnf install -y mongodb-org
-
-        # 데이터 디렉토리 생성
-        mkdir -p /data/db
-
-        # MongoDB 실행 (백그라운드)
-        mongod --fork --logpath /var/log/mongodb.log --dbpath /data/db
-        
-        # 프로세스 확인
-        ps -ef | grep mongod
-
-        systemctl start mongod
-        systemctl enable mongod
-        ```
 
 <br>
 
@@ -667,7 +603,7 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 ---
 <br>
 
-## 🧪 [2-3단계] 환경 변수 관리 (.env)
+## 🧪 [5단계] 환경 변수 관리 (.env)
 
 - DB 접속 정보나 비밀 키 같은 민감한 정보를 코드에 직접 쓰지 않고 외부 파일로 관리
 1. `.env` 파일 생성
@@ -701,107 +637,6 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 
     client = MongoClient(MONGO_URL)
     ```
----
-<br>
-
-## ▶ [3단계] Git으로 코드 정리 (Windows)
-### 1. Git 저장소 초기화
-### 2. .gitignore
-```
-venv/
-__pycache__/
-*.pyc
-.env
-```
-- venv는 절대 Git에 올리지 않는다 (Linux에서 다시 만들어야 하기 때문)
-
-### 3. 원격 저장소에 push
-   
----
-<br>
-
-## ▶ [4단계] Rocky Linux 서버에서 준비
-
-### 1. Rocky Linux 접속
-```
-ssh user@서버IP
-```
-
-### 2. 필수 패키지 확인
-```
-python3 --version
-git --version
-
-# 없으면
-sudo dnf install -y python3 git
-```
-
-### 3. 프로젝트 받을 위치
-```
-mkdir -p ~/projects
-cd ~/projects
-git clone <레포주소>
-cd server-monitor
-```
-
----
-<br>
-
-## ▶ [5단계] Rocky Linux에서 가상환경 다시 생성
-
-### ⚠️ Windows venv는 사용 불가 → Linux에서 새로 생성
-
-```
-python3 -m venv venv
-source venv/bin/activate
-
-# 확인:
-(venv) [user@rocky server-monitor]$
-
-# 패키지 설치 (Linux)
-pip install -r requirements.txt
-```
-
----
-<br>
-
-## ▶ [6단계] Rocky Linux에서 서버 실행
-
-### 1. FastAPI 서버 실행
-```
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
-- 0.0.0.0 → 외부 접속 허용
-- 8000 → 테스트 포트
-
-### 2. 방화벽 확인 (Rocky Linux 필수)
-```
-sudo firewall-cmd --add-port=8000/tcp --permanent
-sudo firewall-cmd --reload
-```
-- --permanent : 재부팅 후에도 유지
-- reload : 설정 즉시 반영
-
-### 3. 외부 접속 확인 (웹 브라우저)
-
-```
-http://서버IP:8000/
-```
-- 모니터링 화면이 나오면 Linux 환경에서 서버 실행 성공
-
-### 4. Nginx 연동 (추후 단계)
-> 운영 환경에서는 FastAPI를 직접 노출하지 않는다.
-
-```
-Client → Nginx (80) → FastAPI (8000)
-```
-- FastAPI : 내부 포트 8000
-- Nginx : 외부 포트 80
-  - Nginx는 Reverse Proxy 역할
-  - HTTPS, 인증, 접근 제어는 Nginx에서 처리
-
-#### Nginx 설정은 운영 단계에서 별도 문서로 진행
-
 ---
 <br>
 

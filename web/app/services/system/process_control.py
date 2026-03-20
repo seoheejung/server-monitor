@@ -1,6 +1,6 @@
 import logging
 import psutil
-from app.database.db import db_manager
+from app.repositories.db import db_manager
 
 logger = logging.getLogger(__name__)
 

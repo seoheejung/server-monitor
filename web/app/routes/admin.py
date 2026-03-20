@@ -1,8 +1,8 @@
 from fastapi import Depends, APIRouter
 import datetime
 
-from app.database.db import db_manager
-from app.system.process_analyzer import sync_with_mongodb
+from app.repositories.db import db_manager
+from app.services.system.process_analyzer import sync_with_mongodb
 from app.core.config import OS_TYPE
 from app.core.security import require_admin_cookie
 

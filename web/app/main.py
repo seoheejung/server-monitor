@@ -13,17 +13,18 @@ logging.basicConfig(
 )
 
 # 직접 생성한 시스템 정보 함수 import
-from app.system.cpu import get_cpu_usage
-from app.system.memory import get_memory_usage
-from app.system.disk import get_disk_usage
-from app.system.uptime import get_uptime
-from app.system.service import get_service_status
-from app.system.log import get_tail_log
-from app.system.process_analyzer import get_process_list, sync_with_mongodb
-from app.database.db import db_manager
+from app.services.system.cpu import get_cpu_usage
+from app.services.system.memory import get_memory_usage
+from app.services.system.disk import get_disk_usage
+from app.services.system.uptime import get_uptime
+from app.services.system.service import get_service_status
+from app.services.system.log import get_tail_log
+from app.services.system.process_analyzer import get_process_list, sync_with_mongodb
+from app.repositories.db import db_manager
 from app.routes import process, admin, auth
 from app.core.config import OS_TYPE
 from app.core.security import require_admin_cookie, issue_admin_cookie
+from app.services.init.process_seed import load_and_validate_process_data
 
 logger = logging.getLogger(__name__)
 
@@ -124,20 +125,9 @@ def startup_event():
         # 1. DB 연결
         db_manager.connect()
 
+        
         # 2. JSON 파일에서 데이터 로드
-        local_data = []
-        if os.path.exists(JSON_FILE_PATH):
-            with open(JSON_FILE_PATH, "r", encoding="utf-8") as f:
-                local_data = json.load(f)
-
-            for i, item in enumerate(local_data):
-                name = item.get("name")
-                if not isinstance(name, str) or not name.strip():
-                    logger.error("잘못된 항목 발견 (index=%s): %s", i, item)
-                    break
-            else:
-                logger.info("name 필드 이상 없음")
-
+        local_data = load_and_validate_process_data(JSON_FILE_PATH)
 
         # 3. DB에 시딩
         db_data = []

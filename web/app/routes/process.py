@@ -2,8 +2,8 @@ from fastapi import Depends, APIRouter
 from pydantic import BaseModel
 
 # 실제 프로세스 종료 로직 import
-from app.system.process_control import terminate_process
-from app.system.process_analyzer import get_process_list
+from app.services.system.process_control import terminate_process
+from app.services.system.process_analyzer import get_process_list
 from app.core.config import OS_TYPE
 from app.core.security import require_admin_cookie
 
