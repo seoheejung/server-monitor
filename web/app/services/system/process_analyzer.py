@@ -1,6 +1,6 @@
 import psutil
 import time
-from typing import List, Dict
+from typing import Iterable, List, Dict
 
 from app.constants.ports import KNOWN_PORTS
 from app.constants.windows import (
@@ -124,11 +124,19 @@ def analyze_process(proc: Dict) -> Dict[str, List[str]]:
     os_type = proc.get("os_type")
 
     # [보안] 관리자/루트 권한 실행 여부 체크
-    if username in ("root", "SYSTEM", "Administrator"):
-        # Windows System(PID 4)는 정상
-        if not (os_type == "Windows" and proc.get("pid") == 4):
-            warnings.append("RUNNING_AS_ADMIN: 관리자 권한으로 실행 중")
-
+    if os_type == "Windows":
+        if username and username.upper() in (
+            "SYSTEM",
+            "NT AUTHORITY\\SYSTEM",
+            "LOCAL SERVICE",
+            "NETWORK SERVICE",
+            "ADMINISTRATOR",
+        ):
+            if proc.get("pid") != 4:
+                warnings.append("RUNNING_AS_ADMIN: 관리자 권한으로 실행 중")
+        else:
+            if username == "root":
+                warnings.append("RUNNING_AS_ADMIN: 관리자 권한으로 실행 중")
 
     # [보안] 주요 서비스 포트가 외부에 노출되어 있는지 확인
     for port in ports:
@@ -181,10 +189,14 @@ def analyze_process(proc: Dict) -> Dict[str, List[str]]:
     }
 
 
-def sync_with_mongodb(db_data_list: List[Dict], current_os: str):
+def sync_with_mongodb(db_data_list: Iterable[Dict], current_os: str):
     """
     MongoDB의 known_processes 컬렉션 데이터를 메모리로 동기화 로직
-    우선순위: OS별 전용 프로세스 > Common 프로세스
+    
+    우선순위:
+    1. platform == common
+    2. platform == 현재 OS
+       -> 같은 name이면 OS 전용 설명이 common 설명을 덮어씀
     """
 
     global CACHED_KNOWN_PROCS
@@ -215,15 +227,17 @@ def sync_with_mongodb(db_data_list: List[Dict], current_os: str):
             continue
 
         name = name.lower()
-        # 기본 등록
-        temp_map[name] = desc
         
         # Windows인 경우 확장자 대응용 가상 키 생성 (실제 DB 데이터는 하나지만 검색은 둘 다 되게)
-        if current_os.lower() == "windows":
+        if current_os == "windows":
             name_no_ext = name.rsplit('.', 1)[0]
-            name_with_exe = f"{name_no_ext}.exe"
             temp_map[name_no_ext] = desc
-            temp_map[name_with_exe] = desc
+            temp_map[name] = desc  # 원본 그대로 유지
+            # 이미 .exe이면 중복 생성 방지
+            if not name.endswith(".exe"):
+                temp_map[f"{name_no_ext}.exe"] = desc
+        else:
+            temp_map[name] = desc
             
     CACHED_KNOWN_PROCS = temp_map
 
@@ -243,75 +257,144 @@ def explain_process(proc:Dict) -> str:
 
 def get_process_list(os_type: str) -> List[Dict]:
     """
-    최종 조합 함수 (정렬 기능 추가)
-    
-    1. 프로세스 정보 수집
-    2. 위험 분석 및 해설 추가
-    3. 위험도가 높은(경고가 많은) 프로세스를 상단으로 정렬
+    최종 조합 함수
+
+    처리 흐름:
+    1. 프로세스 수집
+    2. 위험 분석 (warnings 생성)
+    3. 상태 판단 (보안 정책 적용)
+    4. UI 포맷 가공
+    5. 위험도 기준 정렬
     """
+
     result = []
 
-    # 1단계: 수집
+    # 1단계: 프로세스 수집
     raw_processes = collect_processes(os_type)
 
-    # 2단계: 분석
+    # 2~4단계: 분석 + 상태 + 포맷
     for proc in raw_processes:
-        # 1. 정체 파악 (Case A vs B/C 결정 요소)
+        # 프로세스 설명 (KNOWN 여부 판단용)
         proc["explain"] = explain_process(proc)
-        
-        # 2. 위험 분석 (진단 결과)
+
+        # 위험 분석 수행
         analysis = analyze_process(proc)
         proc["warnings"] = analysis["warnings"]
         proc["perf_warnings"] = analysis["perf_warnings"]
 
-         # verdict 판단은 보안 warnings만 사용
-        is_known = not proc["explain"].startswith("미등록")
-        risk_count = len(proc["warnings"])
-        
-        # 3. 상태 요약 생성 (Case A, B, C 로직)
-        if risk_count == 0 and is_known:
-            # Case A : 경고가 하나도 없는 경우
-            proc["status_summary"] = "✅ 안전"
-            proc["status_code"] = "OK"
-            # Case B : 정체는 모르지만 경고가 없는 경우
-        elif risk_count == 0 and not is_known:
-            proc["status_summary"] = "⚠️ 미등록 프로세스"
-            proc["status_code"] = "WARN"
-        else:
-            # Case C: 경고가 존재하는 경우 (가장 첫 번째 경고를 대표로 표시하거나 개수 표시)
-            main = proc["warnings"][0].split(":")[0]
-            extra = risk_count - 1
-            proc["status_summary"] = (
-                f"🚨 {main} 외 {extra}건" if extra > 0 else f"🚨 {main}"
-            )
-            proc["status_code"] = "DANGER"
+        # 상태 판단 (Case A/B/C 적용)
+        build_status(proc)
 
-        # 4. UI 출력용 값 확정
-        if proc["pid"] == 0:
-            proc["cpu"] = "0.0"
-        else:
-            cpu_val = proc.get('cpu_percent', 0)
-            # 논리적으로 한 프로세스가 전체 CPU 자원의 100%를 초과할 수 없으므로 제한
-            proc["cpu"] = f"{min(cpu_val, 100.0):.1f}" if cpu_val is not None else "0.0"
-        proc["memory"] = (
-            f"{proc.get('memory_percent', 0):.1f}"
-            if proc.get("memory_percent") is not None else "-"
-        )
-        proc["user"] = proc.get("username") or "-"
-
-        ports_list = proc.get("ports", [])
-        if len(ports_list) > 5:
-            # 포트가 너무 많으면(크롬 등) 요약
-            proc["display_ports"] = f"{ports_list[0]} 외 {len(ports_list)-1}건"
-        elif len(ports_list) > 0:
-            # 5건 이하면 콤마로 연결
-            proc["display_ports"] = ", ".join(map(str, ports_list))
-        else:
-            proc["display_ports"] = ""
+        # UI 출력용 데이터 가공
+        format_process(proc)
 
         result.append(proc)
 
-    # 3단계: 정렬 로직, 위험도 우선 정렬 (Case C가 항상 맨 위로)
-    # warnings 리스트의 개수(len)를 기준으로 내림차순(reverse=True) 정렬
-    result.sort(key=lambda x: len(x["warnings"]), reverse=True)
+    # 5단계: 위험도 기준 정렬
+    result.sort(key=process_sort_key)
+
     return result
+
+def build_status(proc: Dict):
+    """
+    보안 진단 가이드 기준으로 상태 결정
+
+    Case A: KNOWN + Warning 없음 → ✅ 안전
+    Case B: UNKNOWN + Warning 없음 → ⚠️ 경계
+    Case C: Warning 존재
+        - 치명 Warning → 🚨 위험
+        - 일반 Warning → ⚠️ 주의
+    """
+
+    warnings = proc["warnings"]
+    is_known = not proc["explain"].startswith("미등록")
+
+    # 치명 Warning 정의 (정책 기준)
+    CRITICAL_KEYWORDS = ("SUSPICIOUS_PATH", "RUNNING_AS_ADMIN")
+
+    # Warning 분류
+    critical = [w for w in warnings if any(k in w for k in CRITICAL_KEYWORDS)]
+    normal = [w for w in warnings if w not in critical]
+
+    # 정렬용 플래그 (치명 여부)
+    proc["has_critical"] = bool(critical)
+
+    # Case A
+    if not warnings and is_known:
+        proc["status_summary"] = "✅ 안전"
+        proc["status_code"] = "OK"
+
+    # Case B
+    elif not warnings and not is_known:
+        proc["status_summary"] = "⚠️ 미등록 프로세스"
+        proc["status_code"] = "WARN"
+
+    # Case C - 치명 Warning
+    elif critical:
+        main = critical[0].split(":")[0]
+        extra = len(critical) - 1
+        proc["status_summary"] = (
+            f"🚨 {main} 외 {extra}건" if extra > 0 else f"🚨 {main}"
+        )
+        proc["status_code"] = "DANGER"
+
+    # Case C - 일반 Warning
+    elif normal:
+        main = normal[0].split(":")[0]
+        extra = len(normal) - 1
+        proc["status_summary"] = (
+            f"⚠️ {main} 외 {extra}건" if extra > 0 else f"⚠️ {main}"
+        )
+        proc["status_code"] = "WARN"
+
+    # 방어 코드 (이론상 도달하면 안됨)
+    else:
+        proc["status_summary"] = "⚠️ 상태 판별 불가"
+        proc["status_code"] = "WARN"
+
+def format_process(proc: Dict):
+    """
+    UI 출력용 데이터 가공
+
+    - CPU / Memory 문자열 포맷팅
+    - 사용자명 fallback 처리
+    - 포트 리스트 요약
+    """
+
+    cpu_val = proc.get("cpu_percent")
+
+    # CPU (% 단위 문자열)
+    proc["cpu"] = f"{cpu_val:.1f}" if cpu_val is not None else "0.0"
+
+    # 메모리 (% 단위 문자열)
+    proc["memory"] = (
+        f"{proc.get('memory_percent', 0):.1f}"
+        if proc.get("memory_percent") is not None else "-"
+    )
+
+    # 사용자 정보
+    proc["user"] = proc.get("username") or "-"
+
+    # 포트 표시 (많으면 요약)
+    ports = proc.get("ports", [])
+
+    if len(ports) > 5:
+        proc["display_ports"] = f"{ports[0]} 외 {len(ports)-1}건"
+    elif ports:
+        proc["display_ports"] = ", ".join(map(str, ports))
+    else:
+        proc["display_ports"] = ""
+
+def process_sort_key(proc: Dict):
+    """
+    위험도 기반 정렬 기준
+
+    우선순위:
+    1. 치명 Warning 존재 여부 (최우선)
+    2. Warning 개수 (많을수록 위)
+    """
+
+    return (
+        not proc.get("has_critical", False),   # False(치명 있음) → 먼저
+        -len(proc["warnings"]),     # Warning 개수 많은 순
+    )

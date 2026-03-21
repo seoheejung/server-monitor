@@ -38,7 +38,12 @@
 #### 위험 레벨 기준
 - 🟡 INFO : 즉각적 위험 없음 (관찰 대상)
 - 🟠 WARN : 설정/권한/노출 점검 필요
-- 🔴 DANGER : 보안 또는 시스템 위험 가능성 높음
+- 🔴 DANGER : 치명적 보안 위험 가능성
+
+#### ※ 상태 판정 기준
+- Warning 없음 → OK 또는 WARN (KNOWN 여부 기준)
+- 일반 Warning만 존재 → WARN
+- 치명 Warning 포함 → DANGER
 
 #### 1. RUNNING_AS_ADMIN
 - root, SYSTEM, Administrator 권한 실행
@@ -46,14 +51,16 @@
 - 위험 레벨 : 🟠 
 
 #### 2. PUBLIC_PORT(n)
-- KNOWN_PORTS에 정의된 주요 서비스 포트를 해당 역할과 무관한 프로세스가 점유하여 외부 접근을 허용하는 경우
-- PUBLIC_PORT는 항상 Warning으로 기록되며, INFO/WARN 구분은 UI 해석 단계에서 결정
-- 위험 레벨 : 🟡 / 🟠 
+- KNOWN_PORTS에 정의된 주요 서비스 포트를 사용 중인 경우
+- 모든 PUBLIC_PORT는 Warning으로 기록된다
+- 실제 위험도(INFO/WARN)는 UI 또는 사용자 판단 단계에서 해석된다
+- 위험 레벨 : 🟡 / 🟠 (해석 단계에서 결정)
 
 #### 3. SYSTEM_PORT(n)
 - 비표준 시스템 포트 개방
 - `port < 1024` (단, `KNOWN_PORTS` 및 `WINDOWS_SYSTEM_PORTS` 제외)
-- 위험 레벨 : 🔴 
+- Warning으로 기록되며, 치명 여부는 전체 Warning 구성에 따라 결정
+- 위험 레벨 : 🟠 / 🔴 (상황 의존)
 
 #### 4. HIGH_MEMORY_USAGE
 - 메모리 사용률 ≥ 20%
@@ -66,6 +73,12 @@
 - 악성코드 / 수동 배포 바이너리 탐지 목적
 - 조건부 허용 경로 실행 시: 🟠 
 - 비표준 경로 실행 시: 🔴 
+
+#### 치명 Warning 정의 (Critical Warning)
+- SUSPICIOUS_PATH
+- RUNNING_AS_ADMIN
+
+> 치명 Warning이 하나라도 존재하면 해당 프로세스는 DANGER 상태로 판정
 
 ---
 
@@ -172,19 +185,21 @@ MemCompression.exe (Windows 메모리 압축 관리 프로세스)
 ### 종합 진단 가이드
 
 #### 1. 진단 케이스 (Case A/B/C)
-| 코드 | 조건                          | 판단         |
-| --- | ----------------------------- | ---------- |
-| `OK` | 등록된 프로세스(KNOWN)이면서 보안 경고가 0건인 경우 | ✅ 안전 |
-| `WARN` | 보안 경고는 없으나, 정책(DB)에 등록되지 않은 프로세스 (정체 미확인)  | ⚠️ 미등록 프로세스  |
-| `DANGER` | 보안 경고(Warning)가 1건이라도 존재하는 경우   | 🚨 SUSPICIOUS_PATH 외 n건 |
+| 코드 | 조건 | 판단 |
+|------|------|------|
+| `OK` | KNOWN + Warning 없음 | ✅ 안전 |
+| `WARN` | UNKNOWN + Warning 없음 | ⚠️ 미등록 프로세스 |
+| `WARN` | Warning 존재 (일반 Warning만) | ⚠️ 주의 |
+| `DANGER` | 치명 Warning 포함 | 🚨 위험 |
 
 #### 2. 정렬 및 출력 로직
-- 우선순위
-  - 보안 위험도가 높은 프로세스(Warning 개수 기준 내림차순)를 최상단에 배치
 
-- 데이터 가공
-  - * CPU 사용률은 논리적 최대치인 100%를 초과하지 않도록 제한
-  - 네트워크 포트가 5개를 초과할 경우 "n번 포트 외 m건"으로 요약 표시하여 가독성 향상
+- 우선순위
+  1. 치명 Warning 존재 여부 (최우선)
+  2. Warning 개수 기준 내림차순 정렬
+
+- 목적
+  - 실제 대응이 필요한 프로세스를 최상단에 배치
 
 
 ---

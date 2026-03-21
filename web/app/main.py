@@ -10,7 +10,10 @@ logging.basicConfig(
     format="[%(levelname)s] %(name)s: %(message)s",
 )
 
-from app.services.system.process_analyzer import sync_with_mongodb
+from app.services.system.process_analyzer import (
+    sync_with_mongodb,
+    CACHED_KNOWN_PROCS,
+)
 from app.repositories.db import db_manager
 from app.routes import process, admin, auth, dashboard 
 from app.core.config import OS_TYPE
@@ -62,36 +65,47 @@ def ignore_chrome_devtools():
 @app.on_event("startup")
 def startup_event():
     """
-    서버가 시작될 때 MongoDB에서 데이터를 가져와 메모리 캐시를 초기화
+    서버 시작 시 known_processes 데이터를 메모리 캐시에 로드
+
+    정책:   
+    - JSON 파일은 필수 초기 데이터
+    - MongoDB 사용 가능 시 DB 기준으로 캐시 구성
+    - MongoDB 사용 불가 시 로컬 JSON fallback으로 기동
     """
     try:
-        # 1. DB 연결
-        db_manager.connect()
-        
-        # 2. JSON 파일에서 데이터 로드
+        # 앱 기동의 기준이 되는 기본 데이터
         local_data = load_and_validate_process_data(JSON_FILE_PATH)
-
-        # 3. DB에 시딩
-        db_data = []
-        if db_manager.db is not None:
+        try:
+            db_manager.connect()
+            if db_manager.db is None:
+                raise RuntimeError("MongoDB 연결 실패")
+            
+            # JSON 원본 데이터를 DB에 시딩
             db_manager.seed_initial_data(local_data)
-            # DB에서 정제된 최종 데이터 가져오기
+
+            # DB에서 정제된 최종 데이터를 다시 읽어 캐시 구성
             db_data = db_manager.get_known_processes()
-        else: 
-            # DB 연결 실패 시 JSON 파일 데이터 그대로 사용 (Fallback)
-            db_data = local_data
-            logger.warning("⚠️ DB 연결 실패. JSON 로컬 데이터를 엔진에 로드 진행")
-        
-        # 4. 메모리 캐시 동기화
-        sync_with_mongodb(db_data, OS_TYPE)
-        logger.info(
-            "🚀 분석 엔진 준비 완료 (OS: %s, 로드된 프로세스: %s개)",
-            OS_TYPE,
-            len(db_data),
-        )
-        
+            
+            # 메모리 캐시 동기화
+            sync_with_mongodb(db_data, OS_TYPE)
+            logger.info(
+                "🚀 분석 엔진 준비 완료 (OS: %s, 로드된 프로세스: %s개)",
+                OS_TYPE,
+                len(CACHED_KNOWN_PROCS),
+            )
+        except Exception:
+            logger.exception("⚠️ MongoDB 사용 불가 - 로컬 JSON fallback으로 기동")
+
+            # DB 실패 시 로컬 JSON 기준으로 캐시 구성
+            sync_with_mongodb(local_data, OS_TYPE)
+
+            logger.info(
+                "🚀 분석 엔진 준비 완료 (OS: %s, source: local_json, 캐시 엔트리 수: %s개)",
+                OS_TYPE,
+                len(CACHED_KNOWN_PROCS),
+            )
     except Exception:
-        logger.exception("startup_event 실행 중 예외 발생")
+        logger.exception("❌ startup 실패 - 필수 초기 데이터 로드 불가")
         raise
 
 @app.on_event("shutdown")

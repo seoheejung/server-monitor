@@ -1,8 +1,5 @@
 # 컨테이너 환경에서 무시할 프로세스
 LINUX_CONTAINER_IGNORE_PROCS = {
-    "bash",
-    "sh",
-    "sleep",
     "pause",   # k8s pause container
     "tini",    # docker init
 }

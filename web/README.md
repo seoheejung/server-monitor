@@ -33,27 +33,27 @@
 <br>
 
 ###  🧭 [설계] 핵심 기능
-1. 기본 모니터링 (1차)
-   - 시스템 리소스 시각화
-     - CPU, RAM, Disk 사용량을 픽셀 스타일 대시보드로 실시간 확인
-   - 하이브리드 서비스 모니터링
-     - Linux: systemctl 기반 서비스 상태 감지
-     - Docker / Native: psutil 기반 프로세스 상태 분석
-     - 로그 스트리밍: 시스템 및 서비스 로그를 웹 콘솔에서 즉시 확인
-2. 프로세스 보안 분석 (2차)
-   - 실행 중 프로세스 상세 분석 (Cross Platform)
-     - root/SYSTEM 실행 여부, 비표준 경로, 위험·시스템 포트 점유 자동 진단
-   - Explain & Warning
-     - 각 프로세스의 역할과 현재 위험 요소를 사용자가 이해 가능한 언어로 설명
-     - 정상 / 주의 / 위험 상태를 도트 기반 콘솔 UI로 시각화
-3. 운영 제어 & 정책 관리 (3차)
-   - 정책 기반 프로세스 관리
-     - MongoDB 연동으로 KNOWN_PROCESSES 및 보호 정책 중앙 관리
-   - 안전한 프로세스 종료
-     - 시스템 프로세스 보호
-     - Soft Kill → Hard Kill 단계적 종료 로직
-   - 운영 확장 기반
-     - 운영자 개입 없이 정책에 따른 판단·제어 구조 확보
+#### 1. 기본 모니터링 (1차)
+- 시스템 리소스 시각화
+  - CPU, RAM, Disk 사용량을 픽셀 스타일 대시보드로 실시간 확인
+- 하이브리드 서비스 모니터링
+  - Linux: systemctl 기반 서비스 상태 감지
+  - Docker / Native: psutil 기반 프로세스 상태 분석
+  - 로그 스트리밍: 시스템 및 서비스 로그를 웹 콘솔에서 즉시 확인
+#### 2. 프로세스 보안 분석 (2차)
+- 실행 중 프로세스 상세 분석 (Cross Platform)
+  - root/SYSTEM 실행 여부, 비표준 경로, 위험·시스템 포트 점유 자동 진단
+- Explain & Warning
+  - 각 프로세스의 역할과 현재 위험 요소를 사용자가 이해 가능한 언어로 설명
+  - 정상 / 주의 / 위험 상태를 도트 기반 콘솔 UI로 시각화
+#### 3. 운영 제어 & 정책 관리 (3차)
+- 정책 기반 프로세스 관리
+  - MongoDB 연동으로 KNOWN_PROCESSES 및 보호 정책 중앙 관리
+- 안전한 프로세스 종료
+  - 시스템 프로세스 보호
+  - Soft Kill → Hard Kill 단계적 종료 로직
+- 운영 확장 기반
+  - 운영자 개입 없이 정책에 따른 판단·제어 구조 확보
 
 ---
 <br>
@@ -223,67 +223,51 @@ uvicorn app.main:app --reload
 ## 🧪 [2단계] API 구현
 
 ### 1. 시스템 정보 수집 (CPU)
-   - psutil 중 가장 단순 (OS 권한 문제 없음)
-   - 정확도 확보: psutil.cpu_percent(interval=1)를 사용하여 1초간의 평균 부하 측정
-   - Windows와 Linux에서 동일한 API로 동작하여 개발 편의성 확보
+- psutil 중 가장 단순 (OS 권한 문제 없음)
+- 정확도 확보: psutil.cpu_percent(interval=1)를 사용하여 1초간의 평균 부하 측정
+- Windows와 Linux에서 동일한 API로 동작하여 개발 편의성 확보
 
 ### 2. 리소스 가공 (메모리, 디스크, 구동 시간)
-   - 메모리: psutil.virtual_memory()
-     - 전체(Total), 사용량(Used), 퍼센트(Percent) 추출
-   - 디스크: psutil.disk_usage('/')
-     - OS별 루트 경로 분기 처리
-       - Linux : `/`
-       - Windows : `C:\\`
-   - 구동 시간: psutil.boot_time()
-     - 부팅 시점 타임스탬프와 datetime.now()의 차이를 계산
-     - timedelta를 사용하여 D+H:M 형태의 사용자 친화적 문자열로 가공
+#### 메모리: psutil.virtual_memory()
+- 전체(Total), 사용량(Used), 퍼센트(Percent) 추출
+
+#### 디스크: psutil.disk_usage('/')
+- OS별 루트 경로 분기 처리
+  1. Linux : `/`
+  2. Windows : `C:\\`
+
+#### 구동 시간: psutil.boot_time()
+- 부팅 시점 타임스탬프와 datetime.now()의 차이를 계산
+- timedelta를 사용하여 D+H:M 형태의 사용자 친화적 문자열로 가공
 
 ### 3. 서비스 상태
-  - 운영체제에 따른 분기 처리 필요
-    - Windows: `platform` 체크를 통해 미지원 메시지 출력 및 예외 처리
-    - Linux (Host): `systemctl is-active` 명령어를 우선 사용하여 OS 레벨의 표준 상태 수집
-    - Docker (Container): `systemctl`이 없는 환경은 `psutil.process_iter`로 프로세스명 검색
-  - 모니터링 대상 서비스 정의 (services_to_check)
-    - 네트워크/인프라: nginx (웹 서비스), sshd (원격 관리)
-    - 시스템 운영: rsyslog (로그 관리), docker (가상화 서비스)
-    - 실행 환경: python (백엔드 구동 환경)
+#### 운영체제에 따른 분기 처리 필요
+1. Windows: `platform` 체크를 통해 미지원 메시지 출력 및 예외 처리
+2. Linux (Host): `systemctl is-active` 명령어를 우선 사용하여 OS 레벨의 표준 상태 수집
+3. Docker (Container): `systemctl`이 없는 환경은 `psutil.process_iter`로 프로세스명 검색
+
+#### 모니터링 대상 서비스 정의 (services_to_check)
+1. 네트워크/인프라: nginx (웹 서비스), sshd (원격 관리)
+2. 시스템 운영: rsyslog (로그 관리), docker (가상화 서비스)
+3. 실행 환경: python (백엔드 구동 환경)
 
 ### 4. 로그 수집 (tail)
-   - 대용량 로그 파일 전체를 읽지 않고, 파일 끝(EOF)에서부터 최근 10~20줄만 추출하는 tail 로직 구현
-   - `/var/log` 접근 시 발생할 수 있는 **PermissionError**를 `try-except`로 처리하여 서버가 중단되지 않게 방어 코드 작성
+- 대용량 로그 파일 전체를 읽지 않고, 파일 끝(EOF)에서부터 최근 10~20줄만 추출하는 tail 로직 구현
+- `/var/log` 접근 시 발생할 수 있는 **PermissionError**를 `try-except`로 처리하여 서버가 중단되지 않게 방어 코드 작성
 
 ### 5. 대시보드
-  - Jinja2 템플릿을 활용한 화면 분리
-      ```
-      Python 데이터 → Jinja2 → HTML
-      ```
-  - UI 컨셉
-      ```
-      [ 서버 상태 대시보드 ]
-
-      CPU 사용률: 23%
-      RAM 사용량: 5.2GB / 16GB
-      Disk 사용량: 40%
-
-      서비스 상태
-      - nginx: active
-      - docker: active
-
-      최근 로그
-      --------------------------------
-      [INFO] ...
-      [WARN] ...
-
-      실행 중인 프로세스
-
-      ```
-      - Retro / Pixel Server Console
-      - 도트 배경 → 서버 콘솔 느낌
-      - 픽셀 폰트 → 시스템 모니터링 감성
-      - 굵은 테두리 → 상태판 느낌
-      - box-shadow → 픽셀 카드 연출
-      - 리소스 수치에 따라 good/warn/bad CSS 클래스 자동 부여.
-      - 서비스 상태(active, failed)에 따라 도트 색상 변경.
+#### Jinja2 템플릿을 활용한 화면 분리
+```
+Python 데이터 → Jinja2 → HTML
+```
+#### UI 컨셉
+1. Retro / Pixel Server Console
+2. 도트 배경 → 서버 콘솔 느낌
+3. 픽셀 폰트 → 시스템 모니터링 감성
+4. 굵은 테두리 → 상태판 느낌
+5. box-shadow → 픽셀 카드 연출
+6. 리소스 수치에 따라 good/warn/bad CSS 클래스 자동 부여
+7. 서비스 상태(active, failed)에 따라 도트 색상 변경
 
 ### 6. 관리자 인증 구조
 - 모든 주요 API는 인증이 필요
@@ -330,15 +314,6 @@ uvicorn app.main:app --reload
 | 실행 사용자  | 실행 주체 (root / SYSTEM / Administrator) | username     |
 | 시작 시간   | 프로세스 생성 시점          | create_time     |
 
-```
-process.py
-├── collect_processes()   # OS 공통: psutil 기반 프로세스 수집
-├── collect_ports(pid)    # OS별 분기: PID 기준 포트 수집
-├── analyze_process(proc) # 위험 요소(Warning) 판단
-├── explain_process(proc) # 프로세스 역할 설명
-└── get_process_list()    # 수집 + 분석 + 설명 통합
-```
-
 ### Rocky Linux(Linux) 이식 시 주의사항 업데이트 💡 
 1. 권한 기준
    - Windows: SYSTEM, Administrator
@@ -384,16 +359,17 @@ redis-server
 ```
 
 ### 보안 진단 가이드 로직 🔐
-1. KNOWN_PROCESSES에 존재 + Warning 없음 → ✅ 안전
+1. KNOWN_PROCESSES에 존재 + Warning 없음 → ✅ 안전 (단, 경로/권한/포트가 정상 범위인 경우에 한함)
 2. KNOWN_PROCESSES에 없음 + Warning 없음 → ⚠️ 경계 (사용자 확인 필요)
 3. Warning이 하나라도 존재 → 🚨 위험 / 주의 (즉시 점검 권장)
-
+   - 일반 Warning → ⚠️ 주의
+   - 치명 Warning(비정상 경로, 권한 이상 등) → 🚨 위험 (즉시 점검 권장)
 ```
 CASE A: 정체는 알고 있고, 위험도 없는 경우
 - Process: explorer.exe (윈도우 탐색기)
 - Explain: KNOWN_PROCESSES에 있음 → "Windows 탐색기: 파일 관리 및 데스크톱 UI"
 - Warnings: 권한/경로/포트 모두 정상 → "✅ 특이사항 없음"
-- 결과: ✅ 정상 동작
+- 결과: ✅ 정상 동작 (정상 경로 및 권한 기준 충족)
 
 CASE B: 정체는 모르지만, 위험도 없는 경우
 - Process: my_custom_tool.exe (내가 직접 만든 도구)
@@ -405,7 +381,7 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 - Process: hacker_tool.exe
 - Explain: KNOWN_PROCESSES에 없음 → "❓ 알 수 없는 사용자/시스템 프로세스"
 - Warnings: 관리자 권한, 비표준 경로 등 발견 → "⚠️ SUSPICIOUS_PATH"
-- 결과: 🚨 즉시 조치 필요
+- 결과: 🚨 즉시 조치 필요 (치명 Warning 포함)
 ```
 
 <br>
@@ -418,13 +394,6 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 | 정상 | 🟢 |
 | 주의 | 🟡 |
 | 위험 | 🔴 |
-
-- 콘솔 스타일 예시
-```
-🟢 nginx   PID 1324   PORT 80,443
-🟡 redis   PID 2211   PORT 6379
-🔴 mysql   PID 998    PORT 3306
-```
 
 ---
 <br>

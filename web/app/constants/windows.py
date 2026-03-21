@@ -22,7 +22,6 @@ WINDOWS_ALLOWED_USER_PATHS = (
     "C:\\Program Files (x86)",
     "C:\\ProgramData",
     "C:\\Windows",
-    "C:\Windows\System32\\"
 )
 
 WINDOWS_SYSTEM_PROCS = {
@@ -36,6 +35,9 @@ WINDOWS_SYSTEM_PROCS = {
     "svchost.exe",      # 서비스 호스트
     "services.exe",     # 서비스 관리자
     "lsass.exe",        # 로컬 인증
+    "explorer.exe",
+    "dwm.exe",
+
 }
 
 WINDOWS_DEV_PROCS = {
@@ -47,6 +49,6 @@ WINDOWS_DEV_PROCS = {
 
     # --- 런타임 및 언어 (실제 포트를 열고 코드를 실행하는 주범) ---
     "node.exe",           # Node.js / React / Vue 개발 시 필수
-    "python.exe",         # Python / Django / Flask / AI 모델 실행
+    "python.exe", "python3.exe", "python3.13.exe",   # Python / Django / Flask / AI 모델 실행
     "java.exe",           # Spring Boot / Android 개발
 }
