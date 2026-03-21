@@ -1,0 +1,5 @@
+- name: Restart nginx
+  # 설정 변경 시 nginx 재시작 필요
+  systemd:
+    name: nginx
+    state: restarted

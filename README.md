@@ -360,7 +360,7 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 6. OS 차이로 인해 동작이 깨지는 지점 식별 및 수정 ✅
 7. mongoDB 연동 ✅
 8. 프로세스 종료 기능 ✅
-9. 인증/인가 부재 문제 해결
+9. 인증/인가 부재 문제 해결 ✅
 10. Ansible을 통한 운영 환경 자동 구성 및 재현성 확보
 11. 실제 Rocky Linux (VirtualBox) 운영 환경 적용 및 네이티브 기준 최종 검증
 

@@ -53,9 +53,16 @@ infra/ansible/
 │   ├── security
 │   │   └── tasks/
 │   │       └── main.yml
-│   └── mongodb
-│       └── tasks/
-│           └── main.yml
+│   ├── mongodb
+│   │   └── tasks/
+│   │      └── main.yml
+│   ├── nginx
+│   │   ├── tasks/
+│   │   │  └── main.yml
+│   │   ├── handlers/
+│   │   │  └── main.yml
+│   │   └── templates/
+│   │      └── nginx.conf.j2
 ```
 - common : OS 공통 설정
 - security : 보안 설정

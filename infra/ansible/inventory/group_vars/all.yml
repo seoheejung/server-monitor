@@ -7,3 +7,5 @@ common_packages:
   - python3-devel
   - gcc
   - make
+
+nginx_listen_port: 80

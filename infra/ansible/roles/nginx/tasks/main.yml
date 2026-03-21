@@ -1,0 +1,34 @@
+- name: Install nginx
+  dnf:
+    name: nginx
+    state: present
+
+- name: Deploy nginx config
+  # FastAPI(127.0.0.1:8000)로 트래픽을 전달하는 proxy 설정
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/conf.d/server-monitor.conf
+  notify: Restart nginx
+
+- name: Enable and start nginx
+  # 시스템 부팅 시 자동 실행 + 현재 즉시 실행 보장
+  systemd:
+    name: nginx
+    enabled: yes
+    state: started
+
+- name: Open nginx port
+  # 외부 접근 허용 포트 (기본 80 또는 설정값)
+  ansible.posix.firewalld:
+    port: "{{ nginx_listen_port }}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+
+- name: Block direct access to FastAPI
+  # 애플리케이션 포트(8000)는 외부에서 접근 불가해야 함
+  ansible.posix.firewalld:
+    port: 8000/tcp
+    permanent: true
+    state: disabled
+    immediate: true
