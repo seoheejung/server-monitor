@@ -3,8 +3,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from datetime import datetime
-import json
-import os
 import logging
 
 logging.basicConfig(
@@ -12,18 +10,11 @@ logging.basicConfig(
     format="[%(levelname)s] %(name)s: %(message)s",
 )
 
-# 직접 생성한 시스템 정보 함수 import
-from app.services.system.cpu import get_cpu_usage
-from app.services.system.memory import get_memory_usage
-from app.services.system.disk import get_disk_usage
-from app.services.system.uptime import get_uptime
-from app.services.system.service import get_service_status
-from app.services.system.log import get_tail_log
-from app.services.system.process_analyzer import get_process_list, sync_with_mongodb
+from app.services.system.process_analyzer import sync_with_mongodb
 from app.repositories.db import db_manager
-from app.routes import process, admin, auth
+from app.routes import process, admin, auth, dashboard 
 from app.core.config import OS_TYPE
-from app.core.security import require_admin_cookie, issue_admin_cookie
+from app.core.security import issue_admin_cookie
 from app.services.init.process_seed import load_and_validate_process_data
 
 logger = logging.getLogger(__name__)
@@ -38,53 +29,13 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.include_router(process.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
+app.include_router(dashboard.router, prefix="/api")
 
 # templates 등록
 templates = Jinja2Templates(directory="app/templates")
 
 # DB에 넣을 mork Data
 JSON_FILE_PATH = "data/known_processes.json"
-
-def usage_class(value):
-    if value < 60:
-        return "good"
-    elif value < 80:
-        return "warn"
-    return "bad"
-
-def collect_dashboard_data() -> dict:
-    """
-    기본 모니터링 데이터 수집 함수
-    """
-    cpu = get_cpu_usage()
-    memory = get_memory_usage()
-    disk = get_disk_usage(OS_TYPE)
-    uptime = get_uptime()
-
-    services_to_check = ["nginx", "sshd", "rsyslog", "python", "docker"]
-    service_results = {
-        name: get_service_status(name, OS_TYPE)
-        for name in services_to_check
-    }
-
-    log_file = "/var/log/messages"
-    logs = get_tail_log(log_file, 10, OS_TYPE)
-    processes = get_process_list(OS_TYPE)
-
-    return {
-        "cpu": cpu,
-        "memory": memory,
-        "disk": disk,
-        "uptime": uptime,
-        "cpu_class": usage_class(cpu),
-        "memory_class": usage_class(memory),
-        "os_type": OS_TYPE,
-        "services": service_results,
-        "logs": logs,
-        "log_source": log_file,
-        "processes": processes,
-        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    }
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request):
@@ -99,14 +50,6 @@ def dashboard(request: Request):
     )
     issue_admin_cookie(response)
     return response
-
-@app.get("/api/dashboard", dependencies=[Depends(require_admin_cookie)])
-def dashboard_api():
-    """
-    대시보드 부분 갱신용 JSON API
-    - 프론트 JS가 60초마다 호출
-    """
-    return collect_dashboard_data()
 
 @app.get("/.well-known/appspecific/com.chrome.devtools.json")
 def ignore_chrome_devtools():
@@ -124,7 +67,6 @@ def startup_event():
     try:
         # 1. DB 연결
         db_manager.connect()
-
         
         # 2. JSON 파일에서 데이터 로드
         local_data = load_and_validate_process_data(JSON_FILE_PATH)

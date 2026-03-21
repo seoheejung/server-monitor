@@ -1,5 +1,16 @@
-let REFRESH_INTERVAL_SEC = 60;
-let refreshTimer = null;
+const REFRESH_INTERVALS = {
+    summary: 10,
+    processes: 20,
+    services: 30,
+    logs: 15,
+};
+
+let refreshTimers = {
+    summary: null,
+    processes: null,
+    services: null,
+    logs: null,
+};
 
 // HTML 특수문자를 이스케이프해서 XSS를 방지한다.
 const escapeHtml = (value) =>
@@ -44,35 +55,6 @@ const formatNow = () => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
 };
 
-// 자동 갱신 타이머를 설정/재설정한다.
-const startAutoRefresh = () => {
-    if (refreshTimer) {
-        clearInterval(refreshTimer);
-    }
-
-    refreshTimer = setInterval(refreshDashboard, REFRESH_INTERVAL_SEC * 1000);
-
-    setRefreshStatus(`[AUTO REFRESH] ON (${REFRESH_INTERVAL_SEC}s)`);
-};
-
-// 자동 갱신 주기를 변경하고 타이머를 다시 시작한다.
-const changeInterval = async (sec) => {
-    REFRESH_INTERVAL_SEC = Number(sec);
-    startAutoRefresh();
-    await refreshDashboard();
-};
-
-// select onchange에서 호출할 수 있도록 전역에 노출한다.
-window.changeInterval = changeInterval;
-
-// 마지막 갱신 시각 텍스트를 화면에 반영한다.
-const updateLastUpdated = (text = null) => {
-    const el = document.getElementById("last-updated");
-    if (!el) return;
-
-    el.textContent = text ?? formatNow();
-};
-
 // 자동 새로고침 상태 문구를 화면에 반영한다.
 const setRefreshStatus = (text) => {
     const el = document.getElementById("refresh-status");
@@ -81,12 +63,77 @@ const setRefreshStatus = (text) => {
     el.textContent = text;
 };
 
-// 현재 자동 갱신 설정값을 select UI에 반영한다.
-const syncRefreshIntervalSelect = () => {
-    const selectEl = document.getElementById("refresh-interval");
-    if (!selectEl) return;
+// 마지막 갱신 시각 텍스트를 화면에 반영한다.
+const updateSectionUpdatedAt = (id, text = null) => {
+    const el = document.getElementById(id);
+    if (!el) return;
 
-    selectEl.value = String(REFRESH_INTERVAL_SEC);
+    const value = text ?? formatNow();
+    el.textContent = `[updated at] ${value}`;
+};
+
+// summary API를 호출해서 시스템 요약 영역을 갱신한다.
+const refreshSummary = async () => {
+    const response = await fetch("/api/dashboard/summary", {
+        credentials: "same-origin",
+        cache: "no-store",
+    });
+
+    if (!response.ok) {
+        throw new Error(`summary fetch failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    renderSystem(data);
+    updateSectionUpdatedAt("summary-updated-at", data.updated_at);
+};
+
+// processes API를 호출해서 프로세스 목록 영역을 갱신한다.
+const refreshProcesses = async () => {
+    const response = await fetch("/api/dashboard/processes", {
+        credentials: "same-origin",
+        cache: "no-store",
+    });
+
+    if (!response.ok) {
+        throw new Error(`processes fetch failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    renderProcesses(data.processes);
+    updateSectionUpdatedAt("processes-updated-at", data.updated_at);
+};
+
+// services API를 호출해서 서비스 상태 영역을 갱신한다.
+const refreshServices = async () => {
+    const response = await fetch("/api/dashboard/services", {
+        credentials: "same-origin",
+        cache: "no-store",
+    });
+
+    if (!response.ok) {
+        throw new Error(`services fetch failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    renderServices(data.services);
+    updateSectionUpdatedAt("services-updated-at", data.updated_at);
+};
+
+// logs API를 호출해서 로그 영역을 갱신한다.
+const refreshLogs = async () => {
+    const response = await fetch("/api/dashboard/logs", {
+        credentials: "same-origin",
+        cache: "no-store",
+    });
+
+    if (!response.ok) {
+        throw new Error(`logs fetch failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    renderLogs(data.log_source, data.logs);
+    updateSectionUpdatedAt("logs-updated-at", data.updated_at);
 };
 
 // 로그 콘솔을 항상 최하단으로 스크롤한다.
@@ -240,41 +287,70 @@ const renderProcesses = (processes) => {
         .join("");
 };
 
-// 대시보드 전체 각 영역을 부분 렌더링한다.
-const renderDashboard = (data) => {
-    renderSystem(data);
-    renderServices(data.services);
-    renderLogs(data.log_source, data.logs);
-    renderProcesses(data.processes);
-    updateLastUpdated();
-};
-
-// /api/dashboard를 호출해서 최신 대시보드 데이터를 갱신한다.
+// 대시보드 전체 각 영역을 개별 API 기준으로 초기 갱신한다.
 const refreshDashboard = async () => {
     try {
-        setRefreshStatus("[AUTO REFRESH] RELOADING...");
+        setRefreshStatus("RELOADING...");
 
-        const response = await fetch("/api/dashboard", {
-            method: "GET",
-            headers: {
-                Accept: "application/json",
-                "X-Requested-With": "XMLHttpRequest"
-            },
-            cache: "no-store",
-            credentials: "same-origin",
-        });
+        await Promise.all([
+            refreshSummary(),
+            refreshProcesses(),
+            refreshServices(),
+            refreshLogs(),
+        ]);
 
-        if (!response.ok) {
-            throw new Error(`dashboard fetch failed: ${response.status}`);
-        }
-
-        const data = await response.json();
-        renderDashboard(data);
-        setRefreshStatus(`[AUTO REFRESH] ON (${REFRESH_INTERVAL_SEC}s)`);
+        setRefreshStatus(
+            `summary:${REFRESH_INTERVALS.summary}s | processes:${REFRESH_INTERVALS.processes}s | services:${REFRESH_INTERVALS.services}s | logs:${REFRESH_INTERVALS.logs}s`
+        );
     } catch (error) {
         console.error(error);
-        setRefreshStatus("[AUTO REFRESH] FAILED");
+        setRefreshStatus("FAILED");
     }
+};
+
+// 자동 갱신 타이머를 영역별로 설정/재설정한다.
+const startAutoRefresh = () => {
+    Object.values(refreshTimers).forEach((timer) => {
+        if (timer) {
+            clearInterval(timer);
+        }
+    });
+
+    refreshTimers.summary = setInterval(async () => {
+        try {
+            await refreshSummary();
+        } catch (error) {
+            console.error(error);
+        }
+    }, REFRESH_INTERVALS.summary * 1000);
+
+    refreshTimers.processes = setInterval(async () => {
+        try {
+            await refreshProcesses();
+        } catch (error) {
+            console.error(error);
+        }
+    }, REFRESH_INTERVALS.processes * 1000);
+
+    refreshTimers.services = setInterval(async () => {
+        try {
+            await refreshServices();
+        } catch (error) {
+            console.error(error);
+        }
+    }, REFRESH_INTERVALS.services * 1000);
+
+    refreshTimers.logs = setInterval(async () => {
+        try {
+            await refreshLogs();
+        } catch (error) {
+            console.error(error);
+        }
+    }, REFRESH_INTERVALS.logs * 1000);
+
+    setRefreshStatus(
+        `summary:${REFRESH_INTERVALS.summary}s | processes:${REFRESH_INTERVALS.processes}s | services:${REFRESH_INTERVALS.services}s | logs:${REFRESH_INTERVALS.logs}s`
+    );
 };
 
 // 공용 커스텀 모달을 띄우고 사용자 선택 결과를 Promise로 반환한다.
@@ -354,10 +430,10 @@ const terminateProcess = async (button) => {
         const data = await response.json();
 
         if (data.result === "terminated") {
-            await showModal("SUCCESS", escapeHtml(data.message), false, "success");
+            await showModal("SUCCESS", data.message, false, "success");
             await refreshDashboard();
         } else {
-            await showModal("BLOCKED", escapeHtml(data.message), false, "info");
+            await showModal("BLOCKED", data.message, false, "info");
         }
     } catch (error) {
         await showModal("CRITICAL ERROR", "통신 중 오류가 발생했습니다.", false, "error");
@@ -369,9 +445,7 @@ window.terminateProcess = terminateProcess;
 
 // 초기 1회 렌더와 설정한 주기로 자동 갱신을 시작한다.
 document.addEventListener("DOMContentLoaded", async () => {
-    updateLastUpdated();
     scrollLogToBottom();
-    syncRefreshIntervalSelect();
     await refreshDashboard();
     startAutoRefresh();
 });

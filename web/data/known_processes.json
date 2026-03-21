@@ -2707,5 +2707,41 @@
     "description": "Adobe Genuine Service: 어도비 소프트웨어의 정품 유효성을 주기적으로 확인하는 서비스",
     "policy": { "is_system": true, "terminatable": true, "reason": "System Core (License)" },
     "tags": ["windows", "adobe", "security"]
+  },
+  {
+    "name": "xboxpcappft.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Xbox App for PC: 게임 서비스 기능 테스트(Feature Test) 또는 백그라운드 연동 프로세스",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application (Gaming)"
+    },
+    "tags": ["windows", "xbox", "gaming", "microsoft"]
+  },
+  {
+    "name": "codesetup-stable-07ff9d6178ede9a1bd12ad3399074d726ebe6e43.tmp",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Visual Studio Code Setup (Temporary): 업데이트 또는 설치 중 생성되는 일시적인 실행 파일",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "Installation Temporary File"
+    },
+    "tags": ["windows", "vscode", "setup", "temporary"]
+  },
+  {
+    "name": "codesetup-stable-07ff9d6178ede9a1bd12ad3399074d726ebe6e43.exe",
+    "platform": "windows",
+    "category": "system-utility",
+    "description": "Visual Studio Code Setup: VS Code 안정 버전(Stable)의 설치 및 업데이트 실행 프로세스",
+    "policy": {
+      "is_system": false,
+      "terminatable": true,
+      "reason": "User Application (Installer)"
+    },
+    "tags": ["windows", "vscode", "setup", "microsoft"]
   }
 ]

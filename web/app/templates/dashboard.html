@@ -12,17 +12,8 @@
     <h1>SERVER MONITOR</h1>
     <div class="refresh-meta">
         <div class="refresh-info">
-            <span>[LAST UPDATED] <span id="last-updated">-</span></span>
-            <span id="refresh-status">[AUTO REFRESH] READY</span>
-        </div>
-
-        <div class="refresh-control">
-            <label>INTERVAL</label>
-            <select id="refresh-interval" onchange="changeInterval(this.value)">
-                <option value="10">10s</option>
-                <option value="30">30s</option>
-                <option value="60" selected>60s</option>
-            </select>
+            <span>[AUTO REFRESH]</span>
+            <span id="refresh-status">summary:5s | processes:10s | services:30s | logs:10s</span>
         </div>
     </div>
 </div>
@@ -30,6 +21,9 @@
     <!-- 시스템 상태 -->
     <div class="container-row">
         <div class="card">
+        <h2>SYSTEM SUMMARY
+            <span class="card-updated-at" id="summary-updated-at">[updated at] -</span>
+        </h2>
             <p>CPU :
                 <span id="cpu" class="">-</span>
             </p>
@@ -46,7 +40,9 @@
 
         <!-- 서비스 상태 -->
         <div class="card">
-            <h2>SERVICES</h2>
+            <h2>SERVICES
+                <span class="card-updated-at" id="services-updated-at">[updated at] -</span>
+            </h2>
             <div id="service-list" class="service-list">
                 <div class="service-item">
                     <div class="service-name-group">
@@ -62,7 +58,9 @@
     <!-- 로그 콘솔 -->
     <div class="container-row">
         <div class="card log-card">
-            <h2>LOG CONSOLE</h2>
+            <h2>LOG CONSOLE
+                <span class="card-updated-at" id="logs-updated-at">[updated at] -</span>
+            </h2>
             <p id="log-source" style="font-size:9px; color:#999; margin-bottom: 15px;">
                 SOURCE : -
             </p>
@@ -73,7 +71,9 @@
 
         <!-- 프로세스 상태 -->
         <div class="card process-card">
-            <h2>PROCESSES</h2>
+            <h2>PROCESSES
+                <span class="card-updated-at" id="processes-updated-at">[updated at] -</span>
+            </h2>
             <div id="process-list">
                 <p class="process-status">
                     <span class="dot"></span>

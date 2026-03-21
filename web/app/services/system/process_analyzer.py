@@ -86,15 +86,15 @@ def collect_ports(proc: psutil.Process) -> List[int]:
     OS 공통 포트 수집
     특정 프로세스 객체(proc)가 점유하고 있는 네트워크 포트 수집
     
-    psutil.net_connections()보다 해당 프로세스 객체의 connections()를 쓰는 것이 훨씬 빠름
-    root가 아니면 타 사용자의 프로세스 포트 정보는 누락될 수 있음 (AccessDenied 처리)
+    시스템 전체 psutil.net_connections() 대신 특정 프로세스의 net_connections()만 조회
+    root/admin 권한이 없으면 타 사용자의 프로세스 포트 정보는 누락될 수 있음 (AccessDenied 처리)
     """
     ports = set()
 
     try:
         # IPv4/IPv6 연결(inet)을 확인
         # psutil.connections로 시스템 전체를 뒤지지 않고 해당 프로세스의 소켓만 확인
-        for conn in proc.connections(kind="inet"):
+        for conn in proc.net_connections(kind="inet"):
             # if conn.status == psutil.CONN_LISTEN and conn.laddr: # 열린 포트 (LISTEN)
             #     ports.add(conn.laddr.port) # 로컬 주소(laddr)의 포트 번호 저장
             if conn.laddr:
@@ -307,7 +307,7 @@ def get_process_list(os_type: str) -> List[Dict]:
             # 5건 이하면 콤마로 연결
             proc["display_ports"] = ", ".join(map(str, ports_list))
         else:
-            proc["display_ports"] = " - "
+            proc["display_ports"] = ""
 
         result.append(proc)
 

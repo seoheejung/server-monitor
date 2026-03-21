@@ -69,8 +69,9 @@ web/
 │   │   └── security.py  # 보안 설정
 │   ├── routes/          # URL
 │   │   ├── auth.py           # 인증 관련 API
+│   │   ├── admin.py          # 관리자 API (sync-now 등)
 │   │   ├── process.py        # 프로세스 관련 API
-│   │   └── admin.py          # 관리자 API (sync-now 등)
+│   │   └── dashboard.py      # 대시보드 관련 API
 │   ├── repositories/
 │   │   └── db.py
 │   ├── constants/       # 포트 / 프로세스 정책

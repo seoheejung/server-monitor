@@ -11,9 +11,19 @@ def get_live_process(pid: int):
     """
     try:
         return psutil.Process(pid)
-    except psutil.NoSuchProcess:
+    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
         return None # 해당 PID의 프로세스가 없음
 
+def get_process_username(proc: psutil.Process) -> str | None:
+    """
+    프로세스 실행 계정(username)을 안전하게 조회
+    - 조회 실패 또는 계정 정보가 없으면 None 반환
+    """
+    try:
+        username = proc.username()
+        return username if username else None
+    except (psutil.AccessDenied, psutil.NoSuchProcess, psutil.ZombieProcess):
+        return None
 
 def is_system_process(proc: psutil.Process, os_type: str):
     """
@@ -21,10 +31,9 @@ def is_system_process(proc: psutil.Process, os_type: str):
     - Windows: SYSTEM 계정
     - Linux: root 계정
     """
-    try:
-        username = proc.username()
-    except psutil.AccessDenied:
-        # 정보 접근이 안되면 시스템 프로세스로 간주
+    username = get_process_username(proc)
+
+    if not username:
         return True
 
     if os_type == "Windows":
@@ -48,7 +57,13 @@ def blocked_by_mongo_policy(proc: psutil.Process, os_type: str):
     if not db_manager.connected:
         return None
 
-    name = proc.name().lower()
+    try:
+        name = proc.name().lower()
+    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+        return {
+            "result": "not_found",
+            "message": "프로세스 정보를 확인할 수 없습니다"
+        }
 
     # 1. OS 전용 정책 조회
     record = db_manager.get_process_policy(name, os_type)
@@ -91,9 +106,9 @@ def soft_kill(proc: psutil.Process):
         proc.terminate() # SIGTERM or taskkill
         proc.wait(timeout=5) # 최대 5초 대기
         return True
-    except psutil.TimeoutExpired:
-        return False
-    except psutil.AccessDenied:
+    except psutil.NoSuchProcess:
+        return True
+    except (psutil.TimeoutExpired, psutil.AccessDenied):
         return False
 
 
@@ -103,6 +118,8 @@ def hard_kill(proc: psutil.Process):
     """
     try:
         proc.kill()   # SIGKILL / taskkill /F
+        return True
+    except psutil.NoSuchProcess:
         return True
     except psutil.AccessDenied:
         return False
@@ -119,7 +136,15 @@ def terminate_process(pid: int, os_type: str):
             "message": "프로세스를 찾을 수 없습니다"
         }
     
-    logger.info("[TERMINATE] request pid=%s name=%s", pid, proc.name())
+    try:
+        name = proc.name()
+    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+        return {
+            "result": "not_found",
+            "message": "프로세스 정보를 확인할 수 없습니다"
+        }
+    
+    logger.info("[TERMINATE] request pid=%s name=%s", pid, name)
     
     # 1. MongoDB 정책 차단 (연결된 경우만)
     mongo_block = blocked_by_mongo_policy(proc, os_type)
@@ -134,8 +159,6 @@ def terminate_process(pid: int, os_type: str):
             "result": "blocked",
             "message": "SYSTEM 권한으로 실행 중인 프로세스는 <br> 안전상 자동 종료를 허용하지 않습니다"
         }
-
-    name = proc.name()
 
     # 3. Soft Kill
     if soft_kill(proc):
