@@ -1,0 +1,26 @@
+- name: Add MongoDB repository
+  # MongoDB는 Rocky Linux 기본 repo에 없기 때문에 공식 MongoDB yum repo를 직접 등록 필요
+  copy:
+    dest: /etc/yum.repos.d/mongodb-org.repo
+    content: |
+      [mongodb-org-7.0]
+      name=MongoDB Repository
+      baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/7.0/x86_64/
+      gpgcheck=1
+      enabled=1
+      gpgkey=https://pgp.mongodb.com/server-7.0.asc
+
+- name: Install MongoDB
+  # mongodb-org 메타 패키지 설치
+  dnf:
+    name: mongodb-org
+    state: present
+
+- name: Enable and start MongoDB
+  # systemd 서비스 등록 + 즉시 실행
+  # enabled: 부팅 시 자동 실행
+  # state: started → 현재 실행 상태 보장
+  systemd:
+    name: mongod
+    enabled: yes
+    state: started

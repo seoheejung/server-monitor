@@ -50,7 +50,10 @@ infra/ansible/
 │   │   └── vars/
 │   │       └── main.yml
 │   ├── docker
-│   └── security
+│   ├── security
+│   │   └── tasks/
+│   │       └── main.yml
+│   └── mongodb
 │       └── tasks/
 │           └── main.yml
 ```
@@ -58,6 +61,7 @@ infra/ansible/
 - security : 보안 설정
 - docker : 컨테이너 환경 구성
 - server_monitor : 앱 배치 및 서비스 구성
+- mongodb : MongoDB 설치 및 서비스 관리
 
 ---
 <br>
@@ -94,7 +98,15 @@ infra/ansible/
 
 <br>
 
-### 4. systemd 서비스 등록
+### 4. 데이터 저장소 구성
+- MongoDB 설치 (repo 등록 포함)
+- mongod 서비스 활성화
+- systemd 기반 자동 실행
+- MongoDB는 애플리케이션 판단 기준 저장소로 사용
+
+<br>
+
+### 5. systemd 서비스 등록
 
 > Ansible은 FastAPI 애플리케이션을 systemd 서비스로 등록한다.   
 > ※ 아래 systemd 유닛은 예시이며, 실제 값은 Ansible 템플릿에서 관리한다.
@@ -122,15 +134,15 @@ WantedBy=multi-user.target
 
 ## Ansible과 프로젝트의 경계
 
-| 구분    | 책임          |
+| 구분    | 책임        |
 | ----- | ----------- |
 | OS 상태 | Ansible     |
 | 실행 환경 | Ansible     |
 | 코드 동작 | FastAPI     |
 | 판단 기준 | MongoDB     |
 | 위험 분석 | psutil + 로직 |
-| 운영 정책 | 코드 + 데이터    |
-
+| 운영 정책 | 코드 + 데이터  |
+| 판단 기준 | MongoDB     |
 ---
 <br>
 
