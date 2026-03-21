@@ -1,7 +1,7 @@
 # Rocky Linux Native 실행 검증
 
 > 본 문서는 서버 모니터링 애플리케이션이  
-> Rocky Linux Native 환경에서 정상적으로 동작하는지를 검증하기 위한 실행·환경 검증 기준을 정의한다.  
+> Rocky Linux Native 환경에서 Ansible을 통해 정상적으로 동작하는지를 검증하기 위한 실행·환경 검증 기준을 정의한다.  
 > 애플리케이션 설계, 운영 자동화, 정책 판단 기준은 다루지 않는다.
 
 
@@ -15,23 +15,18 @@ psutil / systemctl / /proc / 권한 제약이 <br>
 
 ## 📑 목차
 
-- [Rocky Linux 선택 기준 (VirtualBox 기준)](#rocky-linux-선택-기준-virtualbox-기준)
-- [목적](#목적)
-- [[1단계 목표] Native 실행 검증 범위 (완료)](#1단계-목표-Native-실행-검증-범위-완료)
-- [환경 설계](#환경-설계)
-- [Rocky Linux 서버 준비](#rocky-linux-서버-준비)
-- [Docker vs Native 환경 차이 요약](#docker-vs-native-환경-차이-요약)
-- [Rocky Linux 가상환경 생성](#rocky-linux-가상환경-생성)
-- [FastAPI Native 실행](#fastapi-Native-실행)
-- [방화벽 설정 (VirtualBox Rocky Linux)](#방화벽-설정-virtualbox-rocky-linux)
-- [psutil 동작 검증](#psutil-동작-검증)
-- [코드 기준 OS 의존 동작 정리](#코드-기준-os-의존-동작-정리)
-- [서비스 상태 판단 전략 (Native 기준)](#서비스-상태-판단-전략-Native-기준)
-- [이 문서의 범위](#이-문서의-범위)
-- 
+  - [Rocky Linux 선택 기준 (VirtualBox 기준)](#rocky-linux-선택-기준-virtualbox-기준)
+  - [목적](#목적)
+  - [검증 환경 정보](#검증-환경-정보)
+  - [\[1단계 목표\] Native 실행 검증 범위](#1단계-목표-native-실행-검증-범위)
+  - [\[2단계 목표\] Ansible 배포 후 Native 실행 검증](#2단계-목표-Ansible-배포-후-Native-실행)
+  - [환경 설계](#환경-설계)
+  - [Docker vs Native 환경 차이 요약](#docker-vs-native-환경-차이-요약)
+  - [코드 기준 OS 의존 동작 정리](#코드-기준-os-의존-동작-정리)
+  - [서비스 상태 판단 전략 (Native 기준)](#서비스-상태-판단-전략-native-기준)
+  - [이 문서의 범위](#이-문서의-범위)
 ---
 <br>
-
 
 ## Rocky Linux 선택 기준 (VirtualBox 기준)
 ### 1. OS 선택 기준
@@ -88,7 +83,7 @@ psutil / systemctl / /proc / 권한 제약이 <br>
 ---
 <br>
 
-## [1단계 목표] Native 실행 검증 범위 (완료)
+## [1단계 목표] Native 실행 검증 범위
 ### 1. FastAPI
 - FastAPI 서버 정상 기동
 - HTML 템플릿 + static 파일 정상 렌더링
@@ -110,6 +105,83 @@ psutil / systemctl / /proc / 권한 제약이 <br>
 - `systemctl` 사용 가능 시 → `systemctl` 결과
 - `systemctl` 불가 시 → psutil 기반 `fallback` 정상 동작
  
+---
+<br>
+
+## [2단계 목표] Ansible 배포 후 Native 실행 검증
+### 1. 사전 준비
+#### Git 설치
+- 최소 OS 패키지 설치
+```
+# OS 패키지 업데이트
+sudo dnf update -y
+
+# Python 3 설치 (venv, pip 포함)
+sudo dnf install -y python3 python3-venv python3-pip
+
+# Git 설치
+sudo dnf install -y git
+
+# epel-release 설치 (Ansible 설치 전)
+sudo dnf install -y epel-release
+
+# Ansible 설치
+sudo dnf install -y ansible-core
+```
+- 레포 클론 경로: /home/rockylinux/server-monitor/
+```
+git clone <repo_url> /home/rockylinux/server-monitor/
+```
+
+### 2. Ansible 배포
+#### 레포 경로에서 Ansible 실행
+```
+cd /home/rockylinux/server-monitor/infra/ansible
+
+# 서버 기본 구성
+ansible-playbook -i inventory/local.ini setup.yml
+
+# server-monitor 배치
+ansible-playbook -i inventory/local.ini server_monitor.yml
+```
+#### 결과 확인
+- 오류 없이 완료
+- /opt/server-monitor/ 구조 정상 생성
+- Python venv 설치 및 패키지 설치 확인
+- systemd 서비스 유닛 등록 확인
+> 참고: setup.yml 실행 시 SSH 키 및 sudo 권한 확인 필요
+
+### 3. Native 환경 실행 검증
+#### 서비스 시작/상태 확인
+```
+systemctl start server-monitor
+systemctl status server-monitor
+systemctl enable server-monitor
+```
+#### FastAPI 접속 확인
+- 브라우저에서 http://<server_ip>:<port>/ 접속
+- HTML/Static 정상 렌더링
+#### OS 의존 기능 확인
+- /proc 기반 프로세스/포트 수집
+- /var/log/messages tail 가능
+- psutil 기반 CPU/Memory/Disk/Uptime 수집
+- root / non-root 실행 시 차이 확인
+#### 네트워크 및 포트 확인
+- firewall-cmd --list-ports로 서비스 포트 확인
+- 고정 IP 접근 테스트
+
+### 4. 검증 체크 리스트
+| 항목                  | 확인 방법                     | 정상 기준            |
+| ------------------- | ------------------------- | ---------------- |
+| FastAPI 서버 기동       | systemctl / curl          | 200 OK, HTML 렌더링 |
+| CPU / Memory / Disk | psutil 스크립트               | 값 수집 가능          |
+| 프로세스 목록             | psutil                    | 실행 프로세스 확인       |
+| 포트 수집               | psutil.connections        | root 기준 모든 포트 확인 |
+| 로그 tail             | tail -f /var/log/messages | 로그 출력 정상         |
+| 서비스 상태              | systemctl is-active       | active           |
+| 포트 방화벽              | firewall-cmd              | 필요한 포트만 열림       |
+| systemd 자동 시작       | systemctl is-enabled      | enabled          |
+
 ---
 <br>
 
@@ -145,67 +217,6 @@ psutil / systemctl / /proc / 권한 제약이 <br>
 ---
 <br>
 
-## Rocky Linux 서버 준비
-
-> 기본 동작 확인은 Docker 기반 Rocky Linux에서 수행하고,
-> 최종 검증은 VirtualBox 기반 Rocky Linux Native 환경에서 진행한다.
-
-
-### 1. Docker rockylinux 설치 및 실행
-```
-docker run -it -p 2222:8000 --name rocky-93 rockylinux:9.3 /bin/bash
-# docker exec -it rocky-93 /bin/bash
-```
-
-### 1-1. VirtualBox rockylinux 서버 접속
-```
-ssh user@서버IP
-```
-
-### 2. 기본 패키지 설치
-```
-# 패키지 목록 업데이트
-sudo dnf update -y
-
-# 필요한 도구 설치 (시스템 정보 수집에 필요한 패키지 등)
-sudo dnf install -y vim procps-ng iproute
-```
-
-### 3. Python 환경 확인
-```
-python3 --version
-git --version
-
-# 없다면 설치
-sudo dnf install -y python3 python3-pip git
-```
-
-### 4. 프로젝트 준비
-```
-mkdir -p ~/projects
-cd ~/projects
-git clone <레포주소>
-cd server-monitor/web
-```
-
-### 5. 로그 환경 준비 (Docker 환경 기준)
-> Docker 컨테이너에는 기본 로그 데몬이 없을 수 있음
-> log.py는 파일 직접 접근 방식이므로 로그 파일 존재가 필요
-```
-# 컨테이너 내부에서 확인할 경우 로그 서비스를 설치하고 실행
-sudo dnf install -y rsyslog
-
-# 서비스 수동 시작
-/usr/sbin/rsyslogd  
-
-# 파일 생성 완료
-ls /var/log/messages 
-
-# 테스트 로그 생성
-nohup sh -c 'while true; do logger -t [INFO] "System Health Check OK"; sleep 5; done' &
-tail /var/log/messages
-```
-
 ## Docker vs Native 환경 차이 요약
 
 | 항목 | Docker 컨테이너 | VirtualBox Native |
@@ -214,123 +225,6 @@ tail /var/log/messages
 | PID 1 | bash / tini | systemd |
 | 로그 | 직접 파일 생성 필요 | 기본 로그 데몬 존재 |
 | 목적 | 로직 검증 | 운영 적합성 검증 |
-
----
-<br>
-
-## Rocky Linux 가상환경 생성
-
-### 1. venv 설치
-- Windows venv는 Linux에서 사용 불가 ⚠️
-- Linux 서버에서는 반드시 새로 생성 필요
-```
-python3 -m venv venv
-source venv/bin/activate
-
-# 확인
-(venv) [user@rocky server-monitor]$
-```
-
-### 2. 미리 정의해둔 Python 패키지 설치
-```
-pip install -r requirements.txt
-```
-
-#### psutil 빌드 에러 발생 시
-```
-sudo dnf install -y gcc python3-devel
-pip install psutil
-```
-> psutil은 이 프로젝트의 핵심 의존성
-> 여기서 실패하면 Docker 이전에 반드시 해결해야 함
-
----
-<br>
-
-## FastAPI Native 실행
-
-### 1. FastAPI 서버 실행
-```
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
-- 0.0.0.0 : 외부 접속 허용
-- 8000 : 테스트 포트
-
-### 2. 서버 내부 확인
-```
-# Docker
-curl http://localhost:2222
-
-# VirtualBox
-curl http://localhost:8000
-```
-
-### 3. 외부 접속 확인 (브라우저)
-```
-# VirtualBox
-http://서버IP:8000/
-
-# Docker
-http://localhost:2222
-
-```
-- `ip addr`로 IP 확인
-- HTML 대시보드가 출력되면 FastAPI + 네트워크 정상
-
----
-<br>
-
-## 4. 방화벽 설정 (VirtualBox Rocky Linux)
-### 포트 개방 (영구)
-```
-sudo firewall-cmd --add-port=8000/tcp --permanent
-sudo firewall-cmd --reload
-```
-
-### 적용 확인
-```
-sudo firewall-cmd --list-ports
-```
-- 8000/tcp 가 출력되어야 함
-
-### 재부팅 후 유지 확인
-```
-sudo reboot
-
-# 재접속 후
-sudo firewall-cmd --list-ports
-```
-`--permanent` 옵션을 사용했기 때문에 Rocky Linux 재부팅 이후에도 포트 유지
-
----
-<br>
-
-## psutil 동작 검증
-### 1. Python REPL 직접 테스트
-```
-python
-```
-```
-import psutil
-
-psutil.cpu_percent(interval=1)
-psutil.virtual_memory()
-psutil.disk_partitions()
-list(psutil.process_iter(['pid', 'name']))
-```
-### 2. 확인 포인트
-- 예외 없이 값이 반환되는지
-- /proc 접근 오류가 발생하지 않는지
-- 프로세스 목록이 실제 서버와 일치하는지
-
-### 권한별 동작 차이 요약
-
-| 항목 | root 실행 | 일반 사용자 실행 |
-|----|----|----|
-| 프로세스 목록 | 전체 수집 | 일부 제한 |
-| 포트 정보 | 전체 수집 | 타 사용자 프로세스 누락 가능 |
-| 로그 접근 | 가능 | PermissionError 가능 |
-| systemctl | 가능 | 제한적 |
 
 ---
 <br>

@@ -31,19 +31,19 @@
 
 ## 3. OS 차이 대응 설계 요약
 
-### 3.1 서비스 상태
+### 서비스 상태
 - Linux: `systemctl is-active`
 - Docker 컨테이너 환경:
   - systemctl 미지원
   - 해당 항목은 `unknown`으로 표시
   - 오류가 아닌 **환경 차이로 인한 정보 제한**으로 처리
 
-### 3.2 로그 접근
+### 로그 접근
 - `/var/log` 접근 제한 고려
 - 권한 부족 시: `[PERMISSION DENIED]` 표시
 - sudo 실행 금지 (운영 안전성)
 
-### 3.3 프로세스 & 포트
+### 프로세스 & 포트
 - `psutil` 기반으로 프로세스 정보 수집
 - 다른 사용자 소유 프로세스의 포트 정보는 접근 실패 고려
 - 실패 시 처리 방식
@@ -54,21 +54,7 @@
 ---
 <br>
 
-## 4. 보안 판단 기준 요약
-
-| 조건 | 판단 |
-|----|----|
-| Known Process + 경고 없음 | ✅ 정상 |
-| Unknown Process + 경고 없음 | ⚠️ 경계 |
-| 경고 존재 | 🚨 점검 필요 |
-
-- root 실행 + 공개 포트 조합만 위험 강조
-- `/tmp, /dev/shm` 경로에서 실행 중인 파일은 항상 위험 요소로 간주
-
----
-<br>
-
-## 5. Docker 실행 전략
+## 4. Docker 실행 전략
 
 ### 권장 실행 방식 (서버 모니터링)
 
@@ -90,17 +76,9 @@ server-monitor:latest
 ---
 <br>
 
-## 6. 사용 시 주의사항
-- 외부에 직접 노출 금지
-- 내부망 또는 관리자 전용 접근을 전제로 사용
-- 운영 환경에서는 Nginx 등 `Reverse Proxy` 뒤에서 접근 제어 권장
+## 5. Docker 파일 구성
 
----
-<br>
-
-## 7. Docker 파일 구성
-
-### 7.1 docker/.dockerignore
+### docker/.dockerignore
 - 이미지 용량 감소와 보안을 위해 불필요한 파일을 제외
 
 ```dockerignore
@@ -114,7 +92,7 @@ docs/
 images/
 ```
 
-### 7.2 docker/Dockerfile
+### docker/Dockerfile
 #### 구성 방향
 - Rocky Linux 환경 기준 동작 확인
 - psutil 정상 동작
@@ -162,18 +140,18 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ---
 <br>
 
-## 8. 빌드 & 실행 테스트
-### 8.1 이미지 빌드
+## 6. 빌드 & 실행 테스트
+### 이미지 빌드
 ```
 docker build -t server-monitor -f docker/Dockerfile .
 ```
 
-### 8.2 테스트 실행
+### 테스트 실행
 ```
 docker run -p 8000:8000 server-monitor
 ```
 
-### 8.3 운영 실행 (권한 포함)
+### 운영 실행 (권한 포함)
 ```
 docker run -d \
   --name server-monitor \
@@ -187,19 +165,113 @@ docker run -d \
 ---
 <br>
 
-## 9. 이 단계에서 정리된 것
-- 이 프로젝트는 단순한 연습용 API가 아니고, 
-  실제 서버에 붙여 사용할 수 있는 모니터링 도구
-- Docker로 동일한 환경을 재현할 수 있는 구조
-- 권한, 보안, 정보 제한을 고려한 화면/판단 기준을 포함한 프로젝트
+## 7. Docker 기반 Rocky Linux 서버 준비
+
+> 기본 동작 확인은 Docker 기반 Rocky Linux에서 수행하고,
+> 최종 검증은 VirtualBox 기반 Rocky Linux Native 환경에서 진행한다.
+
+
+### Docker rockylinux 설치 및 실행
+```
+docker run -it -p 2222:8000 --name rocky-93 rockylinux:9.3 /bin/bash
+# docker exec -it rocky-93 /bin/bash
+```
+
+### 기본 패키지 설치
+```
+# 패키지 목록 업데이트
+sudo dnf update -y
+
+# 필요한 도구 설치 (시스템 정보 수집에 필요한 패키지 등)
+sudo dnf install -y vim procps-ng iproute
+```
+
+### Python 환경 확인
+```
+python3 --version
+git --version
+
+# 없다면 설치
+sudo dnf install -y python3 python3-pip git
+```
+
+### 프로젝트 준비
+```
+mkdir -p ~/projects
+cd ~/projects
+git clone <레포주소>
+cd server-monitor/web
+```
+
+### 로그 환경 준비 (Docker 환경 기준)
+> Docker 컨테이너에는 기본 로그 데몬이 없을 수 있음
+> log.py는 파일 직접 접근 방식이므로 로그 파일 존재가 필요
+```
+# 컨테이너 내부에서 확인할 경우 로그 서비스를 설치하고 실행
+sudo dnf install -y rsyslog
+
+# 서비스 수동 시작
+/usr/sbin/rsyslogd  
+
+# 파일 생성 완료
+ls /var/log/messages 
+
+# 테스트 로그 생성
+nohup sh -c 'while true; do logger -t [INFO] "System Health Check OK"; sleep 5; done' &
+tail /var/log/messages
+```
 
 ---
 <br>
 
-## 10. 이후 작업
-1. docker-compose.yml 추가
-   - 테스트 / 운영 실행 방식 분리
-2. Nginx 포함한 운영 구성
-   - 8000 포트 비공개 + 접근 제어
-3. Docker와 systemd 방식 비교 문서
-   - 이 프로젝트에서 Docker를 선택한 이유 정리
+## 8. Docker 기반 Rocky Linux 가상환경 생성
+
+### 1. venv 설치
+- Windows venv는 Linux에서 사용 불가 ⚠️
+- Linux 서버에서는 반드시 새로 생성 필요
+```
+python3 -m venv venv
+source venv/bin/activate
+
+# 확인
+(venv) [user@rocky server-monitor]$
+```
+
+### 2. 미리 정의해둔 Python 패키지 설치
+```
+pip install -r requirements.txt
+```
+
+#### psutil 빌드 에러 발생 시
+```
+sudo dnf install -y gcc python3-devel
+pip install psutil
+```
+> psutil은 이 프로젝트의 핵심 의존성
+> 여기서 실패하면 Docker 이전에 반드시 해결해야 함
+
+---
+<br>
+
+## 9. FastAPI Native 실행
+
+### FastAPI 서버 실행
+```
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+- 0.0.0.0 : 외부 접속 허용
+- 8000 : 테스트 포트
+
+### 서버 내부 확인
+```
+curl http://localhost:2222
+```
+
+### 외부 접속 확인 (브라우저)
+```
+http://localhost:2222
+```
+- HTML 대시보드가 출력되면 FastAPI + 네트워크 정상
+
+---
+<br>
