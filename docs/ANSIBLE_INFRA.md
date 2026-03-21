@@ -26,7 +26,7 @@
 - 권한 모델 (root / non-root)
 - 서비스 관리 방식 (systemd / container)
 
-> Ansible은 운영 환경을 "증명 가능하게 고정"하기 위한 필수 구성 요소
+> Ansible은 운영 서버 상태를 코드로 정의하고 동일하게 재현하기 위한 도구
 
 ### Ansible 동작 방식 
 ```
@@ -55,23 +55,25 @@ local PC (컨트롤 노드)
 
 | 구분       | 내용                      |
 | -------- | ----------------------- |
-| OS 기본 세팅 | 패키지 설치, 타임존, 로케일        |
+| OS 기본 세팅 | 패키지 설치, 타임존, 로케일  |
 | 사용자      | 운영 계정 생성, sudo 권한       |
-| 보안       | SSH 설정, firewalld 기본 정책 |
+| 보안        | SSH 설정, firewalld 기본 정책 |
 | 런타임      | Python, venv, Docker    |
-| 실행 환경    | FastAPI 실행 기반 준비        |
-| 서비스 등록   | systemd 서비스 등록/활성화      |
+| 실행 환경   | FastAPI 실행 기반 준비        |
+| 데이터 저장소 | MongoDB 설치 및 서비스 관리     |
+| 서비스 등록  | systemd 서비스 등록/활성화      |
+| 네트워크     | Nginx reverse proxy, 외부 접근 제어 |
 
 ### 2. Ansible이 관여하지 않는 것
 - 판단 로직 관여 불가
 
-| 영역                      | 이유           |
+| 영역                      | 이유        |
 | ----------------------- | ------------ |
-| FastAPI 내부 코드           | 앱 책임         |
-| psutil 분석 로직            | 코드 책임        |
-| 프로세스 위험 판단              | MongoDB + 로직 |
-| 정책 기준 (KNOWN_PROCESSES) | 데이터 책임       |
-| UI / 템플릿                | 프론트 책임       |
+| FastAPI 내부 코드           | 앱 책임      |
+| psutil 분석 로직            | 코드 책임      |
+| 프로세스 위험 판단           | MongoDB + 로직 |
+| 정책 기준 (KNOWN_PROCESSES) | 데이터 책임    |
+| UI / 템플릿                | 프론트 책임     |
 
 ---
 <br>
@@ -131,7 +133,7 @@ local PC (컨트롤 노드)
 
 - `/opt/server-monitor/` → Ansible 기준으로 관리
 - `/home/` → 운영자 작업 공간
-
+- Nginx는 OS 레벨 서비스로 `/etc/nginx`에서 관리
 ---
 <br>
 
@@ -217,7 +219,6 @@ ansible-playbook playbooks/server_monitor.yml -i inventory/prod.ini
 - 운영 이력 불명확
 ```
 ansible-playbook playbooks/setup.yml -i inventory/prod.ini
-ansible-playbook playbooks/security.yml -i inventory/prod.ini
 ansible-playbook playbooks/server_monitor.yml -i inventory/prod.ini
 ```
 

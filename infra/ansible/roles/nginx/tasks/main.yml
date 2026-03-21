@@ -8,7 +8,7 @@
   template:
     src: nginx.conf.j2
     dest: /etc/nginx/conf.d/server-monitor.conf
-  notify: Restart nginx
+  notify: Reload nginx
 
 - name: Enable and start nginx
   # 시스템 부팅 시 자동 실행 + 현재 즉시 실행 보장

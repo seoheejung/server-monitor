@@ -55,14 +55,14 @@ infra/ansible/
 │   │       └── main.yml
 │   ├── mongodb
 │   │   └── tasks/
-│   │      └── main.yml
+│   │       └── main.yml
 │   ├── nginx
 │   │   ├── tasks/
-│   │   │  └── main.yml
+│   │       └── main.yml
 │   │   ├── handlers/
-│   │   │  └── main.yml
+│   │       └── main.yml
 │   │   └── templates/
-│   │      └── nginx.conf.j2
+│   │       └── nginx.conf.j2
 ```
 - common : OS 공통 설정
 - security : 보안 설정
@@ -113,7 +113,16 @@ infra/ansible/
 
 <br>
 
-### 5. systemd 서비스 등록
+### 5. 네트워크 및 프록시 구성
+- Nginx reverse proxy 구성
+- FastAPI 포트(8000)는 외부에서 접근 불가
+- firewalld 기반 외부 접근 제어
+- 모든 요청은 Nginx를 통해서만 전달
+- reverse proxy를 통해 서비스 경로를 분리 가능 (/monitor, /other 등)
+
+<br>
+
+### 6. systemd 서비스 등록
 
 > Ansible은 FastAPI 애플리케이션을 systemd 서비스로 등록한다.   
 > ※ 아래 systemd 유닛은 예시이며, 실제 값은 Ansible 템플릿에서 관리한다.
@@ -149,7 +158,6 @@ WantedBy=multi-user.target
 | 판단 기준 | MongoDB     |
 | 위험 분석 | psutil + 로직 |
 | 운영 정책 | 코드 + 데이터  |
-| 판단 기준 | MongoDB     |
 ---
 <br>
 
@@ -448,10 +456,6 @@ ansible all -i inventory/local.ini -m ping
 ---
 <br>
 
-
-
----
-<br>
 
 ## 이 문서의 범위
 

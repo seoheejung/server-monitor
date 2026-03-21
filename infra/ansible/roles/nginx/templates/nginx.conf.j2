@@ -1,17 +1,26 @@
 server {
-    # 외부에서 접근하는 포트 (기본 80)
+    # 외부 접근 포트
     listen {{ nginx_listen_port }};
 
-    location / {
-        # 내부 FastAPI 서비스로 트래픽 전달
-        # 외부에서는 직접 접근 불가 (127.0.0.1 바인딩)
-        proxy_pass http://127.0.0.1:8000;
+    {% for svc in nginx_upstreams %}
 
-        # 원본 요청 정보 전달 (로그 및 분석용)
+    # /monitor → /monitor/ 리다이렉트 (없으면 404 발생)
+    location = {{ svc.path }} {
+        return 301 {{ svc.path }}/;
+    }
+
+    # 실제 reverse proxy
+    location {{ svc.path }}/ {
+        proxy_pass http://{{ svc.host }}:{{ svc.port }}/;
+
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-
-        # 프록시 체인에서 실제 클라이언트 IP 유지
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        # 연결/응답 타임아웃 (운영 안정성)
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 10s;
     }
+
+    {% endfor %}
 }

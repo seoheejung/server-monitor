@@ -9,3 +9,11 @@ common_packages:
   - make
 
 nginx_listen_port: 80
+
+nginx_upstreams:
+  - path: /monitor
+    host: 127.0.0.1
+    port: 8000
+  - path: /other
+    host: 127.0.0.1
+    port: 9000
