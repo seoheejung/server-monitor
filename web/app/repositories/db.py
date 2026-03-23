@@ -1,5 +1,5 @@
 from pymongo import MongoClient, UpdateOne
-from pymongo.errors import ConnectionFailure
+from pymongo.errors import ConnectionFailure, PyMongoError
 import datetime
 import os
 from dotenv import load_dotenv
@@ -41,6 +41,16 @@ class MongoDB:
             self.connected = False
             self.db = None
             logger.error("❌ MongoDB 연결 실패")
+
+        except PyMongoError as e:
+            self.connected = False
+            self.db = None
+            logger.exception("❌ MongoDB PyMongo 오류")
+
+        except Exception as e:
+            self.connected = False
+            self.db = None
+            logger.exception("❌ MongoDB 예외 발생")
 
 
     def _setup_indexes(self):
