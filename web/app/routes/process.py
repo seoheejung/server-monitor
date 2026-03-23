@@ -19,11 +19,6 @@ class TerminateRequest(BaseModel):
     """
     pid: int
 
-# 프론트/JS 확장 대비용
-@router.get("/processes", dependencies=[Depends(require_admin_cookie)])
-def process_api():
-    return get_process_list(OS_TYPE)
-
 @router.post("/process/terminate", dependencies=[Depends(require_admin_cookie)])
 def terminate(req: TerminateRequest):
     """
