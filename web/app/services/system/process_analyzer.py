@@ -229,31 +229,36 @@ def sync_with_mongodb(db_data_list: Iterable[Dict], current_os: str):
 
         name = name.lower()
         
+        policy = item.get("policy", {})
+        normalized = {
+            "description": desc,
+            "policy": policy if isinstance(policy, dict) else {}
+        }
         # Windows인 경우 확장자 대응용 가상 키 생성 (실제 DB 데이터는 하나지만 검색은 둘 다 되게)
         if current_os == "windows":
             name_no_ext = name.rsplit('.', 1)[0]
-            temp_map[name_no_ext] = desc
-            temp_map[name] = desc  # 원본 그대로 유지
+            temp_map[name_no_ext] = normalized
+            temp_map[name] = normalized
             # 이미 .exe이면 중복 생성 방지
             if not name.endswith(".exe"):
-                temp_map[f"{name_no_ext}.exe"] = desc
+                temp_map[f"{name_no_ext}.exe"] = normalized
         else:
-            temp_map[name] = desc
+            temp_map[name] = normalized
             
     CACHED_KNOWN_PROCS = temp_map
 
 
-def explain_process(proc:Dict) -> str:
+def explain_process(item: Dict | None, raw_name: str) -> str:
     """
     프로세스 설명(Explain)
 
     어려운 프로세스 명을 일반 사용자용 언어로 변환
-    이미 최적화된 CACHED_KNOWN_PROCS를 사용하여 O(1)로 조회
+    이미 최적화된 CACHED_KNOWN_PROCS를 사용하여 O(1)로 조회 
     """
-    raw_name = (proc.get("name") or "").lower()
+    if not item:
+        return f"미등록 프로세스 ({raw_name})"
 
-    # 딕셔너리에 있으면 설명 반환, 없으면 미등록 처리 (정책 반영)
-    return CACHED_KNOWN_PROCS.get(raw_name, f"미등록 프로세스 ({raw_name})")
+    return item.get("description", f"미등록 프로세스 ({raw_name})")
 
 
 def get_process_list(os_type: str) -> List[Dict]:
@@ -275,8 +280,15 @@ def get_process_list(os_type: str) -> List[Dict]:
 
     # 2~4단계: 분석 + 상태 + 포맷
     for proc in raw_processes:
-        # 프로세스 설명 (KNOWN 여부 판단용)
-        proc["explain"] = explain_process(proc)
+        # 프로세스 설명 및 정책
+        raw_name = (proc.get("name") or "").lower()
+        item = CACHED_KNOWN_PROCS.get(raw_name, {})
+        if item:
+            proc["explain"] = item.get("description", f"미등록 프로세스 ({raw_name})")
+            proc["is_system"] = item.get("policy", {}).get("is_system", False)
+        else:
+            proc["explain"] = f"미등록 프로세스 ({raw_name})"
+            proc["is_system"] = False
 
         # 위험 분석 수행
         analysis = analyze_process(proc)
