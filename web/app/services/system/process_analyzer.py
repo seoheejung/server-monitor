@@ -280,8 +280,14 @@ def get_process_list(os_type: str) -> List[Dict]:
 
         # 위험 분석 수행
         analysis = analyze_process(proc)
-        proc["warnings"] = analysis["warnings"]
-        proc["perf_warnings"] = analysis["perf_warnings"]
+        
+        warnings = analysis["warnings"]
+        perf_warnings = analysis["perf_warnings"]
+
+        # 성능 경고를 기존 경고에 병합
+        merged_warnings = warnings + [w for w in perf_warnings if w not in warnings]
+        proc["warnings"] = merged_warnings
+        proc["perf_warnings"] = perf_warnings
 
         # 상태 판단 (Case A/B/C 적용)
         build_status(proc)
