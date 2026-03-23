@@ -50,4 +50,4 @@ def get_service_status(service_name: str, os_type: str):
                     return f"active ({p_status})"
         return "inactive" # 프로세스 목록에도 없으면 비활성
     except Exception as e:
-        return [f"Error: {str(e)[:10]}"]
+        return f"error: {str(e)[:50]}"
