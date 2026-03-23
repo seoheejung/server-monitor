@@ -134,9 +134,10 @@ def analyze_process(proc: Dict) -> Dict[str, List[str]]:
         ):
             if proc.get("pid") != 4:
                 warnings.append("RUNNING_AS_ADMIN: 관리자 권한으로 실행 중")
-        else:
-            if username == "root":
-                warnings.append("RUNNING_AS_ADMIN: 관리자 권한으로 실행 중")
+
+    else: # Linux 계열
+        if username == "root":
+            warnings.append("RUNNING_AS_ADMIN: 관리자 권한으로 실행 중")
 
     # [보안] 주요 서비스 포트가 외부에 노출되어 있는지 확인
     for port in ports:
