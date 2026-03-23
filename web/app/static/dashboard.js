@@ -9,10 +9,10 @@ let isAuthenticated = false;
 
 // 대시보드 각 영역별 자동 갱신 주기 (초 단위)
 const REFRESH_INTERVALS = {
-    summary: 20,
-    processes: 60,
-    services: 30,
-    logs: 15,
+    summary: 30,
+    processes: 90,
+    services: 90,
+    logs: 30,
 };
 
 

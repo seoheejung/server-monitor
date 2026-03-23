@@ -224,7 +224,8 @@ uvicorn app.main:app --reload
 
 ### 1. 시스템 정보 수집 (CPU)
 - psutil 중 가장 단순 (OS 권한 문제 없음)
-- 정확도 확보: psutil.cpu_percent(interval=1)를 사용하여 1초간의 평균 부하 측정
+- API 응답 지연 방지를 위해 blocking 방식(interval>0)은 사용하지 않음
+- psutil.cpu_percent(interval=None) 기반 즉시 반환값 사용
 - Windows와 Linux에서 동일한 API로 동작하여 개발 편의성 확보
 
 ### 2. 리소스 가공 (메모리, 디스크, 구동 시간)

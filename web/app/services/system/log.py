@@ -1,37 +1,32 @@
-from collections import deque
+import subprocess
 
 def get_tail_log(file_path, lines=10, os_type="Linux"):
     """
-    Linux: 로그 파일의 마지막 N줄을 읽어서 반환
-    Windows: 미지원 안내
+    Linux: tail 명령어를 사용하여 로그 파일의 마지막 N줄 반환
 
-    전체 파일을 리스트로 읽는 기존 방식은 메모리 사용량이 O(total_lines)로 증가
-     - deque(maxlen=N)을 사용하면 마지막 N줄만 유지 → 메모리 O(N)으로 제한
+    - 파일 전체를 읽지 않고 끝에서 필요한 부분만 조회 → 디스크 I/O 최소화
+    - 기존 방식(O(file_size)) 대비 tail -n은 필요한 줄 수 기준으로 동작
 
-    로그 파일이 매우 클 경우 (수백 MB 이상)
-     - 파일 끝에서부터 읽는 reverse tail 방식으로 변경 필요
+    Windows: 미지원 안내 반환
     """
-
     if os_type != "Linux":
         return ["log tail is supported on Linux only"]
 
     try:
-        # 마지막 N줄만 유지하는 고정 크기 버퍼 (maxlen 초과 시 자동으로 가장 오래된 데이터 제거됨)
-        buffer = deque(maxlen=lines)
+        # tail -n: 파일 전체를 읽지 않고 끝에서부터 필요한 N줄만 읽음 (I/O 비용 최소화)
+        result = subprocess.run(
+            ["tail", "-n", str(lines), file_path],
+            capture_output=True,  # stdout/stderr 캡처
+            text=True             # 결과를 문자열로 반환
+        )
 
-        # 로그 파일을 읽기 모드로 열기, 로그 파일에 깨진 문자 포함될 수 있음, decode 실패로 예외 발생 방지
-        with open(file_path, "r", encoding="utf-8", errors="replace") as f:
-            for line in f:
-                line = line.strip()
+        # tail 실행 실패 시 stderr 메시지 반환
+        if result.returncode != 0:
+            return [f"Error: {result.stderr.strip()}"]
 
-                # 빈 줄 제거 (UI 표시 품질 개선 목적)
-                if line:
-                    buffer.append(line)
-        # deque → list 변환 (JSON 직렬화 및 응답용)
-        return list(buffer)
+        # 개행 기준으로 나누고 빈 줄 제거 (UI 표시 품질)
+        return [line for line in result.stdout.splitlines() if line]
 
-    except FileNotFoundError:
-        return [f"Error: '{file_path}' 파일을 찾을 수 없습니다."]
     except Exception as e:
-        # 전체 로그를 노출하지 않기 위해 메시지 길이 제한
+        # 내부 에러 노출 제한 (보안 및 응답 길이 제어)
         return [f"Error: {str(e)[:30]}"]
