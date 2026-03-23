@@ -1,6 +1,5 @@
 from fastapi import Depends, APIRouter
-import datetime
-
+from app.core.response import build_result
 from app.repositories.db import db_manager
 from app.services.system.process_analyzer import sync_with_mongodb
 from app.core.config import OS_TYPE
@@ -23,23 +22,24 @@ def manual_sync():
         db_data = db_manager.get_known_processes()
 
         if not db_data:
-            return {
-                "status": "warning",
-                "message": "DB에 데이터가 없습니다. 동기화가 건너뛰어졌습니다."
-            }
+            return build_result(
+                "warning",
+                "DB에 데이터가 없습니다. 동기화가 건너뛰어졌습니다.",
+                204
+            )
         
         # 메모리 캐시 갱신
         sync_with_mongodb(db_data, OS_TYPE)
 
-        return {
-            "status": "success",
-            "message": f"성공적으로 {len(db_data)}개의 프로세스 데이터를 동기화했습니다.",
-            "os_type": OS_TYPE,
-            "timestamp": datetime.datetime.now().isoformat()
-        }
+        return build_result(
+            "success",
+            f"성공적으로 {len(db_data)}개의 프로세스 데이터를 동기화했습니다.",
+            200
+        )
 
     except Exception as e:
-        return {
-            "status": "error",
-            "message": f"동기화 중 오류 발생: {str(e)}"
-        }
+        return build_result(
+            "error",
+            f"동기화 중 오류 발생: {str(e)}",
+            500
+        )

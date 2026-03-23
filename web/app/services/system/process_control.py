@@ -1,6 +1,7 @@
 import logging
 import psutil
 from app.repositories.db import db_manager
+from app.core.response import build_result
 
 logger = logging.getLogger(__name__)
 
@@ -60,10 +61,7 @@ def blocked_by_mongo_policy(proc: psutil.Process, os_type: str):
     try:
         name = proc.name().lower()
     except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-        return {
-            "result": "not_found",
-            "message": "프로세스 정보를 확인할 수 없습니다"
-        }
+        return build_result("not_found", "프로세스를 찾을 수 없습니다", 404)
 
     # 1. OS 전용 정책 조회
     record = db_manager.get_process_policy(name, os_type)
@@ -79,21 +77,19 @@ def blocked_by_mongo_policy(proc: psutil.Process, os_type: str):
     if not policy:
         return None
 
-    # 시스템 보호 정책
     if policy.get("is_system") is True:
-        return {
-            "result": "blocked",
-            "reason": policy.get("reason", "System protected"),
-            "message": "시스템 보호 정책에 의해 종료할 수 없는 프로세스입니다"
-        }
+        return build_result(
+            "blocked",
+            "시스템 보호 정책에 의해 종료할 수 없는 프로세스입니다",
+            403
+        )
 
-    # 사용자 종료 차단 정책
     if policy.get("terminatable") is False:
-        return {
-            "result": "blocked",
-            "reason": policy.get("reason", "Termination not allowed"),
-            "message": "정책상 사용자 종료가 허용되지 않은 프로세스입니다"
-        }
+        return build_result(
+            "blocked",
+            "정책상 사용자 종료가 허용되지 않은 프로세스입니다",
+            403
+        )
 
     return None
 
@@ -131,18 +127,12 @@ def terminate_process(pid: int, os_type: str):
     """ 
     proc = get_live_process(pid)
     if not proc:
-        return {
-            "result": "not_found",
-            "message": "프로세스를 찾을 수 없습니다"
-        }
+        return build_result("not_found", "프로세스 정보를 확인할 수 없습니다", 404)
     
     try:
         name = proc.name()
     except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-        return {
-            "result": "not_found",
-            "message": "프로세스 정보를 확인할 수 없습니다"
-        }
+        return build_result("not_found", "프로세스 정보를 확인할 수 없습니다", 404)
     
     logger.info("[TERMINATE] request pid=%s name=%s", pid, name)
     
@@ -155,30 +145,32 @@ def terminate_process(pid: int, os_type: str):
     # 2. 시스템 프로세스 보호 (실시간 최종 보호)
     if is_system_process(proc, os_type):
         logger.warning("[TERMINATE] blocked by system process")
-        return {
-            "result": "blocked",
-            "message": "SYSTEM 권한으로 실행 중인 프로세스는 <br> 안전상 자동 종료를 허용하지 않습니다"
-        }
+        return build_result(
+            "blocked",
+            "SYSTEM 권한으로 실행 중인 프로세스는 <br> 안전상 자동 종료를 허용하지 않습니다",
+            403
+        )
 
     # 3. Soft Kill
     if soft_kill(proc):
         logger.info("[TERMINATE] soft kill success")
-        return {
-            "result": "terminated",
-            "method": "soft",
-            "message": f"{name} <br> 프로세스가 정상 종료되었습니다"
-        }
+        return build_result(
+            "terminated",
+            f"{name} <br> 프로세스가 정상 종료되었습니다",
+            200
+        )
 
     # 4. Hard Kill
     if hard_kill(proc):
         logger.warning("[TERMINATE] hard kill success")
-        return {
-            "result": "terminated",
-            "method": "hard",
-            "message": f"{name} <br> 프로세스가 강제 종료되었습니다"
-        }
+        return build_result(
+            "terminated",
+            f"{name} <br> 프로세스가 강제 종료되었습니다",
+            200
+        )
     logger.error("[TERMINATE] terminate failed pid=%s name=%s", pid, name)
-    return {
-        "result": "failed",
-        "message": f"{name}<br>프로세스 종료에 실패했습니다"
-    }
+    return build_result(
+        "failed",
+        f"{name}<br>프로세스 종료에 실패했습니다",
+        500
+    )

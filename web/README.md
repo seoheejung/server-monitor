@@ -65,7 +65,8 @@ web/
 ├── app/
 │   ├── main.py          # FastAPI 엔트리 (URL 및 서버 설정)
 │   ├── core/            # 전역 설정
-│   │   ├── config.py    
+│   │   ├── config.py
+│   │   ├── response.py  # 공통 응답 래퍼
 │   │   └── security.py  # 보안 설정
 │   ├── routes/          # URL
 │   │   ├── auth.py           # 인증 관련 API

@@ -1,7 +1,7 @@
 import os
 import secrets
 from datetime import datetime, timedelta, UTC
-
+from app.core.response import build_result
 from fastapi import Cookie, HTTPException, Response, status
 
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
@@ -26,25 +26,25 @@ def verify_admin_credentials(username: str | None, password: str | None) -> None
     # 서버 설정 문제 (env 누락)
     if not ADMIN_USERNAME or not ADMIN_PASSWORD:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Admin credentials are not configured",
+            status_code=500,
+            detail=build_result("fail", "Admin credentials are not configured", 500),
         )
 
     # 입력값 누락
     if not username or not password:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing username or password",
+            status_code=401,
+            detail=build_result("fail", "Missing username or password", 401),
         )
 
     # 값 비교 (timing attack 완화 위해 compare_digest 사용 권장)
     username_ok = secrets.compare_digest(username, ADMIN_USERNAME)
     password_ok = secrets.compare_digest(password, ADMIN_PASSWORD)
-
+    # 인증 실패
     if not username_ok or not password_ok:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password",
+            status_code=401,
+            detail=build_result("fail", "Invalid username or password", 401),
         )
 
 
@@ -123,16 +123,16 @@ def require_admin_cookie(admin_session: str | None = Cookie(default=None)) -> No
     # 쿠키 없음 → 인증 실패
     if not admin_session:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing admin session",
+            status_code=401,
+            detail=build_result("fail", "Missing admin session", 401),
         )
 
     # 서버에 없는 토큰 → 위조 또는 만료
     expires_at = ACTIVE_SESSIONS.get(admin_session)
     if not expires_at:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid admin session",
+            status_code=401,
+            detail=build_result("fail", "Invalid admin session", 401),
         )
 
 

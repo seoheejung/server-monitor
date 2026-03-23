@@ -12,6 +12,7 @@ from app.services.system.service import get_service_status
 from app.services.system.log import get_tail_log
 from app.services.system.process_analyzer import get_process_list
 from app.core.security import require_admin_cookie
+from app.core.response import build_response
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"],
     dependencies=[Depends(require_admin_cookie)])
@@ -38,7 +39,7 @@ def dashboard_summary():
     disk = get_disk_usage(OS_TYPE)
     uptime = get_uptime()
 
-    return {
+    return build_response({
         "cpu": cpu,
         "memory": memory,
         "disk": disk,
@@ -46,8 +47,7 @@ def dashboard_summary():
         "cpu_class": usage_class(cpu),
         "memory_class": usage_class(memory),
         "os_type": OS_TYPE,
-        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    }
+    })
 
 
 @router.get("/processes")
@@ -63,10 +63,9 @@ def dashboard_processes():
     """
     processes = get_process_list(OS_TYPE)
 
-    return {
+    return build_response({
         "processes": processes,
-        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    }
+    })
 
 
 @router.get("/services")
@@ -81,10 +80,9 @@ def dashboard_services():
         name: get_service_status(name, OS_TYPE)
         for name in services_to_check
     }
-    return {
+    return build_response({
         "services": service_results,
-        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    }
+    })
 
 
 
@@ -102,8 +100,7 @@ def dashboard_logs(
     log_file = file or "/var/log/messages"
     logs = get_tail_log(log_file, lines, OS_TYPE)
 
-    return {
+    return build_response({
         "logs": logs,
         "log_source": log_file,
-        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    }
+    })
