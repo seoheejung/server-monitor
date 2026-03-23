@@ -77,7 +77,6 @@ web/
 │   │   └── db.py
 │   ├── constants/       # 포트 / 프로세스 정책
 │   │   ├── ports.py
-│   │   ├── processes.py
 │   │   ├── linux.py
 │   │   └── windows.py
 │   ├── services/
