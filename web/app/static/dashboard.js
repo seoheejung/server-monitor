@@ -1,15 +1,135 @@
+// 로그인 오버레이 DOM 요소 반환
+const loginOverlay = () => document.getElementById("login-overlay");
+
+// 로그인 에러 메시지 DOM 요소 반환
+const loginErrorEl = () => document.getElementById("login-error");
+
+// 로그인 완료 여부
+let isAuthenticated = false;
+
+// 대시보드 각 영역별 자동 갱신 주기 (초 단위)
 const REFRESH_INTERVALS = {
-    summary: 10,
-    processes: 20,
+    summary: 20,
+    processes: 60,
     services: 30,
     logs: 15,
 };
 
+
+// setInterval 핸들 저장 (갱신 제어용)
 let refreshTimers = {
     summary: null,
     processes: null,
     services: null,
     logs: null,
+};
+
+
+// 로그인 오버레이를 화면에 표시
+const showLoginOverlay = () => {
+    const el = loginOverlay();
+    if (el) el.style.display = "flex";
+};
+
+
+// 로그인 오버레이를 숨김
+const hideLoginOverlay = () => {
+    const el = loginOverlay();
+    if (el) el.style.display = "none";
+};
+
+
+// 로그인 에러 메시지를 화면에 출력
+const setLoginError = (message = "") => {
+    const el = loginErrorEl();
+    if (el) el.textContent = message;
+};
+
+
+// 사용자 입력값으로 로그인 API 호출 후 세션 생성 시도
+// 성공 시 true, 실패 시 false 반환
+const tryLogin = async () => {
+    const usernameEl = document.getElementById("login-username");
+    const passwordEl = document.getElementById("login-password");
+
+    const username = usernameEl?.value?.trim() ?? "";
+    const password = passwordEl?.value ?? "";
+
+    // 입력값 검증
+    if (!username || !password) {
+        setLoginError("아이디와 비밀번호를 입력하세요.");
+        return false;
+    }
+
+    // 로그인 요청
+    const response = await fetch("/api/auth/login", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            username,
+            password,
+        }),
+    });
+
+    // 로그인 실패 처리
+    if (!response.ok) {
+        isAuthenticated = false;
+        setLoginError("로그인 실패");
+        if (passwordEl) passwordEl.value = "";
+        return false;
+    }
+
+    // 로그인 성공 처리
+    if (passwordEl) passwordEl.value = "";
+    setLoginError("");
+    isAuthenticated = true;
+    hideLoginOverlay();
+    return true;
+};
+
+// 로그인 전에는 보호 API 호출을 막는다.
+const ensureAuthenticated = () => {
+    if (!isAuthenticated) {
+        throw new Error("auth not ready");
+    }
+};
+
+// 에러 메시지에 401이 포함되어 있는지 확인한다
+const isUnauthorizedError = (error) =>
+    String(error?.message ?? "").includes("401");
+
+// 로그인 버튼 클릭 및 Enter 키 입력 이벤트 바인딩
+// 로그인 성공 시 대시보드 로딩 및 자동 갱신 시작
+const bindLoginEvents = () => {
+    const loginBtn = document.getElementById("login-btn");
+    const passwordEl = document.getElementById("login-password");
+
+    // 로그인 버튼 클릭
+    if (loginBtn) {
+        loginBtn.addEventListener("click", async () => {
+            const ok = await tryLogin();
+            if (ok) {
+                await refreshDashboard();
+                startAutoRefresh();
+            }
+        });
+    }
+
+    // 비밀번호 입력창에서 Enter 입력 시 로그인 시도
+    if (passwordEl) {
+        passwordEl.addEventListener("keydown", async (event) => {
+            if (event.key === "Enter") {
+                const ok = await tryLogin();
+                if (ok) {
+                    await refreshDashboard();
+                    startAutoRefresh();
+                }
+            }
+        });
+    }
 };
 
 // HTML 특수문자를 이스케이프해서 XSS를 방지한다.
@@ -74,6 +194,8 @@ const updateSectionUpdatedAt = (id, text = null) => {
 
 // summary API를 호출해서 시스템 요약 영역을 갱신한다.
 const refreshSummary = async () => {
+    ensureAuthenticated();
+
     const response = await fetch("/api/dashboard/summary", {
         credentials: "same-origin",
         cache: "no-store",
@@ -90,6 +212,8 @@ const refreshSummary = async () => {
 
 // processes API를 호출해서 프로세스 목록 영역을 갱신한다.
 const refreshProcesses = async () => {
+    ensureAuthenticated();
+
     const response = await fetch("/api/dashboard/processes", {
         credentials: "same-origin",
         cache: "no-store",
@@ -106,6 +230,8 @@ const refreshProcesses = async () => {
 
 // services API를 호출해서 서비스 상태 영역을 갱신한다.
 const refreshServices = async () => {
+    ensureAuthenticated();
+
     const response = await fetch("/api/dashboard/services", {
         credentials: "same-origin",
         cache: "no-store",
@@ -122,6 +248,8 @@ const refreshServices = async () => {
 
 // logs API를 호출해서 로그 영역을 갱신한다.
 const refreshLogs = async () => {
+    ensureAuthenticated();
+
     const response = await fetch("/api/dashboard/logs", {
         credentials: "same-origin",
         cache: "no-store",
@@ -304,12 +432,25 @@ const refreshDashboard = async () => {
         );
     } catch (error) {
         console.error(error);
-        setRefreshStatus("FAILED");
+        if (String(error?.message ?? "") === "auth not ready") {
+            setRefreshStatus("AUTH REQUIRED");
+            return;
+        }
+        setRefreshStatus("AUTH REQUIRED");
+
+        if (isUnauthorizedError(error)) {
+            isAuthenticated = false;
+            showLoginOverlay();
+            Object.values(refreshTimers).forEach((timer) => {
+                if (timer) clearInterval(timer);
+            });
+        }
     }
 };
 
 // 자동 갱신 타이머를 영역별로 설정/재설정한다.
 const startAutoRefresh = () => {
+    if (!isAuthenticated) return;
     Object.values(refreshTimers).forEach((timer) => {
         if (timer) {
             clearInterval(timer);
@@ -443,9 +584,9 @@ const terminateProcess = async (button) => {
 // 인라인 onclick에서 호출할 수 있도록 terminateProcess를 전역에 노출한다.
 window.terminateProcess = terminateProcess;
 
-// 초기 1회 렌더와 설정한 주기로 자동 갱신을 시작한다.
+// 초기 1회 렌더
 document.addEventListener("DOMContentLoaded", async () => {
     scrollLogToBottom();
-    await refreshDashboard();
-    startAutoRefresh();
+    bindLoginEvents();
+    showLoginOverlay();
 });

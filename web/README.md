@@ -273,21 +273,25 @@ Python 데이터 → Jinja2 → HTML
 - 모든 주요 API는 인증이 필요
 
 #### 인증 방식
-1. 클라이언트는 `/api/auth`에 `X-API-Key` 헤더를 포함하여 요청
-2. 서버는 환경변수 `ADMIN_API_KEY`와 비교 검증
-3. 검증 성공 시 `admin_session` 쿠키 발급 (HttpOnly)
+1. 로그인 요청
+    - 클라이언트는 /api/auth/login에 username, password를 전달
+    - 서버는 환경변수 ADMIN_USERNAME, ADMIN_PASSWORD와 비교하여 검증
+2. 세션 발급
+    - 인증 성공 시 서버는 admin_session 쿠키를 발급 (HttpOnly)
+    - 쿠키 값은 랜덤 세션 토큰이며, 서버 메모리에 저장된 세션과 매칭됨
 
 #### 이후 요청
 - `/api/dashboard`
 - `/api/process/terminate`
 - `/api/admin/*`
 
-모든 API는 쿠키 기반 인증(`admin_session`)을 통해 접근 제어
+모든 API는 세션 쿠키(`admin_session`) 검증을 통해 접근 제어
 
 #### 특징
-- API Key는 최초 1회만 사용
-- 이후는 세션 쿠키로 인증 유지
-
+- 아이디/비밀번호는 로그인 시 1회만 사용
+- 이후 요청은 세션 쿠키 기반 인증 유지
+- 쿠키에는 인증 정보가 아닌 랜덤 세션 토큰만 저장
+- 세션은 서버 메모리에서 관리되며, 만료 시간 이후 자동 무효화됨 (4시간)
 ---
 <br>
 

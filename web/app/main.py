@@ -17,7 +17,6 @@ from app.services.system.process_analyzer import (
 from app.repositories.db import db_manager
 from app.routes import process, admin, auth, dashboard 
 from app.core.config import OS_TYPE
-from app.core.security import issue_admin_cookie
 from app.services.init.process_seed import load_and_validate_process_data
 
 logger = logging.getLogger(__name__)
@@ -43,7 +42,8 @@ JSON_FILE_PATH = "data/known_processes.json"
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request):
     """
-    브라우저 메인 화면 렌더링 + 관리자 세션 자동 발급
+    브라우저 메인 화면 렌더링
+    인증은 로그인 API에서 처리
     """
     response = templates.TemplateResponse(
         "dashboard.html",
@@ -51,7 +51,6 @@ def dashboard(request: Request):
             "request": request,
         }
     )
-    issue_admin_cookie(response)
     return response
 
 @app.get("/.well-known/appspecific/com.chrome.devtools.json")

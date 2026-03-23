@@ -8,6 +8,19 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💾</text></svg>">
 </head>
 <body>
+<!-- 로그인 -->
+<div id="login-overlay" class="modal-overlay" style="display: flex;">
+    <div class="modal-card">
+        <h2>ADMIN LOGIN</h2>
+        <div class="login-form">
+            <input id="login-username" type="text" placeholder="USERNAME">
+            <input id="login-password" type="password" placeholder="PASSWORD">
+            <button id="login-btn" class="kill-btn">LOGIN</button>
+            <p id="login-error"></p>
+        </div>
+    </div>
+</div>
+
 <div class="container-header">
     <h1>SERVER MONITOR</h1>
     <div class="refresh-meta">
