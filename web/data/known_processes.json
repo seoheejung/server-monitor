@@ -2779,5 +2779,19 @@
       "reason": "Security Middleware (Required for Banking)"
     },
     "tags": ["windows", "security", "korea", "banking"]
-  }
+  },
+  [
+    {
+      "name": "systemsettingsbroker.exe",
+      "platform": "windows",
+      "category": "core",
+      "description": "System Settings Broker: Windows 설정 앱(UWP)의 권한 관리 및 시스템 설정 변경을 중계하는 실행 호스트",
+      "policy": {
+        "is_system": true,
+        "terminatable": false,
+        "reason": "System Core (UI Infrastructure)"
+      },
+      "tags": ["windows", "settings", "uwp", "core"]
+    }
+  ]
 ]
