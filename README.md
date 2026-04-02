@@ -1,6 +1,11 @@
 # [서버 관리형 프로젝트] 서버 상태 모니터링 대시보드
 
-> 본 프로젝트의 최종 운영 기준은 Rocky Linux Native + systemd + Ansible이다.
+#### Rocky Linux Native + systemd + Ansible 기반 서버 상태 모니터링 시스템
+
+<br>
+<img src="./images/rockylinux_1_task.png" width="600" >
+
+> Rocky Linux (VirtualBox) 운영 환경 적용 및 네이티브 기준 최종 검증 화면
 
 ---
 <br>
@@ -70,11 +75,12 @@
   - CPU / 메모리 사용량
   - 실행 사용자
   - 열린 포트
-- 위험 요소 자동 판단
+- 위험 요소 자동 판단 및 상태 분류
   - root/관리자 권한 실행
-  - 외부 공개 포트
+  - 주요 공개 포트 및 시스템 포트 사용
   - 과도한 메모리 사용
   - 비정상 실행 경로
+  - KNOWN_PROCESSES 기반 설명(Explain) 및 미등록 프로세스 식별
 - 프로세스 역할 설명(Explain)
 
 <br>
@@ -114,7 +120,7 @@
 ## 프로젝트 전체 그림
 
 ```
-[ 서버 (Window, Rocky Linux) ]
+[ 서버 (Windows, Rocky Linux) ]
         |
         |  (psutil / systemctl / 로그 / 프로세스)
         v
@@ -189,9 +195,6 @@ venv\Scripts\activate
 
 # 3. 서버 실행 
 uvicorn app.main:app --reload
-
-# 3-1. .env 설정 자동 로드
-python run.py
 ```
 
 #### 4. 브라우저 확인 (http://127.0.0.1:8000/)
@@ -208,7 +211,7 @@ source venv/bin/activate
 # 3. 서버 실행 (외부 접속 허용)
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 
-# 백그라운드 실행 (추후 pm2로 변경)
+# 백그라운드 실행
 nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 ```
 
@@ -222,7 +225,7 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 
 > 서비스 배포 도구가 아니라 **운영 환경 재현 도구**로 사용
 
-### Rocky Linux / Ubuntu 등 공통
+### Rocky Linux 기준
 
 1. 필수 패키지 설치
    - python3, pip, firewalld
@@ -321,14 +324,10 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 
 > docker (rocky linux container) 개발 환경에서 서비스 상태, 로그 tail을 구현한 화면
 
-<br>
-<img src="./images/window_3_task.png" width="600" >
-
-> 디자인 확정
 
 ### ✅ 3차 목표 : 행동 제안 (완료)
 - MongoDB 연동 (프로세스 판단 기준 저장)
-- 프로세스 종료 (권장 종료 대상만 추려서 제안)
+- 종료 가능 프로세스 식별 및 종료 기능 제공
   
 <br>
 <img src="./images/window_4_task.png" width="600" >
@@ -362,7 +361,7 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 9. 인증/인가 부재 문제 해결 ✅
 10. Ansible을 통한 운영 환경 자동 구성 및 재현성 확보 ✅
 11. MongoDB 인증 활성화 및 Ansible Vault 기반 비밀값 분리 적용 ✅
-12. 실제 Rocky Linux (VirtualBox) 운영 환경 적용 및 네이티브 기준 최종 검증
+12. 실제 Rocky Linux (VirtualBox) 운영 환경 적용 및 네이티브 기준 최종 검증 ✅
 
 ---
 <br>

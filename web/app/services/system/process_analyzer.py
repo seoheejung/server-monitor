@@ -282,11 +282,24 @@ def get_process_list(os_type: str) -> List[Dict]:
     for proc in raw_processes:
         # 프로세스 설명 및 정책
         raw_name = (proc.get("name") or "").lower()
-        item = CACHED_KNOWN_PROCS.get(raw_name, {})
+
+        # 리눅스 커널/시스템 프로세스 이름은 / 뒤에 런타임 정보(disk, role 등)가 붙을 수 있으므로
+        # 기본 이름만 추출해서 known_processes와 매칭
+        base_name = raw_name.split("/")[0]
+
+        # DB 동기화 캐시에서는 기본 이름 기준으로 조회
+        item = CACHED_KNOWN_PROCS.get(base_name, {})
+
         if item:
+            # 사용자 화면에는 실제 수집된 원본 이름(raw_name)이 아니라
+            # 등록된 설명(description)을 우선 보여준다.
             proc["explain"] = item.get("description", f"미등록 프로세스 ({raw_name})")
+
+            # 시스템 프로세스 여부도 등록 정책(policy) 기준으로 반영
             proc["is_system"] = item.get("policy", {}).get("is_system", False)
         else:
+            # 등록되지 않은 경우에는 실제 수집된 원본 이름을 그대로 보여줘야
+            # 어떤 프로세스가 미등록인지 식별 가능하다.
             proc["explain"] = f"미등록 프로세스 ({raw_name})"
             proc["is_system"] = False
 

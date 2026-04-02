@@ -1708,14 +1708,6 @@
     "tags": ["linux", "k8s", "infrastructure", "auto-imported"]
   },
   {
-    "name": "kworker",
-    "platform": "linux",
-    "category": "infrastructure",
-    "description": "Linux Kernel Worker Thread: 커널의 다양한 백그라운드 작업(I/O, 인터럽트 등) 처리",
-    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
-    "tags": ["linux", "kernel", "auto-imported"]
-  },
-  {
     "name": "wireshark",
     "platform": "common",
     "category": "monitoring",
@@ -2809,5 +2801,356 @@
         "auto-imported"
     ],
     "created_at": "2026-04-03T00:00:00Z"
+  },
+  {
+    "name": "avahi-daemon",
+    "platform": "linux",
+    "category": "network-service",
+    "description": "Avahi mDNS/DNS-SD 데이터 센터: 로컬 네트워크 장치 검색 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "setroubleshootd",
+    "platform": "linux",
+    "category": "security",
+    "description": "SELinux 트러블슈팅 데몬: 보안 정책 위반 진단 및 보고",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "security", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "colord",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "시스템 색상 프로필 관리자: 장치 간 색상 일관성 유지",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "sd-pam",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "systemd PAM helper: 사용자 세션 권한 및 인증 관리 보조",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "security", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "gnome-keyring-daemon",
+    "platform": "linux",
+    "category": "security",
+    "description": "GNOME 비밀번호 및 자격 증명 저장소 관리자",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "security", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "dbus-broker",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "고성능 D-Bus 메시지 브로커: 프로세스 간 통신(IPC) 핵심",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "gnome-shell",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "GNOME 데스크탑 핵심 사용자 인터페이스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "ui", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "pipewire",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "리눅스 멀티미디어 프레임워크: 오디오/비디오 스트림 관리",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "multimedia", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "gvfs-udisks2-volume-monitor",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "디스크 장치 모니터링 및 마운트 관리 인프라",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "hardware", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "xdg-desktop-portal",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "샌드박스 앱을 위한 시스템 자원 접근 포털 데몬",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "firefox",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "Firefox 웹 브라우저: 사용자 응용 프로그램",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["linux", "browser", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "isolated web co",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "브라우저 탭 격리 프로세스 (Web Content Isolation)",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["linux", "browser", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "ibus-daemon",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "Intelligent Input Bus: 다국어 입력기 프레임워크",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "input", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "gvfsd-metadata",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "GIO 가상 파일 시스템 메타데이터 쓰기 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "gnome-software",
+    "platform": "linux",
+    "category": "system-utility",
+    "description": "GNOME 소프트웨어 센터: 패키지 관리 및 업데이트 UI",
+    "policy": { "is_system": false, "terminatable": true, "reason": "User Application" },
+    "tags": ["linux", "package-manager", "auto-imported"],
+    "created_at": "2026-04-03T05:15:00Z"
+  },
+  {
+    "name": "cupsd",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "Common Unix Printing System: 리눅스 표준 인쇄 서비스 데몬",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "printing", "auto-imported"],
+    "created_at": "2026-04-03T05:17:00Z"
+  },
+  {
+    "name": "tuned",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "Tuned: 시스템 사용량에 따른 하드웨어 성능 및 전력 최적화 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "performance", "auto-imported"],
+    "created_at": "2026-04-03T05:17:00Z"
+  },
+  {
+    "name": "atd",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "At Daemon: 예약된 시간에 일회성 작업을 실행하는 스케줄러",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "scheduling", "auto-imported"],
+    "created_at": "2026-04-03T05:17:00Z"
+  },
+  {
+    "name": "gdm",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "GNOME Display Manager: 그래픽 로그온 화면 및 사용자 세션 관리자",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "ui", "login", "auto-imported"],
+    "created_at": "2026-04-03T05:17:00Z"
+  },
+  {
+    "name": "wpa_supplicant",
+    "platform": "linux",
+    "category": "network-service",
+    "description": "WPA Supplicant: Wi-Fi 암호화 및 인증 연결 관리자",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "network", "security", "auto-imported"],
+    "created_at": "2026-04-03T05:17:00Z"
+  },
+  {
+    "name": "sssd_kcm",
+    "platform": "linux",
+    "category": "security",
+    "description": "SSSD Kerberos Cache Manager: 자격 증명 캐시 관리 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "security", "auth", "auto-imported"],
+    "created_at": "2026-04-03T05:17:00Z"
+  },
+  {
+    "name": "kworker",
+    "platform": "linux",
+    "category": "kernel / core",
+    "description": "Linux Kernel Worker Thread: 커널 백그라운드 작업(I/O, 이벤트 등) 처리용 스레드",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "kernel", "auto-imported"],
+    "created_at": "2026-04-03T05:17:00Z"
+  },
+  {
+    "name": "fwupd",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "Firmware Update Daemon: 시스템 및 장치 펌웨어 업데이트 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "hardware", "update", "auto-imported"],
+    "created_at": "2026-04-03T05:17:00Z"
+  },
+  {
+    "name": "rtkit-daemon",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "RealtimeKit: 실시간 스케줄링 우선순위를 프로세스에 부여하는 시스템 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "performance", "auto-imported"],
+    "created_at": "2026-04-03T05:17:00Z"
+  },
+  {
+    "name": "dbus-broker-launch",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "D-Bus Broker Launcher: 프로세스 간 통신 브로커 시작 도구",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "auto-imported"],
+    "created_at": "2026-04-03T05:17:00Z"
+  },
+  {
+    "name": "pool_workqueue_",
+    "platform": "linux",
+    "category": "kernel / core",
+    "description": "Linux Kernel Pool Workqueue: 커널 작업 큐 관리 스레드",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "kernel", "auto-imported"],
+    "created_at": "2026-04-03T05:20:00Z"
+  },
+  {
+    "name": "rcu_preempt",
+    "platform": "linux",
+    "category": "kernel / core",
+    "description": "Read-Copy Update (RCU) Preemption: 커널 동기화 및 데이터 업데이트 메커니즘",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "kernel", "auto-imported"],
+    "created_at": "2026-04-03T05:20:00Z"
+  },
+  {
+    "name": "ksoftirqd",
+    "platform": "linux",
+    "category": "kernel / core",
+    "description": "Software Interrupt Daemon: 소프트웨어 인터럽트 처리 프로세스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "kernel", "auto-imported"],
+    "created_at": "2026-04-03T05:20:00Z"
+  },
+  {
+    "name": "migration",
+    "platform": "linux",
+    "category": "kernel / core",
+    "description": "CPU Migration Thread: CPU 간 프로세스 이동 및 로드 밸런싱 담당",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "kernel", "auto-imported"],
+    "created_at": "2026-04-03T05:20:00Z"
+  },
+  {
+    "name": "oom_reaper",
+    "platform": "linux",
+    "category": "kernel / core",
+    "description": "Out-Of-Memory Reaper: 메모리 고갈 시 프로세스 강제 종료 및 자원 회수",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "kernel", "memory", "auto-imported"],
+    "created_at": "2026-04-03T05:20:00Z"
+  },
+  {
+    "name": "khungtaskd",
+    "platform": "linux",
+    "category": "monitoring",
+    "description": "Hung Task Detector: 응답이 없는(D 상태) 프로세스 감시",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "kernel", "auto-imported"],
+    "created_at": "2026-04-03T05:20:00Z"
+  },
+  {
+    "name": "xfsaild",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "XFS AIL (Active Item List) Daemon: XFS 파일 시스템 로그 및 데이터 기록",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "filesystem", "auto-imported"],
+    "created_at": "2026-04-03T05:20:00Z"
+  },
+  {
+    "name": "systemd-journald",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "Systemd Journal Daemon: 시스템 로그 수집 및 관리",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "logging", "auto-imported"],
+    "created_at": "2026-04-03T05:20:00Z"
+  },
+  {
+    "name": "firewalld",
+    "platform": "linux",
+    "category": "security",
+    "description": "Firewalld: 동적 관리형 방화벽 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "network", "security", "auto-imported"],
+    "created_at": "2026-04-03T05:20:00Z"
+  },
+  {
+    "name": "systemd-logind",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "Systemd Login Manager: 사용자 로그인 세션 및 상태 관리",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "auto-imported"],
+    "created_at": "2026-04-03T05:20:00Z"
+  },
+  {
+    "name": "udisksd",
+    "platform": "linux",
+    "category": "infrastructure",
+    "description": "UDisks Daemon: 스토리지 장치 관리 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "hardware", "auto-imported"],
+    "created_at": "2026-04-03T05:20:00Z"
+  },
+  {
+    "name": "upowerd",
+    "platform": "linux",
+    "category": "system-service",
+    "description": "UPower Daemon: 전원 관리 및 배터리 상태 모니터링",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "power-management", "auto-imported"],
+    "created_at": "2026-04-03T05:20:00Z"
+  },
+  {
+    "name": "modemmanager",
+    "platform": "linux",
+    "category": "network-service",
+    "description": "ModemManager: 모바일 광대역(LTE/5G) 장치 제어 서비스",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "network", "auto-imported"],
+    "created_at": "2026-04-03T05:20:00Z"
+  },
+  {
+    "name": "sedispatch",
+    "platform": "linux",
+    "category": "security",
+    "description": "SELinux Dispatcher: 보안 이벤트를 처리하고 전달하는 도구",
+    "policy": { "is_system": true, "terminatable": false, "reason": "System Core" },
+    "tags": ["linux", "security", "auto-imported"],
+    "created_at": "2026-04-03T05:20:00Z"
   }
 ]
