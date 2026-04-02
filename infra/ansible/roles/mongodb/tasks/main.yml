@@ -42,7 +42,7 @@
     port: 27017
     timeout: 30
 
-- name: Check admin user exists
+- name: Check admin user exists without auth
   # 최초 상태에서는 localhost 예외로 admin 사용자 존재 여부 확인 가능
   ansible.builtin.command:
     argv:
@@ -52,7 +52,27 @@
       - 'db.getSiblingDB("admin").getUser("{{ mongodb_admin_username }}") ? "exists" : "missing"'
   register: mongodb_admin_user_check
   changed_when: false
+  failed_when: false
 
+- name: Check admin user exists with auth
+  # 인증이 이미 활성화된 재실행 상태에서는 관리자 인증으로 다시 확인
+  ansible.builtin.command:
+    argv:
+      - mongosh
+      - --quiet
+      - --username
+      - "{{ mongodb_admin_username }}"
+      - --password
+      - "{{ mongodb_admin_password }}"
+      - --authenticationDatabase
+      - admin
+      - --eval
+      - 'db.getSiblingDB("admin").getUser("{{ mongodb_admin_username }}") ? "exists" : "missing"'
+  register: mongodb_admin_user_check_auth
+  changed_when: false
+  when: "'not authorized' in mongodb_admin_user_check.stderr"
+  no_log: true
+  
 - name: Create admin user
   # 관리자 계정이 없을 때만 생성
   ansible.builtin.command:
@@ -69,7 +89,9 @@
             { role: "readWriteAnyDatabase", db: "admin" }
           ]
         })
-  when: mongodb_admin_user_check.stdout | trim == "missing"
+  when:
+  - mongodb_admin_user_check.stdout | trim == "missing"
+  - "'not authorized' not in mongodb_admin_user_check.stderr"
   changed_when: true
   no_log: true
 

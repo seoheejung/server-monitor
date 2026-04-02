@@ -129,10 +129,22 @@ sudo dnf install -y epel-release
 # Ansible 설치
 sudo dnf install -y ansible-core
 ```
+- Ansible 컬렉션 설치
+```
+mkdir -p ~/.ansible/collections
+
+ansible-galaxy collection install ansible.posix \
+  --collections-path ~/.ansible/collections
+
+# 컬렉션 설치 확인
+ansible-galaxy collection list --collections-path ~/.ansible/collections
+```
+
 - 레포 클론 경로: /home/rockylinux/server-monitor/
 ```
 git clone <repo_url> /home/rockylinux/server-monitor/
 ```
+
 
 ### 2. Ansible 배포
 #### 레포 경로에서 Ansible 실행
