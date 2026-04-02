@@ -20,6 +20,7 @@ psutil / systemctl / /proc / 권한 제약이 <br>
   - [검증 환경 정보](#검증-환경-정보)
   - [[1단계 목표] Native 실행 검증 범위](#1단계-목표-native-실행-검증-범위)
   - [[2단계 목표] Ansible 배포 후 Native 실행 검증](#2단계-목표-ansible-배포-후-native-실행-검증)
+  - [전체 실행 순서](#전체-실행-순서)
   - [환경 설계](#환경-설계)
   - [Docker vs Native 환경 차이 요약](#docker-vs-native-환경-차이-요약)
   - [코드 기준 OS 의존 동작 정리](#코드-기준-os-의존-동작-정리)
@@ -177,15 +178,15 @@ journalctl -u server-monitor -n 100 --no-pager
 ### 4. MongoDB 인증 검증
 #### 관리자 계정 로그인 확인
 ```
-mongosh -u <admin_user> -p <admin_password> --authenticationDatabase admin --db admin
+mongosh -u <admin_user> -p <admin_password> --authenticationDatabase admin
 ```
 - 로그인 성공 체크
 - Authentication failed 로그 발생 시 비정상
 #### 애플리케이션 계정 로그인 확인
 ```
-mongosh -u <app_user> -p <app_password> --authenticationDatabase process_monitor --db process_monitor
+mongosh -u <app_user> -p <app_password> --authenticationDatabase process_monitor
 ```
-- process_monitor DB 접근 가능 체크
+- 로그인 성공 체크
 - Authentication failed 로그 발생 시 비정상
 #### 인증 없이 접속 차단 확인
 ```
@@ -193,7 +194,7 @@ mongosh
 ```
 - 권한 오류가 발생 체크
 #### 애플리케이션 DB 연결 확인
-- .env에 설정된 MONGO_URL 기준으로 서버 실행
+- systemd 서비스 실행 이후 .env에 설정된 MONGO_URL 기준으로 DB 연결을 검증한다.
 - MongoDB 연결 오류가 발생하지 않아야 한다.
 #### systemd 실행 후 검증
 ```
@@ -216,10 +217,93 @@ journalctl -u server-monitor -n 100 --no-pager
 | MongoDB 관리자 인증      | mongosh -u <admin> --authenticationDatabase admin | 로그인 성공 |
 | MongoDB 앱 계정 인증     | mongosh -u <app> --authenticationDatabase process_monitor | DB 접근 가능 |
 | MongoDB 무인증 차단      | mongosh                   | 인증 없이 접근 불가 |
-| MongoDB 앱 연결        | 서버 실행 (.env 기준)           | 인증 오류 없음 |
+| MongoDB 앱 연결        | systemd 실행 후 journalctl 확인 | 인증 오류 없음 |
 
 ---
 <br>
+
+## 전체 실행 순서
+
+### 1단계
+
+VirtualBox Rocky Linux 9.x 준비
+
+### 2단계
+
+레포 clone
+
+```
+git clone <repo_url> /home/rockylinux/server-monitor
+cd /home/rockylinux/server-monitor/infra/ansible
+```
+
+### 3단계
+
+Ansible 적용
+
+```
+ansible-playbook -i inventory/local.ini playbooks/setup.yml
+ansible-playbook -i inventory/local.ini playbooks/server_monitor.yml
+```
+
+### 4단계
+
+MongoDB 인증 확인
+
+- 관리자 계정 로그인 성공
+- 앱 계정 로그인 성공
+- 무인증 접속 차단
+
+### 5단계
+
+systemd 서비스 검증
+
+- 서비스 재기동 성공
+- 상태가 active 인지 확인
+- journalctl 기준 오류 로그 없는지 확인
+- 앱 `.env` 기준 DB 연결 성공
+
+```
+systemctl enable server-monitor
+systemctl restart server-monitor
+systemctl status server-monitor
+
+journalctl -u server-monitor -n 100 --no-pager
+```
+
+### 6단계
+
+애플리케이션 접속 검증
+
+```
+curl http://127.0.0.1:8000/
+curl http://127.0.0.1:8000/api/dashboard/summary
+```
+
+### 7단계
+
+Native 기능 검증
+
+- `/proc` 기반 프로세스 수집
+- root / 일반 사용자 차이
+- `/var/log/messages` tail
+- `systemctl` 상태 조회
+- 포트/방화벽 확인
+
+### 8단계
+
+운영 기준 최종 확인
+
+```
+firewall-cmd --list-ports
+ss -tunlp | grep 8000
+systemctl is-enabled server-monitor
+systemctl is-active server-monitor
+```
+
+---
+<br>
+
 
 ## 환경 설계
 
@@ -291,7 +375,7 @@ journalctl -u server-monitor -n 100 --no-pager
 
 ## 서비스 상태 판단 전략 (Native 기준)
 ### 1. systemctl 결과 참고
-- systemctl은 Docker 환경에서 제한될 수 있으므로 프로세스 / 포트 기반 판단이 핵심
+- systemctl은 Native 환경에서 서비스 상태 판단의 기준으로 사용
   
 ### 2. 권장 최소 판단 기준
 - nginx → 프로세스 존재 여부
