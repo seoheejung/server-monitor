@@ -106,8 +106,9 @@ infra/ansible/
 <br>
 
 ### 3. Python 실행 환경 구성
-- /opt/server-monitor/venv 생성
-- requirements.txt 설치
+- /opt/server-monitor/venv 생성 (python3.13 기준)
+- requirements.txt 설치 (venv 기준)
+- virtualenv 대신 python3.13 -m venv 사용
 - OS별 psutil 빌드 대응 (gcc, python3-devel)
 
 <br>
@@ -141,9 +142,10 @@ ansible-vault encrypt vault.yml
 
 ### 6. 네트워크 및 프록시 구성
 - Nginx reverse proxy 구성
-- FastAPI 포트(8000)는 외부에서 접근 불가
+- FastAPI는 0.0.0.0으로 바인딩되지만 firewalld를 통해 외부 접근 차단
+- 내부 통신(127.0.0.1 또는 동일 호스트)에서만 접근 가능
+- 외부 요청은 반드시 Nginx(80/443)를 통해서만 전달
 - firewalld 기반 외부 접근 제어
-- 모든 요청은 Nginx를 통해서만 전달
 - reverse proxy를 통해 서비스 경로를 분리 가능 (/monitor, /other 등)
 
 <br>
@@ -234,7 +236,9 @@ common → security → mongodb → nginx → server_monitor
 ### server_monitor role
 1. 배포 디렉토리 생성  
 2. 소스 코드 복사 (`/home/rockylinux/server-monitor/web/app → /opt/server-monitor/app`)  
-3. requirements 설치 (venv 기준)  
+3. requirements 설치 (배포 디렉토리 기준 경로 사용)
+   - `/home/...` 경로 직접 참조 금지
+   - `/opt/server-monitor/app/requirements.txt` 기준
 4. `.env` 파일 배치  
 5. systemd unit 파일 배치  
 6. daemon reload 수행  
@@ -253,6 +257,12 @@ common → security → mongodb → nginx → server_monitor
 | 판단 기준 | MongoDB     |
 | 위험 분석 | psutil + 로직 |
 | 운영 정책 | 코드 + 데이터  |
+
+### 애플리케이션 런타임 기준
+
+- FastAPI 템플릿 렌더링은 Starlette 최신 버전 기준 사용
+- TemplateResponse(request, name, context) 형태로 request 객체 전달 필수
+
 ---
 <br>
 

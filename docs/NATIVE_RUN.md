@@ -73,7 +73,8 @@ psutil / systemctl / /proc / 권한 제약이 <br>
 
 - OS: Rocky Linux 9.x
 - 커널: 기본 제공 커널 (VirtualBox Guest)
-- Python: 3.x (dnf 패키지 기준)
+- Python: 3.13 (소스 빌드 기준)
+- python3.13 -m venv 기반 가상환경 사용
 - 실행 사용자:
   - 기능 검증: root
   - 권한 차이 검증: 일반 사용자
@@ -185,8 +186,13 @@ curl http://127.0.0.1:8000/
 journalctl -u server-monitor -n 100 --no-pager
 ```
 #### FastAPI 접속 확인
-- 브라우저에서 http://<server_ip>:<port>/ 접속
-- HTML/Static 정상 렌더링
+- 내부 확인:
+  - curl http://127.0.0.1:8000/
+- 외부 확인:
+  - http://<server_ip>/ (nginx 경유)
+
+※ 8000 포트는 firewalld로 차단되므로 외부에서 직접 접근 불가
+
 #### OS 의존 기능 확인
 - /proc 기반 프로세스/포트 수집
 - /var/log/messages tail 가능
@@ -194,7 +200,10 @@ journalctl -u server-monitor -n 100 --no-pager
 - root / non-root 실행 시 차이 확인
 #### 네트워크 및 포트 확인
 - firewall-cmd --list-ports로 서비스 포트 확인
-- 고정 IP 접근 테스트
+  - 80/tcp (외부 허용)
+  - 8000/tcp (외부 차단)
+- nginx를 통한 외부 접근 확인
+- 8000 포트 직접 접근 차단 확인
 
 ### 4. MongoDB 인증 검증
 #### 관리자 계정 로그인 확인
@@ -305,8 +314,12 @@ journalctl -u server-monitor -n 100 --no-pager
 애플리케이션 접속 검증
 
 ```
+# 내부 검증
 curl http://127.0.0.1:8000/
 curl http://127.0.0.1:8000/api/dashboard/summary
+
+# 외부 검증 (nginx)
+curl http://<server_ip>/
 ```
 
 ### 7단계
