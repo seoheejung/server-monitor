@@ -1,0 +1,29 @@
+---
+common_packages:
+  - git
+  - firewalld
+  - python3
+  - python3-pip
+  - python3-devel
+  - gcc
+  - make
+
+nginx_listen_port: 80
+
+nginx_upstreams:
+  - path: /monitor
+    host: 127.0.0.1
+    port: 8000
+  - path: /other
+    host: 127.0.0.1
+    port: 9000
+
+# MongoDB 인증 활성화 여부
+mongodb_auth_enabled: true
+
+# 앱이 접근할 DB 이름
+mongodb_app_database: process_monitor
+
+# 비밀번호는 vault로 분리
+mongodb_admin_username: admin
+mongodb_app_username: app_user

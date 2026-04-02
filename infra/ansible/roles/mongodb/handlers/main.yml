@@ -1,0 +1,6 @@
+---
+- name: Restart mongod
+  # 설정 파일 변경 시에만 MongoDB 재시작
+  ansible.builtin.systemd:
+    name: mongod
+    state: restarted

@@ -36,8 +36,6 @@
 3. Windows 개발 환경과 Linux 운영 환경의 구조적 차이를   
 **직접 구현·검증을 통해 확인**하는 것을 목표로 하는 프로젝트
 
-
-
 ---
 <br>
 
@@ -95,7 +93,6 @@
 | Web Server | Nginx (Reverse Proxy)         |
 | 운영 자동화 | Ansible                       |
 
-
 <br>
 
 ## 프로젝트 특징
@@ -106,6 +103,7 @@
 - Retro / Pixel 콘솔 UI로 서버 관리 감성 강화
 - FastAPI 기반 가벼운 모니터링 서버 
 - Ansible 기반 운영 환경 재현 및 자동 구성
+- Vault 기반 민감 정보 분리 관리
 - 운영 서버 기준 실전 구조
 
 > 이 프로젝트는 단순한 모니터링 도구가 아니라    
@@ -244,8 +242,9 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 1. Python / venv 준비
 2. 애플리케이션 실행 환경 구성
 3. 환경 변수 및 실행 설정 배치
-4. systemd 서비스 등록
-5. 서비스 자동 시작 기반 구성
+4. MongoDB 인증 활성화 및 계정 구성
+5. systemd 서비스 등록
+6. 서비스 자동 시작 기반 구성
 
 #### Ansible이 관여하면 안 되는 영역
   
@@ -362,7 +361,8 @@ nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
 8. 프로세스 종료 기능 ✅
 9. 인증/인가 부재 문제 해결 ✅
 10. Ansible을 통한 운영 환경 자동 구성 및 재현성 확보 ✅
-11. 실제 Rocky Linux (VirtualBox) 운영 환경 적용 및 네이티브 기준 최종 검증
+11. MongoDB 인증 활성화 및 Ansible Vault 기반 비밀값 분리 적용 ✅
+12. 실제 Rocky Linux (VirtualBox) 운영 환경 적용 및 네이티브 기준 최종 검증
 
 ---
 <br>

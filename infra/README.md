@@ -25,42 +25,48 @@ infra/ansible/
 ├── ansible.cfg
 ├── inventory/
 │   ├── local.ini
-│   ├── dev.ini           # 로컬 생성 (Git 제외)
-│   ├── prod.ini          # 로컬 생성 (Git 제외)
+│   ├── dev.ini              # 로컬 생성 (Git 제외)
+│   ├── prod.ini             # 로컬 생성 (Git 제외)
 │   └── group_vars/
-│       └── all.yml          # OS / 환경 공통 (항상 로드)
+│       └── all/
+│           ├── main.yml     # 공통 변수
+│           └── vault.yml    # 로컬 생성 + Ansible Vault 암호화 + Git 제외
 ├── playbooks/
-│   ├── setup.yml        # 서버 기본 세팅
-│   ├── docker.yml       # Docker 설치
+│   ├── setup.yml            # 서버 기본 세팅
+│   ├── docker.yml           # Docker 설치
 │   └── server_monitor.yml   # server-monitor 배치
 ├── roles/
-│   ├── common
+│   ├── common/
 │   │   ├── tasks/
 │   │   │   └── main.yml
 │   │   ├── handlers/
 │   │   │   └── main.yml
 │   │   └── vars/
 │   │       └── main.yml
-│   ├── server_monitor
+│   ├── server_monitor/
 │   │   ├── tasks/
 │   │   │   └── main.yml
-│   │   ├── templates
+│   │   ├── templates/
 │   │   │   ├── server-monitor.service.j2
 │   │   │   └── app.env.j2
 │   │   └── vars/
 │   │       └── main.yml
-│   ├── docker
-│   ├── security
+│   ├── docker/
+│   ├── security/
 │   │   └── tasks/
 │   │       └── main.yml
-│   ├── mongodb
-│   │   └── tasks/
-│   │       └── main.yml
-│   ├── nginx
+│   ├── mongodb/
 │   │   ├── tasks/
-│   │       └── main.yml
+│   │   │   └── main.yml
 │   │   ├── handlers/
-│   │       └── main.yml
+│   │   │   └── main.yml
+│   │   └── templates/
+│   │       └── mongod.conf.j2
+│   ├── nginx/
+│   │   ├── tasks/
+│   │   │   └── main.yml
+│   │   ├── handlers/
+│   │   │   └── main.yml
 │   │   └── templates/
 │   │       └── nginx.conf.j2
 ```
@@ -105,19 +111,34 @@ infra/ansible/
 
 <br>
 
-### 4. 데이터 저장소 구성
+### 4. Vault 변수 파일 생성
+
+```bash
+cd infra/ansible/inventory/group_vars/all
+cp vault.yml.example vault.yml
+ansible-vault encrypt vault.yml
+```
+- 이 작업은 Ansible을 실행하는 로컬(컨트롤 노드)에서 수행한다.
+- vault.yml은 MongoDB 관리자 비밀번호와 앱 계정 비밀번호를 저장한다.
+- vault.yml은 Git에 커밋하지 않으며, 로컬에서 생성 후 Ansible Vault로 암호화하여 사용한다.
+
+<br>
+
+
+### 5. 데이터 저장소 구성
 - MongoDB 설치 (repo 등록 포함)
 - mongod 서비스 활성화
 - systemd 기반 자동 실행
 - MongoDB는 애플리케이션 판단 기준 저장소로 사용
 - MongoDB는 인증(`authorization`)이 활성화된 상태로 운영
+- MongoDB는 `127.0.0.1` 바인딩을 기본으로 하여 외부 직접 접근을 차단
 - 관리자 계정과 애플리케이션 계정을 분리하여 생성
 - 애플리케이션은 전용 DB 계정을 사용하여 접근
 - 비밀번호 및 민감 정보는 Ansible Vault로 관리
 
 <br>
 
-### 5. 네트워크 및 프록시 구성
+### 6. 네트워크 및 프록시 구성
 - Nginx reverse proxy 구성
 - FastAPI 포트(8000)는 외부에서 접근 불가
 - firewalld 기반 외부 접근 제어
@@ -126,7 +147,7 @@ infra/ansible/
 
 <br>
 
-### 6. systemd 서비스 등록
+### 7. systemd 서비스 등록
 
 > Ansible은 FastAPI 애플리케이션을 systemd 서비스로 등록한다.   
 > ※ 아래 systemd 유닛은 예시이며, 실제 값은 Ansible 템플릿에서 관리한다.
@@ -138,12 +159,17 @@ infra/ansible/
 ```
 [Unit]
 Description=Server Monitor
-After=network.target
+After=network.target mongod.service
+Requires=mongod.service
 
 [Service]
-ExecStart=/opt/server-monitor/venv/bin/uvicorn app.main:app
+User=server-monitor
+Group=server-monitor
 WorkingDirectory=/opt/server-monitor/app
+EnvironmentFile=/opt/server-monitor/app/.env
+ExecStart=/opt/server-monitor/venv/bin/uvicorn app.main:app --host ${HOST} --port ${PORT}
 Restart=always
+RestartSec=3
 
 [Install]
 WantedBy=multi-user.target

@@ -32,21 +32,21 @@
 ---
 <br>
 
-###  🧭 [설계] 핵심 기능
-#### 1. 기본 모니터링 (1차)
+##  🧭 [설계] 핵심 기능
+### 1. 기본 모니터링 (1차)
 - 시스템 리소스 시각화
   - CPU, RAM, Disk 사용량을 픽셀 스타일 대시보드로 실시간 확인
 - 하이브리드 서비스 모니터링
   - Linux: systemctl 기반 서비스 상태 감지
   - Docker / Native: psutil 기반 프로세스 상태 분석
   - 로그 스트리밍: 시스템 및 서비스 로그를 웹 콘솔에서 즉시 확인
-#### 2. 프로세스 보안 분석 (2차)
+### 2. 프로세스 보안 분석 (2차)
 - 실행 중 프로세스 상세 분석 (Cross Platform)
   - root/SYSTEM 실행 여부, 비표준 경로, 위험·시스템 포트 점유 자동 진단
 - Explain & Warning
   - 각 프로세스의 역할과 현재 위험 요소를 사용자가 이해 가능한 언어로 설명
   - 정상 / 주의 / 위험 상태를 도트 기반 콘솔 UI로 시각화
-#### 3. 운영 제어 & 정책 관리 (3차)
+### 3. 운영 제어 & 정책 관리 (3차)
 - 정책 기반 프로세스 관리
   - MongoDB 연동으로 KNOWN_PROCESSES 및 보호 정책 중앙 관리
 - 안전한 프로세스 종료
@@ -426,6 +426,37 @@ mongodb://<app_user>:<app_password>@localhost:27017/process_monitor?authSource=p
 ```
 - `authSource=process_monitor`: 인증을 수행할 데이터베이스 지정
 
+#### 로컬 테스트 (Docker)
+
+```bash
+# 기존 컨테이너/데이터 제거 (초기화 보장)
+docker rm -f mongo-local 2>/dev/null || true
+docker volume rm mongo-local-data 2>/dev/null || true
+
+# MongoDB 컨테이너 실행
+docker pull mongo:7
+
+docker run -d \
+  --name mongo-local \
+  -p 27017:27017 \
+  -e MONGO_INITDB_ROOT_USERNAME=admin \
+  -e MONGO_INITDB_ROOT_PASSWORD=admin_password \
+  mongo:7
+
+# 애플리케이션 계정 생성
+docker exec -it mongo-local mongosh \
+  -u admin \
+  -p admin_password \
+  --authenticationDatabase admin \
+  --eval 'db = db.getSiblingDB("process_monitor"); db.createUser({ user: "app_user", pwd: "app_password", roles: [ { role: "readWrite", db: "process_monitor" } ] })'
+
+# 접속 확인
+docker exec -it mongo-local mongosh \
+  "mongodb://app_user:app_password@localhost:27017/process_monitor?authSource=process_monitor" \
+  --eval 'db.runCommand({ ping: 1 })'
+```
+- 로컬에서는 MongoDB 계정을 수동으로 생성해야 하며, 기존 데이터가 남아 있으면 초기화 후 재실행해야 한다.
+
 #### 설계 (KNOWN_PROCESSES 전용)
 - KNOWN_PROCESSES = 판단 기준 사전
 - 실행 중 프로세스 저장 ❌
@@ -437,76 +468,81 @@ mongodb://<app_user>:<app_password>@localhost:27017/process_monitor?authSource=p
 
 <br>
 
-- `known_processes` 컬렉션 구조
-    ```json
-    {
-        "_id": ObjectId,
+#### `known_processes` 컬렉션 구조
+```json
+{
+    "_id": ObjectId,
 
-        "name": "svchost.exe",
-        "platform": "windows",
-        "category": "system_core",           // 분류용
-        "description": "Windows 서비스 호스트",
-        "policy": {
-            "is_system": true, 
-            "terminatable": false, 
-            "reason": "Windows core service"
-        },
-        "tags": [
-            "core",
-            "protected",
-            "windows"
-        ],
-        "created_at": Date
-    }
-    ```
+    "name": "svchost.exe",
+    "platform": "windows",
+    "category": "system_core",
+    "description": "Windows 서비스 호스트",
+    "policy": {
+        "is_system": true, 
+        "terminatable": false, 
+        "reason": "Windows core service"
+    },
+    "tags": [
+        "core",
+        "protected",
+        "windows"
+    ],
+    "created_at": Date
+}
+```
 
-    | 필드 | 설명 |
-    |----|----|
-    | name | 프로세스 실행 파일명 (소문자 기준) |
-    | platform | 운영체제 (windows / linux / common) |
-    | category | 프로세스 분류 (system_core, kernel 등) |
-    | description | 프로세스 설명 |
-    | policy.is_system | 시스템 여부 (true인 경우 시스템 보호 대상) |
-    | policy.terminatable | 종료 가능 여부 (false인 경우 사용자 종료 차단) |
-    | policy.reason | 종료 차단 또는 허용 사유 (UI 표시용) |
-    | tags | 분류 및 검색용 태그 |
-    | created_at | 정책 생성 시각 |
+| **필드명** | **데이터 타입** | **설명** | **비고** |
+| --- | --- | --- | --- |
+| **`name`** | String | 프로세스 실행 파일명 | **반드시 소문자 저장** (Case-insensitive 매칭) |
+| **`platform`** | String | 운영체제 구분 | `windows`, `linux`, `common` 중 택 1 |
+| **`category`** | String | 기능적 분류 | 설계된 10개 카테고리 중 매핑 |
+| **`description`** | String | 프로세스 역할 기술 | UI 표시 및 `is_system` 판별 근거 |
+| **`policy`** | Object | 관리 정책 서브 도큐먼트 |  |
+| └ `is_system` | Boolean | 시스템 핵심 여부 | `true` 시 종료 보호 로직 활성화 |
+| └ `terminatable` | Boolean | 강제 종료 가능 여부 | `is_system` 값에 종속됨 |
+| └ `reason` | String | 정책 결정 사유 | "System Core" 또는 "User Application" |
+| **`tags`** | Array | 분류/검색용 태그 | `[platform, "auto-imported"]` 기본 구성 |
+| **`created_at`** | Date | 정책 생성 시각 | ISO 8601 형식 |
 
-- 인덱스 설계
-    ```js
-    db.known_processes.createIndex(
-        { name: 1, platform: 1 },
-        { unique: true }
-    )
-    ```
-    - 복합 인덱스 생성 (name: 1, platform: 1)
-    - unique=True로 설정하여 중복 데이터 방지
+#### 인덱스 설계
+```js
+db.known_processes.createIndex(
+    { name: 1, platform: 1 },
+    { unique: true }
+)
+```
+- 복합 인덱스 생성 (name: 1, platform: 1)
+- unique=True로 설정하여 중복 데이터 방지
 
-- 데이터 변환 및 분류 규칙
-  1. Platform 판별
-     - .exe가 이름에 있거나 설명에 windows가 포함되면: windows
-     - docker나 nginx가 이름에 포함되면: common
-     - 그 외의 경우: linux
-  2. System 여부 (is_system)
-     - 설명(desc)에 `"시스템", "커널", "core", "보안", "관리자"` 중 하나라도 포함되면 true
-  3. Policy 설정
-     - `is_system true`: terminatable: false, reason: "System Core"
-     - `is_system false`: terminatable: true, reason: "User Application"
-  4. category
-     - kernel / core: 운영체제 부팅 및 유지에 필수적인 경우 (init, kthreadd)
-     - database: 데이터 저장 및 관리 목적 (mysqld, postgres)
-     - network-service: 네트워크 연결, 원격 접속 및 시간 동기화 관리 (sshd, networkmanager)
-     - system-service: 백그라운드에서 시스템 기능 보조 및 로그/권한 관리 (rsyslogd, polkitd)
-     - monitoring: 시스템 리소스 상태 감시 및 프로세스 활동 추적 (top, htop)
-     - container-runtime: 컨테이너의 격리 실행 및 생명주기 관리 레이어 (containerd, tini)
-     - web-server: 웹 요청 처리 및 라우팅 (nginx, apache)
-     - runtime: 프로그래밍 언어 실행 환경 (python, node)
-     - infrastructure: 가상화 및 클러스터 관리 (docker, kubelet)
-     - system-utility: 단순 도구 및 명령어 (grep, ps, tail)
-  5. 기타 필드
-     - 기본적으로 "general"로 설정
-     - tags는 [platform, "auto-imported"] 구성
-     - created_at 필드 추가 (ISO 8601 형식)
+#### 데이터 변환 및 분류 규칙
+1. Platform 판별
+    - Windows: 파일명이 .exe로 끝나거나, 설명(desc) 내에 "Windows" 단어가 포함된 경우
+    - Common: 플랫폼에 관계없이 동일한 이름을 사용하는 오픈소스/범용 소프트웨어 (docker, nginx, node, python, mysql 등)
+    - Linux: 위 두 조건에 해당하지 않는 모든 케이스
+
+2. System 여부 및 Policy 확정 (Hard-coded Logic)
+    - 판단의 모호함을 제거하기 위해 is_system 값에 따라 정책을 강제 동기화한다.
+    - `is_system true` 조건: 설명(desc) 필드에 ["시스템", "커널", "core", "보안", "관리자", "driver", "infrastructure"] 중 하나라도 포함될 경우.
+        - 결과: policy.terminatable = false, policy.reason = "System Core"
+    - `is_system false` 조건: 위 키워드가 포함되지 않은 모든 경우.
+        - 결과: policy.terminatable = true, policy.reason = "User Application"
+
+3. Category 매핑 가이드 (Strict Mapping)
+    - kernel / core: 부팅 및 OS 유지 필수 (예: init, ntoskrnl.exe)
+    - database: DB 엔진 (예: mysqld, postgres)
+    - network-service: 네트워크 연결, 원격 접속 및 시간 동기화 관리 (예: sshd, networkmanager)
+    - system-service: 백그라운드에서 시스템 기능 보조 및 로그/권한 관리 (예: svchost.exe, polkitd)
+    - monitoring: 시스템 리소스 상태 감시 및 프로세스 활동 추적 (예: top, htop)
+    - container-runtime: 컨테이너의 격리 실행 및 생명주기 관리 레이어 (예: containerd, tini)
+    - web-server: 웹 요청 처리 및 라우팅 (예: nginx, apache)
+    - runtime: 프로그래밍 언어 실행 환경 (예: java, python, node)
+    - infrastructure: 가상화 및 클러스터 관리 (예: docker, kubelet)
+    - system-utility: CLI 도구 및 단순 명령 (예: grep, powershell.exe)
+
+4. 기타 필드
+    - 기본적으로 "general"로 설정
+    - tags는 [platform, "auto-imported"] 구성
+    - created_at 필드 추가 (ISO 8601 형식)
 
 <br>
 
@@ -600,38 +636,53 @@ mongodb://<app_user>:<app_password>@localhost:27017/process_monitor?authSource=p
 
 ## 🧪 [5단계] 환경 변수 관리 (.env)
 
-- DB 접속 정보나 비밀 키 같은 민감한 정보를 코드에 직접 쓰지 않고 외부 파일로 관리
-1. `.env` 파일 생성
-    ```
-    # MongoDB 설정 (인증 필수)
-    MONGO_URL=mongodb://app_user:app_password@localhost:27017/process_monitor?authSource=process_monitor
-    DB_NAME=process_monitor
-    COLLECTION_NAME=known_processes
+> DB 접속 정보나 비밀 키 같은 민감한 정보를 코드에 직접 쓰지 않고 외부 파일로 관리
 
-    # 앱 설정
-    DEBUG=True
-    HOST=0.0.0.0
-    PORT=8000
-    ```
+### 1. `.env` 파일 생성
+```
+# MongoDB 설정 (인증 필수)
+MONGO_URL=mongodb://app_user:app_password@localhost:27017/process_monitor?authSource=process_monitor
+DB_NAME=process_monitor
+COLLECTION_NAME=known_processes
 
-2. 패키지 설치
-    ```
-    pip install python-dotenv
-    ```
-3. 코드 적용 
-    ```
-    import os
-    from dotenv import load_dotenv
-    from pymongo import MongoClient
+# 앱 설정
+DEBUG=True
+HOST=0.0.0.0
+PORT=8000
 
-    # .env 파일 로드
-    load_dotenv()
+# 개발용 데이터 초기화 허용 여부
+# True면 시드 적재 전에 컬렉션을 drop 할 수 있음
+# 운영 환경에서는 반드시 False 유지
+ALLOW_SEED_RESET=False
+```
 
-    MONGO_URL = os.getenv("MONGO_URL")
-    DB_NAME = os.getenv("DB_NAME")
+### 2. 패키지 설치
+```
+pip install python-dotenv
+```
+### 3. 코드 적용 
+```
+import os
+from dotenv import load_dotenv
+from pymongo import MongoClient
 
-    client = MongoClient(MONGO_URL)
-    ```
+# .env 파일 로드
+load_dotenv()
+
+MONGO_URL = os.getenv("MONGO_URL")
+DB_NAME = os.getenv("DB_NAME")
+
+client = MongoClient(MONGO_URL)
+```
+
+### 4. 운영 환경과의 차이
+
+- 로컬 환경: `.env` 파일을 직접 생성하여 사용
+- 운영 환경: Ansible Vault → 템플릿(`app.env.j2`)을 통해 `.env` 자동 생성
+```
+vault.yml → Ansible 변수 → app.env.j2 → .env
+```
+
 ---
 <br>
 

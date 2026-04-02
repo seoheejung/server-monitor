@@ -1,14 +1,20 @@
 [Unit]
 Description=Server Monitor
-After=network.target
+After=network.target mongod.service
+Requires=mongod.service
 
 [Service]
 User={{ app_user }}
 Group={{ app_group }}
 WorkingDirectory={{ app_dir }}
 EnvironmentFile={{ env_file }}
-ExecStart={{ venv_path }}/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+# .env에 정의된 HOST, PORT 값을 사용
+ExecStart={{ venv_path }}/bin/uvicorn app.main:app --host ${HOST} --port ${PORT}
+
+# 비정상 종료 시 자동 재시작
 Restart=always
+RestartSec=3
 
 [Install]
 WantedBy=multi-user.target

@@ -2780,18 +2780,34 @@
     },
     "tags": ["windows", "security", "korea", "banking"]
   },
-  [
-    {
-      "name": "systemsettingsbroker.exe",
-      "platform": "windows",
-      "category": "core",
-      "description": "System Settings Broker: Windows 설정 앱(UWP)의 권한 관리 및 시스템 설정 변경을 중계하는 실행 호스트",
-      "policy": {
-        "is_system": true,
-        "terminatable": false,
-        "reason": "System Core (UI Infrastructure)"
-      },
-      "tags": ["windows", "settings", "uwp", "core"]
-    }
-  ]
+  {
+    "name": "systemsettingsbroker.exe",
+    "platform": "windows",
+    "category": "core",
+    "description": "System Settings Broker: Windows 설정 앱(UWP)의 권한 관리 및 시스템 설정 변경을 중계하는 실행 호스트",
+    "policy": {
+      "is_system": true,
+      "terminatable": false,
+      "reason": "System Core (UI Infrastructure)"
+    },
+    "tags": ["windows", "settings", "uwp", "core"]
+  },
+  {
+    "name": "ollama.exe",
+    "platform": "windows",
+    "category": "runtime",
+    "description": "Ollama: 로컬 대규모 언어 모델(LLM) 실행 및 서빙 런타임",
+    "policy": {
+        "is_system": false,
+        "terminatable": true,
+        "reason": "User Application"
+    },
+    "tags": [
+        "windows",
+        "ai",
+        "llm",
+        "auto-imported"
+    ],
+    "created_at": "2026-04-03T00:00:00Z"
+  }
 ]

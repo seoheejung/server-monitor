@@ -1,7 +1,9 @@
+---
 - name: Add MongoDB repository
-  # MongoDB는 Rocky Linux 기본 repo에 없기 때문에 공식 MongoDB yum repo를 직접 등록 필요
-  copy:
+  # Rocky Linux 기본 repo에는 mongodb-org가 없어서 공식 repo를 등록
+  ansible.builtin.copy:
     dest: /etc/yum.repos.d/mongodb-org.repo
+    mode: "0644"
     content: |
       [mongodb-org-7.0]
       name=MongoDB Repository
@@ -10,17 +12,106 @@
       enabled=1
       gpgkey=https://pgp.mongodb.com/server-7.0.asc
 
-- name: Install MongoDB
-  # mongodb-org 메타 패키지 설치
-  dnf:
+- name: Install MongoDB packages
+  # mongod, mongosh 포함 메타 패키지 설치
+  ansible.builtin.dnf:
     name: mongodb-org
     state: present
 
-- name: Enable and start MongoDB
-  # systemd 서비스 등록 + 즉시 실행
-  # enabled: 부팅 시 자동 실행
-  # state: started → 현재 실행 상태 보장
-  systemd:
+- name: Deploy mongod.conf
+  # 인증 활성화 여부는 템플릿 변수로 제어
+  ansible.builtin.template:
+    src: mongod.conf.j2
+    dest: /etc/mongod.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart mongod
+
+- name: Ensure mongod is enabled and started
+  # 부팅 시 자동 시작 + 현재 실행 상태 보장
+  ansible.builtin.systemd:
     name: mongod
-    enabled: yes
+    enabled: true
     state: started
+
+- name: Wait for MongoDB port
+  # MongoDB가 실제로 포트 바인딩 끝낼 때까지 대기
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 27017
+    timeout: 30
+
+- name: Check admin user exists
+  # 최초 상태에서는 localhost 예외로 admin 사용자 존재 여부 확인 가능
+  ansible.builtin.command:
+    argv:
+      - mongosh
+      - --quiet
+      - --eval
+      - 'db.getSiblingDB("admin").getUser("{{ mongodb_admin_username }}") ? "exists" : "missing"'
+  register: mongodb_admin_user_check
+  changed_when: false
+
+- name: Create admin user
+  # 관리자 계정이 없을 때만 생성
+  ansible.builtin.command:
+    argv:
+      - mongosh
+      - --quiet
+      - --eval
+      - >-
+        db.getSiblingDB("admin").createUser({
+          user: "{{ mongodb_admin_username }}",
+          pwd: "{{ mongodb_admin_password }}",
+          roles: [
+            { role: "userAdminAnyDatabase", db: "admin" },
+            { role: "readWriteAnyDatabase", db: "admin" }
+          ]
+        })
+  when: mongodb_admin_user_check.stdout | trim == "missing"
+  changed_when: true
+  no_log: true
+
+- name: Check app user exists
+  # 앱 계정 존재 여부는 관리자 인증 후 확인
+  ansible.builtin.command:
+    argv:
+      - mongosh
+      - --quiet
+      - --username
+      - "{{ mongodb_admin_username }}"
+      - --password
+      - "{{ mongodb_admin_password }}"
+      - --authenticationDatabase
+      - admin
+      - --eval
+      - 'db.getSiblingDB("{{ mongodb_app_database }}").getUser("{{ mongodb_app_username }}") ? "exists" : "missing"'
+  register: mongodb_app_user_check
+  changed_when: false
+  no_log: true
+
+- name: Create app user
+  # 앱은 관리자 계정이 아니라 전용 DB 계정으로만 접근
+  ansible.builtin.command:
+    argv:
+      - mongosh
+      - --quiet
+      - --username
+      - "{{ mongodb_admin_username }}"
+      - --password
+      - "{{ mongodb_admin_password }}"
+      - --authenticationDatabase
+      - admin
+      - --eval
+      - >-
+        db.getSiblingDB("{{ mongodb_app_database }}").createUser({
+          user: "{{ mongodb_app_username }}",
+          pwd: "{{ mongodb_app_password }}",
+          roles: [
+            { role: "readWrite", db: "{{ mongodb_app_database }}" }
+          ]
+        })
+  when: mongodb_app_user_check.stdout | trim == "missing"
+  changed_when: true
+  no_log: true

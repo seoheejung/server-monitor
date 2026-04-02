@@ -1,0 +1,3 @@
+# Ansible Vault 암호화 대상 파일
+mongodb_admin_password: ""
+mongodb_app_password: ""
