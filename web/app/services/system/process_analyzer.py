@@ -139,9 +139,9 @@ def analyze_process(proc: Dict) -> Dict[str, List[str]]:
         if username == "root":
             warnings.append("RUNNING_AS_ADMIN: 관리자 권한으로 실행 중")
 
-    # [보안] 주요 서비스 포트가 외부에 노출되어 있는지 확인
+    # [보안] KNOWN_PORTS에 정의된 주요 서비스 포트 사용 여부 확인
     for port in ports:
-        # ✅ Windows 기본 시스템 프로세스 포트 예외
+        # Windows 시스템 기본 포트는 정상 동작으로 간주
         if (
             os_type == "Windows"
             and name in WINDOWS_SYSTEM_PROCS
@@ -150,7 +150,7 @@ def analyze_process(proc: Dict) -> Dict[str, List[str]]:
             continue
 
         if port in KNOWN_PORTS:
-            warnings.append(f"PUBLIC_PORT({port}): {KNOWN_PORTS[port]} 포트 사용 중")
+            warnings.append(f"PUBLIC_PORT({port}): KNOWN_PORTS 등록 주요 포트 사용 ({KNOWN_PORTS[port]})")
         elif port < 1024:
             warnings.append(f"SYSTEM_PORT({port}): 비표준 시스템 포트 개방")
 
@@ -348,22 +348,13 @@ def build_status(proc: Dict):
         proc["status_summary"] = "⚠️ 미등록 프로세스"
         proc["status_code"] = "WARN"
 
-    # Case C - 치명 Warning
+    # Case C 
     elif critical:
-        main = critical[0].split(":")[0]
-        extra = len(critical) - 1
-        proc["status_summary"] = (
-            f"🚨 {main} 외 {extra}건" if extra > 0 else f"🚨 {main}"
-        )
+        proc["status_summary"] = f"🚨 치명 경고 {len(critical)}건"
         proc["status_code"] = "DANGER"
 
-    # Case C - 일반 Warning
     elif normal:
-        main = normal[0].split(":")[0]
-        extra = len(normal) - 1
-        proc["status_summary"] = (
-            f"⚠️ {main} 외 {extra}건" if extra > 0 else f"⚠️ {main}"
-        )
+        proc["status_summary"] = f"⚠️ 일반 경고 {len(normal)}건"
         proc["status_code"] = "WARN"
 
     # 방어 코드 (이론상 도달하면 안됨)
