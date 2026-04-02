@@ -199,6 +199,27 @@ journalctl -u server-monitor -n 100 --no-pager
 - root / non-root 실행 시 차이 확인
 - systemd 기반 서비스 로그 조회 (journalctl)
 
+#### journalctl 권한 검증 (중요)
+
+- FastAPI 서비스는 별도 사용자(server-monitor)로 실행됨
+- systemd journal 로그는 기본적으로 일반 사용자 접근 제한됨
+- journalctl 사용 시 permission denied 발생 가능
+
+```
+# 권한 부여
+sudo usermod -aG systemd-journal server-monitor
+sudo systemctl restart server-monitor
+
+# systemd-journal 그룹 포함 여부 확인
+id server-monitor
+
+# 실제 접근 테스트
+sudo -u server-monitor journalctl -u nginx -n 10 --no-pager
+sudo -u server-monitor journalctl -u server-monitor -n 10 --no-pager
+```
+- 정상 출력 시 애플리케이션에서도 로그 조회 가능
+- permission denied 발생 시 권한 미적용 상태
+
 #### 네트워크 및 포트 확인
 - firewall-cmd --list-ports로 서비스 포트 확인
   - 80/tcp (외부 허용)
@@ -407,8 +428,10 @@ systemctl is-active server-monitor
 
 ### 2. 로그 (log.py)
 - Linux 전용
-- 파일 직접 tail 방식
-- systemd / journalctl 미사용
+- systemd 기반 서비스 로그 조회 (`journalctl -u`)
+- 파일 직접 접근 방식 제거
+- 서비스 단위 로그 조회 구조로 변경 (app / nginx / docker / ssh)
+- 실행 사용자 권한에 따라 journal 접근 제한 발생 가능
 
 ### 3. 프로세스 (process.py)
 - psutil 기반 전수 수집

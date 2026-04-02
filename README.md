@@ -63,9 +63,10 @@
 - 중지/에러: inactive, error → 🔴 빨간색 도트
 
 ### 3. 로그 모니터링
-- Linux 로그 파일 tail (최근 N줄)
+- systemd 기반 서비스 로그 조회 (`journalctl -u`)
+- 서비스 단위 로그 선택 조회 (app / nginx / docker / ssh)
+- 최근 N줄 기준 조회 (journalctl -n)
 - 콘솔 스타일 UI로 표시
-- 접근 권한 및 민감 정보 고려
 
 ### 4. 프로세스 분석 (운영·보안 핵심 기능)
 - 실행 중인 프로세스 목록
@@ -104,13 +105,13 @@
 ## 프로젝트 특징
 
 - psutil 기반 Cross Platform 설계
-- Linux 서비스(systemctl)와 로그 직접 연동
+- Linux 서비스(systemctl) 및 systemd journal 기반 로그 조회 연동
 - 단순 수치 → 의미 기반 상태 분석
-- Retro / Pixel 콘솔 UI로 서버 관리 감성 강화
-- FastAPI 기반 가벼운 모니터링 서버 
+- Retro / Pixel 콘솔 UI 기반 서버 모니터링
+- FastAPI 기반 경량 모니터링 서버
 - Ansible 기반 운영 환경 재현 및 자동 구성
 - Vault 기반 민감 정보 분리 관리
-- 운영 서버 기준 실전 구조
+- 운영 서버 기준 구조 및 실행 검증
 
 > 이 프로젝트는 단순한 모니터링 도구가 아니라    
 > 서버 운영 관점에서 "판단을 돕는 UI"를 목표로 한다.

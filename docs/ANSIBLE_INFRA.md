@@ -166,12 +166,12 @@ Ansible 실행
 - 운영자 수동 개입 최소화
 
 #### 운영 중 환경 위험 신호 감지
-- 수동으로 설치된 패키지 발견
-- 임의로 수정된 systemd 서비스 발견
-- 방화벽 포트가 문서와 불일치
-- venv 내부 라이브러리 버전 불일치
--  대응 전략
-  
+- 수동 설치된 패키지 존재 (Ansible 관리 대상 외)
+- systemd 서비스 설정 변경 감지 (Unit 파일 불일치)
+- 방화벽 포트 설정이 기준 문서와 불일치
+- Python venv 내부 라이브러리 버전 드리프트 발생
+
+####  대응 전략  
 | 선택지         | 판단   |
 | ----------- | ---- |
 | 수동 수정       | ❌ 금지 |
@@ -179,15 +179,16 @@ Ansible 실행
 | 서버 재생성      | ✅ 가능 |
 
 #### 서비스 실행 불능 (FastAPI / systemd)
-- systemd 서비스가 반복 실패
-- FastAPI 실행 경로 손상
-- venv 손상
-- psutil 빌드 오류
-- 대응 절차
-  1. FastAPI 로그 확인 (systemd)
-  2. 코드 자체 문제 여부 분리
-  3. Ansible server_monitor.yml 재적용
-  4. 실패 시 서버 재구성 여부 판단
+- systemd 서비스 상태가 반복적으로 failed
+- ExecStart 경로 또는 WorkingDirectory 오류
+- Python venv 손상 또는 의존성 불일치
+- psutil 빌드 실패 또는 런타임 오류
+
+#### 대응 절차
+1. `journalctl -u server-monitor` 로그 확인
+2. 애플리케이션 코드 문제 여부 분리
+3. Ansible `server_monitor.yml` 재적용
+4. 동일 문제 재발 시 서버 재구성 판단
 
 <br>
 

@@ -119,6 +119,9 @@ infra/ansible/
 cd infra/ansible/inventory/group_vars/all
 cp vault.yml.example vault.yml
 ansible-vault encrypt vault.yml
+
+# 비밀번호 변경 시 
+ansible-vault edit vault.yml
 ```
 - 이 작업은 Ansible을 실행하는 로컬(컨트롤 노드)에서 수행한다.
 - vault.yml은 MongoDB 관리자 비밀번호와 앱 계정 비밀번호를 저장한다.

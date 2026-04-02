@@ -88,7 +88,7 @@ web/
 │   │   │   ├── disk.py      # 디스크 사용량
 │   │   │   ├── uptime.py    # 서버 업타임
 │   │   │   ├── service.py   # 서비스 상태 (systemctl)
-│   │   │   ├── log.py       # 로그 tail 기능
+│   │   │   ├── log.py       # 로그 (journalctl)
 │   │   │   ├── process_control.py    # 프로세스 종료 로직
 │   │   │   └── process_analyzer.py   # 프로세스 분석
 │   ├── utils/
@@ -252,9 +252,11 @@ uvicorn app.main:app --reload
 2. 시스템 운영: rsyslog (로그 관리), docker (가상화 서비스)
 3. 실행 환경: python (백엔드 구동 환경)
 
-### 4. 로그 수집 (tail)
-- 대용량 로그 파일 전체를 읽지 않고, 파일 끝(EOF)에서부터 최근 10~20줄만 추출하는 tail 로직 구현
-- `/var/log` 접근 시 발생할 수 있는 **PermissionError**를 `try-except`로 처리하여 서버가 중단되지 않게 방어 코드 작성
+### 4. 로그 수집 (journalctl)
+- systemd journal을 사용하여 서비스 단위 로그를 조회 (`journalctl -u`)
+- 로그 전체를 읽지 않고 최근 N줄만 조회 (`-n` 옵션)로 I/O 비용 최소화
+- 파일 경로 접근 방식 제거 → 서비스 기반 조회 구조로 변경
+- 실행 사용자 권한 부족 시 발생하는 Permission denied를 처리하여 서버 중단 방지
 
 ### 5. 대시보드
 #### Jinja2 템플릿을 활용한 화면 분리
