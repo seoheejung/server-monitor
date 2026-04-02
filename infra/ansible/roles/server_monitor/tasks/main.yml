@@ -1,6 +1,14 @@
 ---
+# 기존 애플리케이션 배포 잔재 제거
+- name: Remove existing application deploy directory
+  # 이전 배포에서 남은 파일 때문에 app 패키지 구조가 중복되지 않도록 먼저 삭제
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: absent
+
 # FastAPI 애플리케이션 배치 경로 생성
 - name: Create application deploy directory
+  # 비워진 경로에 새 배포 디렉토리 생성
   ansible.builtin.file:
     path: "{{ app_dir }}"
     state: directory
@@ -13,7 +21,7 @@
   # web 전체를 복사해서 app 패키지 구조 유지
   ansible.builtin.copy:
     src: /home/rockylinux/server-monitor/web/
-    dest: "{{ app_dir }}/"
+    dest: "{{ app_root }}/"
     owner: "{{ app_user }}"
     group: "{{ app_group }}"
     mode: preserve
@@ -22,6 +30,7 @@
 
 # run.py 배치
 - name: Copy run.py
+  # web 전체 복사에 포함되더라도 명시적으로 최신 run.py를 한 번 더 보장
   ansible.builtin.copy:
     src: /home/rockylinux/server-monitor/web/run.py
     dest: "{{ app_root }}/run.py"
@@ -33,6 +42,7 @@
 
 # requirements 설치
 - name: Install Python requirements
+  # 가상환경 기준으로 Python 패키지 설치
   ansible.builtin.pip:
     requirements: /home/rockylinux/server-monitor/web/requirements.txt
     virtualenv: "{{ venv_path }}"
@@ -42,6 +52,7 @@
 
 # 환경 변수 파일 배치
 - name: Deploy environment file
+  # 애플리케이션 실행용 환경 변수 파일 배치
   ansible.builtin.template:
     src: app.env.j2
     dest: "{{ env_file }}"
@@ -52,6 +63,7 @@
 
 # systemd 서비스 파일 배치
 - name: Deploy systemd service
+  # server-monitor systemd unit 파일 배치
   ansible.builtin.template:
     src: server-monitor.service.j2
     dest: "/etc/systemd/system/{{ service_name }}.service"
@@ -62,10 +74,12 @@
 
 # 검증 전에 systemd reload / 서비스 restart를 먼저 반영
 - name: Apply pending handlers before verification
+  # 최신 코드와 최신 systemd 설정 기준으로 검증하도록 핸들러를 먼저 실행
   ansible.builtin.meta: flush_handlers
 
 # 서비스 자동 시작 등록 + 실행 보장
 - name: Ensure service is enabled and started
+  # 부팅 시 자동 시작 + 현재 실행 상태 보장
   ansible.builtin.systemd:
     name: "{{ service_name }}"
     enabled: true
@@ -74,12 +88,14 @@
 
 # systemd 유닛 파일 존재 확인
 - name: Check systemd unit file exists
+  # unit 파일이 실제로 생성되었는지 확인
   ansible.builtin.stat:
     path: "/etc/systemd/system/{{ service_name }}.service"
   register: systemd_unit_file
 
 # 유닛 파일 검증
 - name: Assert systemd unit file exists
+  # unit 파일 누락 시 즉시 실패
   ansible.builtin.assert:
     that:
       - systemd_unit_file.stat.exists
@@ -88,6 +104,7 @@
 
 # 서비스 enable 상태 확인
 - name: Check service is enabled
+  # systemd enable 상태 확인
   ansible.builtin.command:
     argv:
       - systemctl
@@ -98,6 +115,7 @@
 
 # 서비스 enable 검증
 - name: Assert service is enabled
+  # 부팅 시 자동 시작 등록 여부 검증
   ansible.builtin.assert:
     that:
       - service_enabled_result.stdout | trim == "enabled"
@@ -121,6 +139,7 @@
 
 # 서비스 active 최종 검증
 - name: Assert service is active
+  # 최종적으로 active 상태가 아니면 실패
   ansible.builtin.assert:
     that:
       - service_active_result.stdout | trim == "active"

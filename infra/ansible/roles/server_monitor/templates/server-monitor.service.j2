@@ -6,11 +6,10 @@ Requires=mongod.service
 [Service]
 User={{ app_user }}
 Group={{ app_group }}
-WorkingDirectory={{ app_dir }}
+WorkingDirectory={{ app_root }}
 EnvironmentFile={{ env_file }}
 
-# app_dir 바로 아래에 main.py가 배치되는 구조 기준
-ExecStart={{ venv_path }}/bin/uvicorn main:app --host ${HOST} --port ${PORT}
+ExecStart={{ venv_path }}/bin/uvicorn app.main:app --host ${HOST} --port ${PORT}
 
 Restart=always
 RestartSec=3
