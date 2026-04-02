@@ -122,7 +122,7 @@
   become_user: "{{ app_user }}"
   # Python 3.13 기반 venv를 생성하고 requirements를 설치
   ansible.builtin.pip:
-    requirements: /home/rockylinux/server-monitor/web/requirements.txt
+    requirements: "{{ app_root }}/requirements.txt"
     virtualenv: "{{ venv_path }}"
     virtualenv_command: "{{ python313_bin }} -m venv"
     state: present
