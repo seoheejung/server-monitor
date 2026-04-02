@@ -10,8 +10,9 @@
 
 # 애플리케이션 코드 배치
 - name: Copy application source
+  # web 전체를 복사해서 app 패키지 구조 유지
   ansible.builtin.copy:
-    src: /home/rockylinux/server-monitor/web/app/
+    src: /home/rockylinux/server-monitor/web/
     dest: "{{ app_dir }}/"
     owner: "{{ app_user }}"
     group: "{{ app_group }}"
