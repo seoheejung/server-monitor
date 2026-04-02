@@ -170,7 +170,35 @@ systemctl enable server-monitor
 - firewall-cmd --list-ports로 서비스 포트 확인
 - 고정 IP 접근 테스트
 
-### 4. 검증 체크 리스트
+### 4. MongoDB 인증 검증
+#### 관리자 계정 로그인 확인
+```
+mongosh -u <admin_user> -p <admin_password> --authenticationDatabase admin --db admin
+```
+- 로그인 성공 체크
+- Authentication failed 로그 발생 시 비정상
+#### 애플리케이션 계정 로그인 확인
+```
+mongosh -u <app_user> -p <app_password> --authenticationDatabase process_monitor --db process_monitor
+```
+- process_monitor DB 접근 가능 체크
+- Authentication failed 로그 발생 시 비정상
+#### 인증 없이 접속 차단 확인
+```
+mongosh
+```
+- 권한 오류가 발생 체크
+#### 애플리케이션 DB 연결 확인
+- .env에 설정된 MONGO_URL 기준으로 서버 실행
+- MongoDB 연결 오류가 발생하지 않아야 한다.
+#### systemd 실행 후 검증
+```
+systemctl restart server-monitor
+journalctl -u server-monitor -n 100 --no-pager
+```
+- MongoDB 인증 오류 (Authentication failed)가 없어야 한다.
+
+### 5. 검증 체크 리스트
 | 항목                  | 확인 방법                     | 정상 기준            |
 | ------------------- | ------------------------- | ---------------- |
 | FastAPI 서버 기동       | systemctl / curl          | 200 OK, HTML 렌더링 |
@@ -181,6 +209,10 @@ systemctl enable server-monitor
 | 서비스 상태              | systemctl is-active       | active           |
 | 포트 방화벽              | firewall-cmd              | 필요한 포트만 열림       |
 | systemd 자동 시작       | systemctl is-enabled      | enabled          |
+| MongoDB 관리자 인증      | mongosh -u <admin> --authenticationDatabase admin | 로그인 성공 |
+| MongoDB 앱 계정 인증     | mongosh -u <app> --authenticationDatabase process_monitor | DB 접근 가능 |
+| MongoDB 무인증 차단      | mongosh                   | 인증 없이 접근 불가 |
+| MongoDB 앱 연결        | 서버 실행 (.env 기준)           | 인증 오류 없음 |
 
 ---
 <br>

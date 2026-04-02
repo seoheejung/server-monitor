@@ -406,11 +406,31 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 ## 🧭 [4단계] 운영 환경 정책 저장소 (MongoDB) & 프로세스 제어
 
 ### 1. MongoDB
-- 설계 (KNOWN_PROCESSES 전용)
-   - KNOWN_PROCESSES = 판단 기준 사전
-   - 실행 중 프로세스 저장 ❌
-   - KNOWN_PROCESSES에 정의된 프로세스만 활용
-   - 매칭 실패 시 → Unknown Process 로 처리 (DB 저장 ❌)
+### MongoDB 인증 구조
+
+본 시스템은 MongoDB 인증이 활성화된 상태로 운영된다.
+
+- 관리자 계정과 애플리케이션 계정을 분리하여 사용한다.
+- 애플리케이션은 관리자 계정이 아닌 전용 DB 계정으로만 접근한다.
+- 애플리케이션 계정은 `process_monitor` 데이터베이스에 한정된 권한을 가진다.
+
+#### MongoDB 인증 관련 주의사항
+
+- MongoDB 관리자 계정 및 애플리케이션 계정 생성 후 `.env`에 반영해야 한다.
+- 인증이 활성화된 상태이므로, 계정 정보 없이 DB에 접근할 수 없다.
+- `mongodb://localhost:27017/` 형태의 무인증 접속은 운영 환경에서 지원하지 않는다.
+
+#### 접속 방식
+```
+mongodb://<app_user>:<app_password>@localhost:27017/process_monitor?authSource=process_monitor
+```
+- `authSource=process_monitor`: 인증을 수행할 데이터베이스 지정
+
+#### 설계 (KNOWN_PROCESSES 전용)
+- KNOWN_PROCESSES = 판단 기준 사전
+- 실행 중 프로세스 저장 ❌
+- KNOWN_PROCESSES에 정의된 프로세스만 활용
+- 매칭 실패 시 → Unknown Process 로 처리 (DB 저장 ❌)
 
 > MongoDB는 정책 저장소 역할만 수행하며,   
 > 모든 최종 판단은 실시간 프로세스 정보(psutil)를 기준으로 한다.
@@ -583,8 +603,8 @@ CASE C: 정체도 모르고, 위험도 있는 경우 (최우선 대응)
 - DB 접속 정보나 비밀 키 같은 민감한 정보를 코드에 직접 쓰지 않고 외부 파일로 관리
 1. `.env` 파일 생성
     ```
-    # MongoDB 설정
-    MONGO_URL=mongodb://localhost:27017/
+    # MongoDB 설정 (인증 필수)
+    MONGO_URL=mongodb://app_user:app_password@localhost:27017/process_monitor?authSource=process_monitor
     DB_NAME=process_monitor
     COLLECTION_NAME=known_processes
 

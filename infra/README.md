@@ -68,7 +68,7 @@ infra/ansible/
 - security : 보안 설정
 - docker : 컨테이너 환경 구성
 - server_monitor : 앱 배치 및 서비스 구성
-- mongodb : MongoDB 설치 및 서비스 관리
+- mongodb : MongoDB 설치, 인증 활성화, 사용자 계정 관리
 
 ---
 <br>
@@ -110,6 +110,10 @@ infra/ansible/
 - mongod 서비스 활성화
 - systemd 기반 자동 실행
 - MongoDB는 애플리케이션 판단 기준 저장소로 사용
+- MongoDB는 인증(`authorization`)이 활성화된 상태로 운영
+- 관리자 계정과 애플리케이션 계정을 분리하여 생성
+- 애플리케이션은 전용 DB 계정을 사용하여 접근
+- 비밀번호 및 민감 정보는 Ansible Vault로 관리
 
 <br>
 
