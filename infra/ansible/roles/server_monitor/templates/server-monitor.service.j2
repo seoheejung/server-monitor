@@ -7,12 +7,11 @@ Requires=mongod.service
 User={{ app_user }}
 Group={{ app_group }}
 
-# Python import 기준 루트는 /opt/server-monitor 여야 함
+# Python import 루트는 /opt/server-monitor 여야 app.main:app가 동작
 WorkingDirectory={{ app_root }}
 
 EnvironmentFile={{ env_file }}
 
-# app 패키지 기준으로 실행
 ExecStart={{ venv_path }}/bin/uvicorn app.main:app --host ${HOST} --port ${PORT}
 
 Restart=always

@@ -1,14 +1,14 @@
 ---
 # 기존 애플리케이션 배포 잔재 제거
 - name: Remove existing application deploy directory
-  # 이전 배포에서 남은 파일 때문에 app 패키지 구조가 중복되지 않도록 먼저 삭제
+  # 이전 배포 잔재 때문에 app 패키지 구조가 꼬이지 않도록 app 디렉토리만 제거
   ansible.builtin.file:
     path: "{{ app_dir }}"
     state: absent
 
 # FastAPI 애플리케이션 배치 경로 생성
 - name: Create application deploy directory
-  # 비워진 경로에 새 배포 디렉토리 생성
+  # 비워진 app 디렉토리를 다시 생성
   ansible.builtin.file:
     path: "{{ app_dir }}"
     state: directory
@@ -18,7 +18,7 @@
 
 # Python 3.13 바이너리 존재 여부 확인
 - name: Check Python 3.13 exists
-  # 시스템 기본 python3는 유지하고, 별도 설치한 python3.13 존재 여부만 확인
+  # 시스템 기본 python3는 유지하고 별도 설치한 python3.13만 확인
   ansible.builtin.stat:
     path: "{{ python313_bin }}"
   register: python313_binary
@@ -34,31 +34,68 @@
 
 # Python 3.13 소스 압축 해제
 - name: Extract Python 3.13 source
-  # 다운로드한 소스를 빌드 경로에 압축 해제
+  # 다운로드한 tgz를 빌드 디렉토리에 압축 해제
   ansible.builtin.unarchive:
     src: "/usr/local/src/Python-{{ python313_version }}.tgz"
     dest: /usr/local/src/
     remote_src: true
   when: not python313_binary.stat.exists
 
-# Python 3.13 빌드 및 설치
-- name: Build and install Python 3.13
-  # 시스템 python 교체 없이 altinstall 방식으로 python3.13만 추가 설치
+# Python 3.13 configure
+- name: Configure Python 3.13 build
+  # 소스 configure 실행
   ansible.builtin.command:
-    cmd: ./configure --enable-optimizations && make -j2 && make altinstall
+    argv:
+      - ./configure
+      - --enable-optimizations
     chdir: "/usr/local/src/Python-{{ python313_version }}"
   when: not python313_binary.stat.exists
 
-# 기존 가상환경 제거
-- name: Remove existing virtualenv
-  # Python 3.9 기반 기존 venv가 남아 있으면 새 3.13 venv와 충돌하므로 제거
+# Python 3.13 make
+- name: Build Python 3.13
+  # 컴파일 수행
+  ansible.builtin.command:
+    argv:
+      - make
+      - -j2
+    chdir: "/usr/local/src/Python-{{ python313_version }}"
+  when: not python313_binary.stat.exists
+
+# Python 3.13 altinstall
+- name: Install Python 3.13 with altinstall
+  # 시스템 python 교체 없이 python3.13만 추가 설치
+  ansible.builtin.command:
+    argv:
+      - make
+      - altinstall
+    chdir: "/usr/local/src/Python-{{ python313_version }}"
+  when: not python313_binary.stat.exists
+
+# 기존 venv 존재 여부 확인
+- name: Check existing virtualenv python
+  # 기존 venv가 있으면 python 버전을 확인
+  ansible.builtin.command:
+    argv:
+      - "{{ venv_path }}/bin/python"
+      - --version
+  register: existing_venv_python
+  changed_when: false
+  failed_when: false
+
+# 기존 venv 제거
+- name: Remove existing virtualenv when version is not Python 3.13
+  # venv가 없거나 다른 버전이면 새로 만들기 위해 제거
   ansible.builtin.file:
     path: "{{ venv_path }}"
     state: absent
+  when:
+    - existing_venv_python.rc != 0
+      or "Python 3.13" not in existing_venv_python.stdout
+      and "Python 3.13" not in existing_venv_python.stderr
 
 # 애플리케이션 코드 배치
 - name: Copy application source
-  # web 전체를 복사해서 app 패키지 구조 유지
+  # web 전체를 복사해서 app 패키지 구조를 유지
   ansible.builtin.copy:
     src: /home/rockylinux/server-monitor/web/
     dest: "{{ app_root }}/"
@@ -66,28 +103,6 @@
     group: "{{ app_group }}"
     mode: preserve
     remote_src: true
-  notify: Restart server-monitor
-
-# run.py 배치
-- name: Copy run.py
-  # web 전체 복사에 포함되더라도 명시적으로 최신 run.py를 한 번 더 보장
-  ansible.builtin.copy:
-    src: /home/rockylinux/server-monitor/web/run.py
-    dest: "{{ app_root }}/run.py"
-    owner: "{{ app_user }}"
-    group: "{{ app_group }}"
-    mode: "0644"
-    remote_src: true
-  notify: Restart server-monitor
-
-# requirements 설치
-- name: Install Python requirements
-  # Python 3.13 기반 venv를 생성하고 requirements를 설치
-  ansible.builtin.pip:
-    requirements: /home/rockylinux/server-monitor/web/requirements.txt
-    virtualenv: "{{ venv_path }}"
-    virtualenv_python: "{{ python313_bin }}"
-    state: present
   notify: Restart server-monitor
 
 # 환경 변수 파일 배치
@@ -99,6 +114,16 @@
     owner: "{{ app_user }}"
     group: "{{ app_group }}"
     mode: "0600"
+  notify: Restart server-monitor
+
+# requirements 설치
+- name: Install Python requirements
+  # Python 3.13 기반 venv를 생성하고 requirements를 설치
+  ansible.builtin.pip:
+    requirements: /home/rockylinux/server-monitor/web/requirements.txt
+    virtualenv: "{{ venv_path }}"
+    virtualenv_python: "{{ python313_bin }}"
+    state: present
   notify: Restart server-monitor
 
 # systemd 서비스 파일 배치
