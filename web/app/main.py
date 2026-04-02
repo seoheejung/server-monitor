@@ -46,10 +46,11 @@ def dashboard(request: Request):
     인증은 로그인 API에서 처리
     """
     response = templates.TemplateResponse(
-        "dashboard.html",
-        {
+        request=request,
+        name="dashboard.html",
+        context={
             "request": request,
-        }
+        },
     )
     return response
 
