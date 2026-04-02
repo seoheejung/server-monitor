@@ -7,6 +7,16 @@ common_packages:
   - python3-devel
   - gcc
   - make
+  - wget
+  - tar
+  - openssl-devel
+  - bzip2-devel
+  - libffi-devel
+  - zlib-devel
+  - xz-devel
+  - readline-devel
+  - sqlite-devel
+  - tk-devel
 
 nginx_listen_port: 80
 
@@ -27,3 +37,8 @@ mongodb_app_database: process_monitor
 # 비밀번호는 vault로 분리
 mongodb_admin_username: admin
 mongodb_app_username: app_user
+
+# server-monitor 전용 Python 3.13 설정
+python313_version: "3.13.3"
+python313_prefix: "/usr/local"
+python313_bin: "/usr/local/bin/python3.13"
