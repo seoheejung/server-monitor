@@ -142,7 +142,7 @@
 ```
 server-monitor/
 ├── docs/            # 설계·정책·네이티브 실행 문서
-├── docker/          # Docker 환경 구성 및 운영 기록
+├── docker/          # Docker 환경 구성 및 운영 기록 (중간 검증 단계, 현재 미사용)
 ├── web/             # FastAPI 웹 애플리케이션
 │   ├── app/         # API 엔트리 및 시스템 분석 로직 및 DB 연결
 │   ├── requirements.txt

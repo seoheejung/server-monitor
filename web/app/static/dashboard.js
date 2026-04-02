@@ -246,14 +246,20 @@ const refreshServices = async () => {
     updateSectionUpdatedAt("services-updated-at", data.updated_at);
 };
 
+// 현재 선택된 로그 서비스
+let currentLogService = "app";
+
 // logs API를 호출해서 로그 영역을 갱신한다.
 const refreshLogs = async () => {
     ensureAuthenticated();
 
-    const response = await fetch("/api/dashboard/logs", {
-        credentials: "same-origin",
-        cache: "no-store",
-    });
+    const response = await fetch(
+        `/api/dashboard/logs?service=${encodeURIComponent(currentLogService)}`,
+        {
+            credentials: "same-origin",
+            cache: "no-store",
+        }
+    );
 
     if (!response.ok) {
         throw new Error(`logs fetch failed: ${response.status}`);
@@ -262,6 +268,21 @@ const refreshLogs = async () => {
     const data = await response.json();
     renderLogs(data.log_source, data.logs);
     updateSectionUpdatedAt("logs-updated-at", data.updated_at);
+};
+
+// 로그 탭 클릭 시 호출
+const changeLogService = async (service) => {
+    currentLogService = service;
+    updateLogTabs(service);
+    await refreshLogs();
+};
+
+// 활성 탭 표시
+const updateLogTabs = (activeService) => {
+    document.querySelectorAll(".log-tab").forEach((tab) => {
+        const isActive = tab.dataset.service === activeService;
+        tab.classList.toggle("active", isActive);
+    });
 };
 
 // 로그 콘솔을 항상 최하단으로 스크롤한다.
@@ -419,6 +440,7 @@ const renderProcesses = (processes) => {
 const refreshDashboard = async () => {
     try {
         setRefreshStatus("RELOADING...");
+        updateLogTabs(currentLogService);
 
         await Promise.all([
             refreshSummary(),

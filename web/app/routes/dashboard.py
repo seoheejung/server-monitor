@@ -9,7 +9,7 @@ from app.services.system.memory import get_memory_usage
 from app.services.system.disk import get_disk_usage
 from app.services.system.uptime import get_uptime
 from app.services.system.service import get_service_status
-from app.services.system.log import get_tail_log
+from app.services.system.log import get_service_log
 from app.services.system.process_analyzer import get_process_list
 from app.core.security import require_admin_cookie
 from app.core.response import build_response
@@ -86,21 +86,21 @@ def dashboard_services():
 
 
 
+
 @router.get("/logs")
 def dashboard_logs(
-    file: Optional[str] = Query(default=None, description="로그 파일 경로"),
+    service: str = Query(default="app", description="로그 대상 서비스"),
     lines: int = Query(default=10, ge=1, le=1000),
 ):
     """
-    로그 조회
-    - 최근 N줄
-    - 파일별 tail
-    - offset 또는 since 기반 조회
+    서비스 로그 조회
+    - journalctl 기반
+    - 허용된 서비스만 조회
     """
-    log_file = file or "/var/log/messages"
-    logs = get_tail_log(log_file, lines, OS_TYPE)
+
+    logs, log_source = get_service_log(service, lines, OS_TYPE)
 
     return build_response({
         "logs": logs,
-        "log_source": log_file,
+        "log_source": log_source,
     })

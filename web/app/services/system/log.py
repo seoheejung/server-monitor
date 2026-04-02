@@ -1,32 +1,55 @@
 import subprocess
 
-def get_tail_log(file_path, lines=10, os_type="Linux"):
+
+SERVICE_LOG_MAP = {
+    "app": "server-monitor",
+    "nginx": "nginx",
+    "docker": "docker",
+    "ssh": "sshd",
+}
+
+
+def get_service_log(service_key: str, lines: int = 10, os_type: str = "Linux"):
     """
-    Linux: tail 명령어를 사용하여 로그 파일의 마지막 N줄 반환
+    Linux:
+    journalctl을 사용하여 systemd 서비스 로그의 마지막 N줄 반환
 
-    - 파일 전체를 읽지 않고 끝에서 필요한 부분만 조회 → 디스크 I/O 최소화
-    - 기존 방식(O(file_size)) 대비 tail -n은 필요한 줄 수 기준으로 동작
+    - 파일 경로 직접 접근 대신 서비스 단위 조회
+    - Rocky Linux Native + systemd 운영 기준에 맞는 방식
+    - 허용된 서비스만 조회하여 임의 명령/경로 입력 차단
 
-    Windows: 미지원 안내 반환
+    Windows:
+    미지원 안내 반환
     """
     if os_type != "Linux":
-        return ["log tail is supported on Linux only"]
+        return ["service log is supported on Linux only"], service_key
+
+    unit_name = SERVICE_LOG_MAP.get(service_key)
+
+    if not unit_name:
+        return [f"Error: unsupported service ({service_key})"], service_key
 
     try:
-        # tail -n: 파일 전체를 읽지 않고 끝에서부터 필요한 N줄만 읽음 (I/O 비용 최소화)
         result = subprocess.run(
-            ["tail", "-n", str(lines), file_path],
-            capture_output=True,  # stdout/stderr 캡처
-            text=True             # 결과를 문자열로 반환
+            ["journalctl", "-u", unit_name, "-n", str(lines), "--no-pager"],
+            capture_output=True,
+            text=True
         )
 
-        # tail 실행 실패 시 stderr 메시지 반환
         if result.returncode != 0:
-            return [f"Error: {result.stderr.strip()}"]
+            stderr = result.stderr.strip()
 
-        # 개행 기준으로 나누고 빈 줄 제거 (UI 표시 품질)
-        return [line for line in result.stdout.splitlines() if line]
+            if "permission" in stderr.lower():
+                return [f"Error: permission denied for {unit_name}"], unit_name
+
+            return [f"Error: {stderr}"], unit_name
+
+        logs = [line for line in result.stdout.splitlines() if line]
+
+        if not logs:
+            return ["No logs found"], unit_name
+
+        return logs, unit_name
 
     except Exception as e:
-        # 내부 에러 노출 제한 (보안 및 응답 길이 제어)
-        return [f"Error: {str(e)[:30]}"]
+        return [f"Error: {str(e)[:100]}"], unit_name

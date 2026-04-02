@@ -62,7 +62,7 @@ psutil / systemctl / /proc / 권한 제약이 <br>
 
 ### 2. 시스템 접근 가능 범위 확인
 - /proc 기반 프로세스 / 포트 수집 가능 여부
-- 로그 파일 직접 접근 가능 여부
+- systemd journal 접근 가능 여부
 - systemctl 사용 가능 여부 및 fallback 로직 검증
 
 ### 3. Python / psutil 의존성 검증
@@ -100,8 +100,8 @@ psutil / systemctl / /proc / 권한 제약이 <br>
 - root / 일반 사용자 권한 차이 확인
 
 ### 4. 로그
-- `/var/log/messages` tail 가능 여부
-- Linux 전용 기능 정상 동작 확인
+- systemd 기반 서비스 로그 조회 (`journalctl`)
+- 서비스 단위 로그 정상 조회 가능 여부 확인
 
 ### 5. 서비스 상태
 - `systemctl` 사용 가능 시 → `systemctl` 결과
@@ -195,9 +195,10 @@ journalctl -u server-monitor -n 100 --no-pager
 
 #### OS 의존 기능 확인
 - /proc 기반 프로세스/포트 수집
-- /var/log/messages tail 가능
 - psutil 기반 CPU/Memory/Disk/Uptime 수집
 - root / non-root 실행 시 차이 확인
+- systemd 기반 서비스 로그 조회 (journalctl)
+
 #### 네트워크 및 포트 확인
 - firewall-cmd --list-ports로 서비스 포트 확인
   - 80/tcp (외부 허용)
@@ -248,7 +249,7 @@ journalctl -u server-monitor -n 100 --no-pager
 | CPU / Memory / Disk | psutil 스크립트               | 값 수집 가능          |
 | 프로세스 목록             | psutil                    | 실행 프로세스 확인       |
 | 포트 수집               | psutil.connections        | root 기준 모든 포트 확인 |
-| 로그 tail             | tail -f /var/log/messages | 로그 출력 정상         |
+| 서비스 로그 조회         | journalctl -u server-monitor | 로그 출력 정상 |
 | 서비스 상태              | systemctl is-active       | active           |
 | 포트 방화벽              | firewall-cmd              | 필요한 포트만 열림       |
 | systemd 자동 시작       | systemctl is-enabled      | enabled          |
@@ -328,9 +329,16 @@ Native 기능 검증
 
 - `/proc` 기반 프로세스 수집
 - root / 일반 사용자 차이
-- `/var/log/messages` tail
+- `journalctl -u server-monitor` 기반 로그 조회
 - `systemctl` 상태 조회
 - 포트/방화벽 확인
+
+#### 서비스 로그 확인
+```
+journalctl -u server-monitor -n 100 --no-pager
+journalctl -u nginx -n 50 --no-pager
+journalctl -u sshd -n 50 --no-pager
+```
 
 ### 8단계
 
