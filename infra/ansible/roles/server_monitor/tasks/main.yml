@@ -6,7 +6,7 @@
     state: directory
     owner: "{{ app_user }}"
     group: "{{ app_group }}"
-    mode: '0755'
+    mode: "0755"
 
 # 애플리케이션 코드 배치
 - name: Copy application source
@@ -26,7 +26,7 @@
     dest: "{{ app_root }}/run.py"
     owner: "{{ app_user }}"
     group: "{{ app_group }}"
-    mode: '0644'
+    mode: "0644"
     remote_src: true
   notify: Restart server-monitor
 
@@ -46,7 +46,7 @@
     dest: "{{ env_file }}"
     owner: "{{ app_user }}"
     group: "{{ app_group }}"
-    mode: '0600'
+    mode: "0600"
   notify: Restart server-monitor
 
 # systemd 서비스 파일 배치
@@ -54,10 +54,14 @@
   ansible.builtin.template:
     src: server-monitor.service.j2
     dest: "/etc/systemd/system/{{ service_name }}.service"
-    mode: '0644'
+    mode: "0644"
   notify:
     - Reload systemd
     - Restart server-monitor
+
+# 검증 전에 systemd reload / 서비스 restart를 먼저 반영
+- name: Apply pending handlers before verification
+  ansible.builtin.meta: flush_handlers
 
 # 서비스 자동 시작 등록 + 실행 보장
 - name: Ensure service is enabled and started
@@ -65,6 +69,7 @@
     name: "{{ service_name }}"
     enabled: true
     state: started
+    daemon_reload: true
 
 # systemd 유닛 파일 존재 확인
 - name: Check systemd unit file exists
@@ -83,7 +88,10 @@
 # 서비스 enable 상태 확인
 - name: Check service is enabled
   ansible.builtin.command:
-    cmd: "systemctl is-enabled {{ service_name }}"
+    argv:
+      - systemctl
+      - is-enabled
+      - "{{ service_name }}"
   register: service_enabled_result
   changed_when: false
 
@@ -91,21 +99,29 @@
 - name: Assert service is enabled
   ansible.builtin.assert:
     that:
-      - service_enabled_result.stdout == "enabled"
+      - service_enabled_result.stdout | trim == "enabled"
     fail_msg: "service is not enabled."
     success_msg: "service is enabled."
 
 # 서비스 active 상태 확인
 - name: Check service is active
+  # 서비스 시작 직후 activating 상태일 수 있으므로 active가 될 때까지 재시도
   ansible.builtin.command:
-    cmd: "systemctl is-active {{ service_name }}"
+    argv:
+      - systemctl
+      - is-active
+      - "{{ service_name }}"
   register: service_active_result
   changed_when: false
+  failed_when: false
+  retries: 10
+  delay: 3
+  until: service_active_result.stdout | trim == "active"
 
-# 서비스 active 검증
+# 서비스 active 최종 검증
 - name: Assert service is active
   ansible.builtin.assert:
     that:
-      - service_active_result.stdout == "active"
-    fail_msg: "service is not active."
+      - service_active_result.stdout | trim == "active"
+    fail_msg: "service is not active. current state={{ service_active_result.stdout | trim }}"
     success_msg: "service is active."

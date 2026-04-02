@@ -199,13 +199,21 @@ journalctl -u server-monitor -n 100 --no-pager
 ### 4. MongoDB 인증 검증
 #### 관리자 계정 로그인 확인
 ```
-mongosh -u <admin_user> -p <admin_password> --authenticationDatabase admin
+mongosh --host 127.0.0.1 --port 27017 \
+  -u "admin" \
+  -p "admin1234" \
+  --authenticationDatabase admin \
+  --eval 'db.runCommand({ connectionStatus: 1 })'
 ```
 - 로그인 성공 체크
 - Authentication failed 로그 발생 시 비정상
 #### 애플리케이션 계정 로그인 확인
 ```
-mongosh -u <app_user> -p <app_password> --authenticationDatabase process_monitor
+mongosh --host 127.0.0.1 --port 27017 \
+  -u "app_user" \
+  -p "vault에 넣은 앱 비밀번호" \
+  --authenticationDatabase process_monitor \
+  --eval 'db.runCommand({ connectionStatus: 1 })'
 ```
 - 로그인 성공 체크
 - Authentication failed 로그 발생 시 비정상
