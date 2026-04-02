@@ -147,15 +147,24 @@ git clone <repo_url> /home/rockylinux/server-monitor/
 
 
 ### 2. Ansible 배포
+
+#### Vault 변수 파일 생성
+
+```bash
+cd infra/ansible/inventory/group_vars/all
+cp vault.yml.example vault.yml
+ansible-vault encrypt vault.yml
+```
+
 #### 레포 경로에서 Ansible 실행
 ```
 cd /home/rockylinux/server-monitor/infra/ansible
 
 # 서버 기본 구성
-ansible-playbook -i inventory/local.ini playbooks/setup.yml
+ansible-playbook -i inventory/local.ini playbooks/setup.yml --ask-vault-pass
 
 # server-monitor 배치
-ansible-playbook -i inventory/local.ini playbooks/server_monitor.yml
+ansible-playbook -i inventory/local.ini playbooks/server_monitor.yml --ask-vault-pass
 ```
 #### 결과 확인
 - 오류 없이 완료

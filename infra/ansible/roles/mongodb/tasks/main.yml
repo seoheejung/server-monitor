@@ -28,6 +28,10 @@
     mode: "0644"
   notify: Restart mongod
 
+- name: Apply mongod restart immediately when config changed
+  # 이후 사용자 생성/검사가 최신 설정 기준으로 동작하도록 즉시 반영
+  ansible.builtin.meta: flush_handlers
+
 - name: Ensure mongod is enabled and started
   # 부팅 시 자동 시작 + 현재 실행 상태 보장
   ansible.builtin.systemd:
@@ -42,23 +46,15 @@
     port: 27017
     timeout: 30
 
-- name: Check admin user exists without auth
-  # 최초 상태에서는 localhost 예외로 admin 사용자 존재 여부 확인 가능
+- name: Check admin authentication
+  # 재실행 상태에서는 vault 값으로 바로 인증되는지 먼저 확인
   ansible.builtin.command:
     argv:
       - mongosh
-      - --quiet
-      - --eval
-      - 'db.getSiblingDB("admin").getUser("{{ mongodb_admin_username }}") ? "exists" : "missing"'
-  register: mongodb_admin_user_check
-  changed_when: false
-  failed_when: false
-
-- name: Check admin user exists with auth
-  # 인증이 이미 활성화된 재실행 상태에서는 관리자 인증으로 다시 확인
-  ansible.builtin.command:
-    argv:
-      - mongosh
+      - --host
+      - 127.0.0.1
+      - --port
+      - "27017"
       - --quiet
       - --username
       - "{{ mongodb_admin_username }}"
@@ -67,17 +63,38 @@
       - --authenticationDatabase
       - admin
       - --eval
-      - 'db.getSiblingDB("admin").getUser("{{ mongodb_admin_username }}") ? "exists" : "missing"'
-  register: mongodb_admin_user_check_auth
+      - 'db.runCommand({ connectionStatus: 1 }).ok'
+  register: mongodb_admin_auth_check
   changed_when: false
-  when: "'not authorized' in mongodb_admin_user_check.stderr"
+  failed_when: false
   no_log: true
-  
-- name: Create admin user
-  # 관리자 계정이 없을 때만 생성
+
+- name: Check admin user exists without auth
+  # auth 실패 시에만 localhost 기준으로 bootstrap 가능 여부 확인
   ansible.builtin.command:
     argv:
       - mongosh
+      - --host
+      - 127.0.0.1
+      - --port
+      - "27017"
+      - --quiet
+      - --eval
+      - 'db.getSiblingDB("admin").getUser("{{ mongodb_admin_username }}") ? "exists" : "missing"'
+  register: mongodb_admin_user_check_noauth
+  changed_when: false
+  failed_when: false
+  when: mongodb_admin_auth_check.rc != 0
+
+- name: Create admin user
+  # admin 사용자가 하나도 없는 최초 상태에서만 vault 값으로 자동 생성
+  ansible.builtin.command:
+    argv:
+      - mongosh
+      - --host
+      - 127.0.0.1
+      - --port
+      - "27017"
       - --quiet
       - --eval
       - >-
@@ -85,21 +102,85 @@
           user: "{{ mongodb_admin_username }}",
           pwd: "{{ mongodb_admin_password }}",
           roles: [
-            { role: "userAdminAnyDatabase", db: "admin" },
-            { role: "readWriteAnyDatabase", db: "admin" }
+            { role: "root", db: "admin" }
           ]
         })
   when:
-  - mongodb_admin_user_check.stdout | trim == "missing"
-  - "'not authorized' not in mongodb_admin_user_check.stderr"
+    - mongodb_admin_auth_check.rc != 0
+    - mongodb_admin_user_check_noauth.stdout | trim == "missing"
+    - "'not authorized' not in mongodb_admin_user_check_noauth.stderr"
   changed_when: true
   no_log: true
+
+- name: Re-check admin authentication after bootstrap
+  # 최초 생성 직후에는 동일한 vault 값으로 인증이 실제 성공하는지 재검증
+  ansible.builtin.command:
+    argv:
+      - mongosh
+      - --host
+      - 127.0.0.1
+      - --port
+      - "27017"
+      - --quiet
+      - --username
+      - "{{ mongodb_admin_username }}"
+      - --password
+      - "{{ mongodb_admin_password }}"
+      - --authenticationDatabase
+      - admin
+      - --eval
+      - 'db.runCommand({ connectionStatus: 1 }).ok'
+  register: mongodb_admin_auth_check_after_bootstrap
+  changed_when: false
+  failed_when: false
+  when:
+    - mongodb_admin_auth_check.rc != 0
+    - mongodb_admin_user_check_noauth.stdout | trim == "missing"
+    - "'not authorized' not in mongodb_admin_user_check_noauth.stderr"
+  no_log: true
+
+- name: Fail when existing admin credentials do not match vault values
+  # admin 사용자는 이미 있는데 vault 값이 틀린 경우 자동 생성이 아니라 명확히 실패해야 함
+  ansible.builtin.fail:
+    msg: >-
+      MongoDB admin user already exists, but the credentials in vault.yml do not match.
+      Check mongodb_admin_username and mongodb_admin_password.
+  when:
+    - mongodb_admin_auth_check.rc != 0
+    - mongodb_admin_user_check_noauth is defined
+    - mongodb_admin_user_check_noauth.stdout | trim != "missing"
+      or "'not authorized' in mongodb_admin_user_check_noauth.stderr"
+
+- name: Set admin auth success flag
+  # 이후 app user 작업에서 사용할 최종 인증 성공 여부 정리
+  ansible.builtin.set_fact:
+    mongodb_admin_auth_ok: >-
+      {{
+        (mongodb_admin_auth_check.rc == 0)
+        or
+        (
+          mongodb_admin_auth_check_after_bootstrap is defined
+          and mongodb_admin_auth_check_after_bootstrap.rc == 0
+        )
+      }}
+
+- name: Fail if admin authentication is still not available
+  # bootstrap 후에도 인증이 안 되면 더 진행하지 않음
+  ansible.builtin.fail:
+    msg: >-
+      MongoDB admin authentication is still failing after bootstrap.
+      Check mongod.conf auth settings and vault credentials.
+  when: not mongodb_admin_auth_ok
 
 - name: Check app user exists
   # 앱 계정 존재 여부는 관리자 인증 후 확인
   ansible.builtin.command:
     argv:
       - mongosh
+      - --host
+      - 127.0.0.1
+      - --port
+      - "27017"
       - --quiet
       - --username
       - "{{ mongodb_admin_username }}"
@@ -118,6 +199,10 @@
   ansible.builtin.command:
     argv:
       - mongosh
+      - --host
+      - 127.0.0.1
+      - --port
+      - "27017"
       - --quiet
       - --username
       - "{{ mongodb_admin_username }}"
