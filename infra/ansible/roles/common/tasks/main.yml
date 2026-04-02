@@ -1,4 +1,19 @@
 ---
+# server-monitor 그룹 생성
+- name: Create server-monitor group
+  ansible.builtin.group:
+    name: server-monitor
+    state: present
+
+# server-monitor 사용자 생성
+- name: Create server-monitor user
+  ansible.builtin.user:
+    name: server-monitor
+    group: server-monitor
+    system: true
+    create_home: false
+    shell: /sbin/nologin
+
 # 기본 패키지 설치
 - name: Install basic packages (Linux)
   ansible.builtin.dnf:

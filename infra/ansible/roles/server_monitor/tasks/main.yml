@@ -8,6 +8,37 @@
     group: "{{ app_group }}"
     mode: '0755'
 
+# 애플리케이션 코드 배치
+- name: Copy application source
+  ansible.builtin.copy:
+    src: /home/rockylinux/server-monitor/web/app/
+    dest: "{{ app_dir }}/"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: preserve
+    remote_src: true
+  notify: Restart server-monitor
+
+# run.py 배치
+- name: Copy run.py
+  ansible.builtin.copy:
+    src: /home/rockylinux/server-monitor/web/run.py
+    dest: "{{ app_root }}/run.py"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0644'
+    remote_src: true
+  notify: Restart server-monitor
+
+# requirements 설치
+- name: Install Python requirements
+  ansible.builtin.pip:
+    requirements: /home/rockylinux/server-monitor/web/requirements.txt
+    virtualenv: "{{ venv_path }}"
+    virtualenv_python: python3
+    state: present
+  notify: Restart server-monitor
+
 # 환경 변수 파일 배치
 - name: Deploy environment file
   ansible.builtin.template:
@@ -16,6 +47,7 @@
     owner: "{{ app_user }}"
     group: "{{ app_group }}"
     mode: '0600'
+  notify: Restart server-monitor
 
 # systemd 서비스 파일 배치
 - name: Deploy systemd service
@@ -23,17 +55,16 @@
     src: server-monitor.service.j2
     dest: "/etc/systemd/system/{{ service_name }}.service"
     mode: '0644'
+  notify:
+    - Reload systemd
+    - Restart server-monitor
 
-# systemd 설정 반영
-- name: Reload systemd daemon
+# 서비스 자동 시작 등록 + 실행 보장
+- name: Ensure service is enabled and started
   ansible.builtin.systemd:
-    daemon_reload: true
-
-# 서비스 자동 시작 등록
-- name: Enable service
-  ansible.builtin.service:
     name: "{{ service_name }}"
     enabled: true
+    state: started
 
 # systemd 유닛 파일 존재 확인
 - name: Check systemd unit file exists
@@ -41,7 +72,7 @@
     path: "/etc/systemd/system/{{ service_name }}.service"
   register: systemd_unit_file
 
-# 유닛 파일이 실제로 생성되었는지 검증
+# 유닛 파일 검증
 - name: Assert systemd unit file exists
   ansible.builtin.assert:
     that:
@@ -56,10 +87,25 @@
   register: service_enabled_result
   changed_when: false
 
-# 서비스가 enable 상태인지 검증
+# 서비스 enable 검증
 - name: Assert service is enabled
   ansible.builtin.assert:
     that:
       - service_enabled_result.stdout == "enabled"
     fail_msg: "service is not enabled."
     success_msg: "service is enabled."
+
+# 서비스 active 상태 확인
+- name: Check service is active
+  ansible.builtin.command:
+    cmd: "systemctl is-active {{ service_name }}"
+  register: service_active_result
+  changed_when: false
+
+# 서비스 active 검증
+- name: Assert service is active
+  ansible.builtin.assert:
+    that:
+      - service_active_result.stdout == "active"
+    fail_msg: "service is not active."
+    success_msg: "service is active."

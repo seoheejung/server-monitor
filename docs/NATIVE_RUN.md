@@ -139,10 +139,10 @@ git clone <repo_url> /home/rockylinux/server-monitor/
 cd /home/rockylinux/server-monitor/infra/ansible
 
 # 서버 기본 구성
-ansible-playbook -i inventory/local.ini setup.yml
+ansible-playbook -i inventory/local.ini playbooks/setup.yml
 
 # server-monitor 배치
-ansible-playbook -i inventory/local.ini server_monitor.yml
+ansible-playbook -i inventory/local.ini playbooks/server_monitor.yml
 ```
 #### 결과 확인
 - 오류 없이 완료
@@ -154,9 +154,13 @@ ansible-playbook -i inventory/local.ini server_monitor.yml
 ### 3. Native 환경 실행 검증
 #### 서비스 시작/상태 확인
 ```
-systemctl start server-monitor
 systemctl status server-monitor
-systemctl enable server-monitor
+systemctl is-enabled server-monitor
+systemctl is-active server-monitor
+
+ss -tunlp | grep 8000
+curl http://127.0.0.1:8000/
+journalctl -u server-monitor -n 100 --no-pager
 ```
 #### FastAPI 접속 확인
 - 브라우저에서 http://<server_ip>:<port>/ 접속

@@ -10,7 +10,8 @@
 
 - [Ansible 디렉토리 구조](#ansible-디렉토리-구조)
 - [Ansible 적용 단계](#ansible-적용-단계)
-- [Ansible과 프로젝트의 경계 요약](#ansible과-프로젝트의-경계-요약)
+- [Ansible 배포 적용 순서](#ansible-배포-적용-순서)
+- [Ansible과 프로젝트의 경계](#ansible과-프로젝트의-경계)
 - [Ansible 사용을 위한 초기 준비 절차 (Bootstrap)](#ansible-사용을-위한-초기-준비-절차-bootstrap)
 - [로컬 검증 방법](#로컬-검증-방법)
 - [이후 작업](#이후-작업)
@@ -176,6 +177,69 @@ WantedBy=multi-user.target
 ```
 
 ---
+
+## Ansible 배포 적용 순서
+
+### 전체 순서
+```
+common → security → mongodb → nginx → server_monitor
+```
+
+<br>
+
+### common role
+1. server-monitor 그룹 생성  
+2. server-monitor 사용자 생성  
+3. 기본 패키지 설치 (python3, pip, git 등)  
+4. `/opt/server-monitor` 루트 디렉토리 생성  
+5. `logs`, `data`, `scripts` 하위 디렉토리 생성  
+6. Python virtualenv 생성 (`/opt/server-monitor/venv`)  
+7. 디렉토리 소유권 및 권한 설정  
+
+<br>
+
+### security role
+1. root SSH 로그인 비활성화  
+2. 운영 계정 SSH 접근 허용 설정  
+3. SSH 키 기반 인증 설정  
+4. firewalld 활성화  
+5. 기본 포트 허용 (22, 80, 443, 필요 시 8000)  
+6. 불필요 포트 차단  
+
+<br>
+
+### mongodb role
+1. MongoDB repository 등록  
+2. MongoDB 패키지 설치  
+3. mongod 설정 파일 배치 (`mongod.conf`)  
+4. mongod 서비스 enable 및 started 보장  
+5. 관리자 계정 생성  
+6. 애플리케이션 계정 생성  
+7. 인증(`authorization`) 활성화  
+8. mongod 서비스 재시작  
+
+<br>
+
+### nginx role
+1. Nginx 패키지 설치  
+2. nginx 설정 파일 배치 (`nginx.conf`)  
+3. FastAPI upstream 설정 정의 (서비스 실행 전 설정)
+4. reverse proxy 경로 설정  
+5. 서비스 daemon reload  
+6. nginx 서비스 enable 및 started 보장  
+
+<br>
+
+### server_monitor role
+1. 배포 디렉토리 생성  
+2. 소스 코드 복사 (`/home/rockylinux/server-monitor/web/app → /opt/server-monitor/app`)  
+3. requirements 설치 (venv 기준)  
+4. `.env` 파일 배치  
+5. systemd unit 파일 배치  
+6. daemon reload 수행  
+7. service enable 및 started/restarted 상태 보장  
+
+---
 <br>
 
 ## Ansible과 프로젝트의 경계
@@ -332,26 +396,28 @@ ansible.posix 2.1.0
 
 <br>
 
-#### 7. ansible.cfg 설정 (roles / collections 경로 고정)
+### 7. ansible.cfg 설정 (roles / collections 경로 고정)
 
-- 컬렉션과 roles를 설치했더라도, Ansible이 해당 경로를 명시적으로 인식하지 못하면 실행에 실패한다.
+- roles와 collections 경로를 명시적으로 지정하면 실행 환경 차이로 인한 탐색 문제를 줄일 수 있다.
 
 #### `infra/ansible/ansible.cfg`
 ```
 [defaults]
 inventory = ./inventory
 roles_path = ./roles
-collections_paths = ~/.ansible/collections:/usr/share/ansible/collections
+collections_path = ~/.ansible/collections:/usr/share/ansible/collections
 ```
 
 - `roles_path`: playbooks 하위가 아닌 상위 roles/ 디렉토리 사용
 - `collections_paths`: 사용자 컬렉션 우선, 시스템 전역 컬렉션 fallback
 - 실행 디렉토리 기준 상대 경로 사용
 
-> 이 설정이 없을 경우 컬렉션을 설치했더라도 모듈을 찾지 못하는 문제가 발생할 수 있다.
+> 이 설정이 없더라도 기본 경로에서 동작할 수 있다.   
+> 다만 프로젝트 내 roles/collections 경로를 명시적으로 고정하지 않으면   
+> 실행 환경에 따라 모듈 또는 role 탐색 결과가 달라질 수 있다.
 
 #### 컬렉션 모듈 사용 원칙
-- Ansible 2.14 기준, 컬렉션 모듈은 FQCN(Fully Qualified Collection Name) 사용을 원칙으로 한다.
+- Ansible 2.14 기준, 컬렉션 모듈은 FQCN(Fully Qualified Collection Name) 사용을 권장한다.
 
 #### `roles/common/tasks/main.yml`
 ```
@@ -443,9 +509,8 @@ ansible all -i inventory/local.ini -m ping
 ## 이후 작업
 
 ### 1. 애플리케이션 배치 자동화 확장
-- `server_monitor.yml` 기준 배치 로직 고도화
-  - Git clone / pull 전략 정리
-  - requirements.txt 변경 감지 시 venv 재구성 여부 판단
+- Git clone / pull 전략 정리
+- requirements.txt 변경 감지 시 venv 재구성 여부 판단
 - FastAPI 실행 옵션 표준화
   - worker 수
   - log level
@@ -454,7 +519,6 @@ ansible all -i inventory/local.ini -m ping
 <br>
 
 ### 2. systemd 서비스 운영 안정화
-- systemd unit 템플릿 분리 및 변수화
 - restart 정책 세분화
   - 실패 횟수 기준
   - 재시작 간격
@@ -471,14 +535,7 @@ ansible all -i inventory/local.ini -m ping
 
 <br>
 
-### 4. 운영 환경 분리
-- dev / prod inventory 분리 강화
-- group_vars 기준 환경별 설정 차등 적용
-- 테스트 서버 → 운영 서버 전환 시 재현성 검증
-
-<br>
-
-### 5. 관측 및 운영 보조 도구 연계 (선택)
+### 4. 관측 및 운영 보조 도구 연계 (선택)
 - 로그 수집기 연동 여부 검토
 - 메트릭 수집(Prometheus 등) 도입 가능성 검토
 - 장애 발생 시 Ansible 재적용 기준 명확화
