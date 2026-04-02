@@ -168,7 +168,7 @@ User=server-monitor
 Group=server-monitor
 WorkingDirectory=/opt/server-monitor/app
 EnvironmentFile=/opt/server-monitor/app/.env
-ExecStart=/opt/server-monitor/venv/bin/uvicorn app.main:app --host ${HOST} --port ${PORT}
+ExecStart=/opt/server-monitor/venv/bin/uvicorn main:app --host ${HOST} --port ${PORT}
 Restart=always
 RestartSec=3
 

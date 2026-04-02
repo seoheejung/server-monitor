@@ -9,10 +9,9 @@ Group={{ app_group }}
 WorkingDirectory={{ app_dir }}
 EnvironmentFile={{ env_file }}
 
-# .env에 정의된 HOST, PORT 값을 사용
-ExecStart={{ venv_path }}/bin/uvicorn app.main:app --host ${HOST} --port ${PORT}
+# app_dir 바로 아래에 main.py가 배치되는 구조 기준
+ExecStart={{ venv_path }}/bin/uvicorn main:app --host ${HOST} --port ${PORT}
 
-# 비정상 종료 시 자동 재시작
 Restart=always
 RestartSec=3
 
