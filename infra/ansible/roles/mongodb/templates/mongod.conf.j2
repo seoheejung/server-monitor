@@ -1,26 +1,22 @@
-# MongoDB 기본 설정 파일
-
+# MongoDB 저장 경로 설정
 storage:
-  # MongoDB 기본 데이터 저장 경로
   dbPath: /var/lib/mongo
 
+# MongoDB 로그 파일 설정
 systemLog:
   destination: file
   logAppend: true
   path: /var/log/mongodb/mongod.log
 
+# 로컬 서버 전용 포트/바인딩 설정
 net:
   port: 27017
-
-  # 운영 서버에서는 로컬 앱만 붙는 구조이므로 외부 직접 접근 차단, 로컬 루프백만 허용
   bindIp: 127.0.0.1
 
+# 프로세스 기본 설정
 processManagement:
-  # systemd 환경에서 포그라운드 실행
-  fork: false
+  timeZoneInfo: /usr/share/zoneinfo
 
-{% if mongodb_auth_enabled %}
+# 인증 활성화 여부를 Ansible 변수로 제어
 security:
-  # 인증 활성화
-  authorization: enabled
-{% endif %}
+  authorization: {{ 'enabled' if mongodb_auth_enabled | bool else 'disabled' }}

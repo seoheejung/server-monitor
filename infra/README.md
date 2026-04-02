@@ -211,12 +211,13 @@ common → security → mongodb → nginx → server_monitor
 ### mongodb role
 1. MongoDB repository 등록  
 2. MongoDB 패키지 설치  
-3. mongod 설정 파일 배치 (`mongod.conf`)  
-4. mongod 서비스 enable 및 started 보장  
+3. mongod.conf(auth disabled) 배포
+4. mongod 시작 
 5. 관리자 계정 생성  
 6. 애플리케이션 계정 생성  
-7. 인증(`authorization`) 활성화  
-8. mongod 서비스 재시작  
+7. mongod.conf(auth enabled) 재배포
+8. mongod 재시작
+9. admin auth 검증
 
 <br>
 
